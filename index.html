@@ -25,7 +25,14 @@ body { margin:0; font-family: Arial; background:#f4f6f8; }
   border-radius:8px; margin-bottom:20px;
 }
 
-input, select { padding:8px; margin:5px; }
+input, select {
+  padding:8px;
+  margin:5px 0;
+  width:100%;
+}
+
+.row { display:flex; gap:10px; }
+.row input { flex:1; }
 
 button {
   padding:6px 10px;
@@ -34,8 +41,10 @@ button {
 }
 
 button.acao {
-  background:#2F4EA1; color:white;
-  border:none; border-radius:4px;
+  background:#2F4EA1;
+  color:white;
+  border:none;
+  border-radius:4px;
 }
 
 .hora {
@@ -59,21 +68,26 @@ button.acao {
 <div class="menu">
   <button class="ativo" onclick="trocarAba('consulta', this)">Agendamento</button>
   <button onclick="trocarAba('cadastro', this)">Prestadores</button>
+  <button onclick="trocarAba('painel', this)">Painel</button>
 </div>
 
 <div class="conteudo">
 
 <!-- AGENDAMENTO -->
 <div id="consulta" class="aba ativa">
+
   <div class="card">
     <input id="enderecoBusca" placeholder="Endereço ou CEP">
     <button class="acao" onclick="buscar()">Buscar</button>
   </div>
 
   <div id="fluxo-agendamento" style="display:none;">
+
     <div class="card" id="prestadorSelecionado"></div>
 
     <div class="card">
+      <h3>Produtos</h3>
+
       <select id="produto"></select>
       <input type="number" id="quantidade" placeholder="Qtd">
       <button class="acao" onclick="adicionarItem()">Adicionar</button>
@@ -81,26 +95,66 @@ button.acao {
       <div id="lista-itens"></div>
       <p>Total: <strong id="tempoTotal">0h</strong></p>
     </div>
+
+    <div class="card">
+      <button class="acao" onclick="concluirAgendamento()">Concluir</button>
+    </div>
+
   </div>
+
 </div>
 
 <!-- CADASTRO -->
 <div id="cadastro" class="aba">
 
   <div class="card">
-    <input id="nome" placeholder="Nome"><br>
-    <input id="tecnicos" placeholder="Técnicos"><br>
-    <input id="endereco" placeholder="Endereço"><br>
-    <input id="raio" placeholder="Raio"><br>
+    <h3>Dados do Prestador</h3>
+
+    <input id="empresa" placeholder="Nome da empresa">
+    <input id="endereco" placeholder="Endereço completo">
+
+    <div class="row">
+      <input id="cidade" placeholder="Cidade">
+      <input id="uf" placeholder="UF">
+    </div>
+
+    <div class="row">
+      <input id="lat" placeholder="Latitude">
+      <input id="lng" placeholder="Longitude">
+    </div>
+
+    <input id="responsavel" placeholder="Responsável">
+    <input id="contato" placeholder="Contato">
   </div>
 
   <div class="card">
     <h3>Agenda</h3>
+
+    <input id="tecnicos" type="number" placeholder="Qtd técnicos">
     <div id="agenda"></div>
   </div>
 
   <div class="card">
     <button class="acao" onclick="salvarPrestador()">Salvar</button>
+  </div>
+
+  <div class="card">
+    <h3>Prestadores</h3>
+    <div id="lista-prestadores"></div>
+  </div>
+
+</div>
+
+<!-- PAINEL -->
+<div id="painel" class="aba">
+
+  <div class="card">
+    Hoje: <strong id="hoje">0</strong><br>
+    Total: <strong id="total">0</strong>
+  </div>
+
+  <div class="card">
+    <div id="lista-agendamentos"></div>
   </div>
 
 </div>
@@ -111,10 +165,8 @@ button.acao {
 
 /* ===== DADOS ===== */
 let prestadores = [];
-let agendaPrestador = {
-  Seg: [], Ter: [], Qua: [], Qui: [], Sex: []
-};
-
+let agendamentos = [];
+let agendaPrestador = {};
 let itensAgendamento = [];
 let tempoTotal = 0;
 
@@ -125,26 +177,11 @@ const produtos = [
   { tipo:"TRAVA", desc:"Imobilizador", tempo:80 }
 ];
 
-/* ===== FORMATAR ===== */
-function formatarTipo(t){
-  return t.toLowerCase().replace(/(^\w|\s\w)/g, l => l.toUpperCase());
-}
-
 /* ===== INIT ===== */
 window.onload = function(){
   carregarProdutos();
   gerarAgenda();
 };
-
-function carregarProdutos(){
-  let s = document.getElementById("produto");
-  produtos.forEach((p,i)=>{
-    let o = document.createElement("option");
-    o.value = i;
-    o.text = formatarTipo(p.tipo) + " - " + p.desc;
-    s.appendChild(o);
-  });
-}
 
 /* ===== ABAS ===== */
 function trocarAba(id, btn){
@@ -155,124 +192,169 @@ function trocarAba(id, btn){
   btn.classList.add("ativo");
 }
 
-/* ===== AGENDA (CORRIGIDO) ===== */
-function gerarAgenda(){
-
-  const dias = ["Seg","Ter","Qua","Qui","Sex"];
-  const container = document.getElementById("agenda");
-  container.innerHTML = "";
-
-  dias.forEach(dia => {
-
-    let linha = document.createElement("div");
-    linha.innerHTML = "<strong>" + dia + "</strong><br>";
-
-    for(let h=8; h<=18; h++){
-
-      let btn = document.createElement("button");
-      btn.innerText = h;
-      btn.className = "hora";
-
-      btn.onclick = function(){
-
-        if(agendaPrestador[dia].includes(h)){
-          agendaPrestador[dia] = agendaPrestador[dia].filter(x => x !== h);
-          btn.classList.remove("ativa");
-        } else {
-          agendaPrestador[dia].push(h);
-          btn.classList.add("ativa");
-        }
-
-        console.log(agendaPrestador);
-      };
-
-      linha.appendChild(btn);
-    }
-
-    container.appendChild(linha);
+/* ===== PRODUTOS ===== */
+function carregarProdutos(){
+  let s=document.getElementById("produto");
+  produtos.forEach((p,i)=>{
+    let o=document.createElement("option");
+    o.value=i;
+    o.text=p.tipo+" - "+p.desc;
+    s.appendChild(o);
   });
 }
 
-/* ===== SALVAR PRESTADOR ===== */
+/* ===== AGENDA ===== */
+function gerarAgenda(){
+
+  const dias=["Seg","Ter","Qua","Qui","Sex","Sab"];
+  agendaPrestador = {Seg:[],Ter:[],Qua:[],Qui:[],Sex:[],Sab:[]};
+
+  let c=document.getElementById("agenda");
+  c.innerHTML="";
+
+  dias.forEach(d=>{
+    let div=document.createElement("div");
+    div.innerHTML="<strong>"+d+"</strong><br>";
+
+    for(let h=8;h<=18;h++){
+      let b=document.createElement("button");
+      b.innerText=h;
+      b.className="hora";
+
+      b.onclick=()=>{
+        if(agendaPrestador[d].includes(h)){
+          agendaPrestador[d]=agendaPrestador[d].filter(x=>x!==h);
+          b.classList.remove("ativa");
+        } else {
+          agendaPrestador[d].push(h);
+          b.classList.add("ativa");
+        }
+      };
+
+      div.appendChild(b);
+    }
+
+    c.appendChild(div);
+  });
+}
+
+/* ===== CADASTRO ===== */
 function salvarPrestador(){
 
-  const temHorario = Object.values(agendaPrestador).some(d => d.length > 0);
-
-  if(!temHorario){
-    alert("Selecione horários!");
-    return;
-  }
+  const temAgenda = Object.values(agendaPrestador).some(d=>d.length>0);
+  if(!temAgenda){ alert("Selecione horários"); return; }
 
   prestadores.push({
-    nome: nome.value,
+    empresa: empresa.value,
+    cidade: cidade.value,
+    tecnicos: tecnicos.value,
     agenda: JSON.parse(JSON.stringify(agendaPrestador))
   });
 
-  alert("Prestador salvo!");
-  console.log(prestadores);
+  renderizarPrestadores();
+  alert("Salvo!");
+}
 
-  // reset
-  agendaPrestador = { Seg: [], Ter: [], Qua: [], Qui: [], Sex: [] };
-  gerarAgenda();
+function renderizarPrestadores(){
+  let l=document.getElementById("lista-prestadores");
+  l.innerHTML="";
+
+  prestadores.forEach((p,i)=>{
+    let d=document.createElement("div");
+    d.innerHTML=`
+      <strong>${p.empresa}</strong>
+      <button onclick="excluirPrestador(${i})">Excluir</button>
+      <hr>`;
+    l.appendChild(d);
+  });
+}
+
+function excluirPrestador(i){
+  prestadores.splice(i,1);
+  renderizarPrestadores();
 }
 
 /* ===== AGENDAMENTO ===== */
 function buscar(){
+  if(prestadores.length===0){ alert("Cadastre prestador"); return; }
 
-  if(prestadores.length === 0){
-    alert("Cadastre prestador primeiro");
-    return;
-  }
+  document.getElementById("fluxo-agendamento").style.display="block";
 
-  let div = document.getElementById("prestadorSelecionado");
-  div.innerHTML = "";
+  let c=document.getElementById("prestadorSelecionado");
+  c.innerHTML="";
 
   prestadores.forEach(p=>{
-    let b = document.createElement("button");
-    b.innerText = p.nome;
-    b.onclick = ()=> div.innerHTML = p.nome;
-    div.appendChild(b);
+    let b=document.createElement("button");
+    b.innerText=p.empresa;
+    b.onclick=()=>c.innerHTML=p.empresa;
+    c.appendChild(b);
   });
-
-  document.getElementById("fluxo-agendamento").style.display = "block";
 }
 
 /* ===== ITENS ===== */
 function adicionarItem(){
-
-  let p = produtos[produto.value];
-  let q = parseInt(quantidade.value);
-
+  let p=produtos[produto.value];
+  let q=parseInt(quantidade.value||0);
   if(!q) return alert("Qtd inválida");
 
-  itensAgendamento.push({tipo:p.tipo, nome:p.desc, tempo:p.tempo, qtd:q});
+  itensAgendamento.push({nome:p.desc,tempo:p.tempo,qtd:q});
   renderizarItens();
 }
 
 function renderizarItens(){
-
-  let div = document.getElementById("lista-itens");
-  div.innerHTML = "";
-  tempoTotal = 0;
+  let c=document.getElementById("lista-itens");
+  c.innerHTML="";
+  tempoTotal=0;
 
   itensAgendamento.forEach((i,index)=>{
+    tempoTotal+=i.tempo*i.qtd;
 
-    tempoTotal += i.tempo * i.qtd;
-
-    let d = document.createElement("div");
-    d.innerHTML = `
-      <strong>${formatarTipo(i.tipo)}</strong> - ${i.nome} (${i.qtd})
+    let d=document.createElement("div");
+    d.innerHTML=`
+      ${i.nome} (${i.qtd})
       <button onclick="removerItem(${index})">X</button>
     `;
-    div.appendChild(d);
+    c.appendChild(d);
   });
 
-  document.getElementById("tempoTotal").innerText = (tempoTotal/60).toFixed(1) + "h";
+  document.getElementById("tempoTotal").innerText=(tempoTotal/60).toFixed(1)+"h";
 }
 
 function removerItem(i){
   itensAgendamento.splice(i,1);
   renderizarItens();
+}
+
+/* ===== FINALIZAR ===== */
+function concluirAgendamento(){
+
+  agendamentos.push({
+    prestador: document.getElementById("prestadorSelecionado").innerText,
+    data: new Date().toISOString().split("T")[0]
+  });
+
+  renderizarPainel();
+  alert("Agendado!");
+}
+
+/* ===== PAINEL ===== */
+function renderizarPainel(){
+
+  let hoje=new Date().toISOString().split("T")[0];
+
+  document.getElementById("hoje").innerText =
+    agendamentos.filter(a=>a.data===hoje).length;
+
+  document.getElementById("total").innerText=agendamentos.length;
+
+  let l=document.getElementById("lista-agendamentos");
+  l.innerHTML="";
+
+  agendamentos.forEach(a=>{
+    let d=document.createElement("div");
+    d.innerText=a.prestador+" - "+a.data;
+    l.appendChild(d);
+  });
 }
 
 </script>
