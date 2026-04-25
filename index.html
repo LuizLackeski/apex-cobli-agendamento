@@ -45,9 +45,8 @@ button {
 .horas { display:flex; flex-wrap:wrap; gap:5px; }
 
 .hora {
-  width:55px;
+  width:50px;
   border:1px solid #ccc;
-  background:white;
 }
 
 .hora.ativa {
@@ -73,14 +72,11 @@ button {
 <div id="consulta" class="aba ativa">
 
   <div class="card">
-    <input id="enderecoBusca" placeholder="Endereço ou CEP">
+    <input id="enderecoBusca" placeholder="Digite CEP ou endereço">
     <button class="acao" onclick="buscar()">Buscar</button>
   </div>
 
-  <div class="card">
-    <h3>Prestadores</h3>
-    <div id="lista-prestadores-ag"></div>
-  </div>
+  <div id="lista-prestadores-ag"></div>
 
   <div id="bloco-agendamento" style="display:none;">
 
@@ -94,11 +90,11 @@ button {
       <div id="lista-itens"></div>
       <p>Total: <strong id="tempoTotal">0h</strong></p>
 
-      <button class="acao" onclick="liberarAgenda()">Avançar para agenda</button>
+      <button class="acao" onclick="liberarAgenda()">Avançar</button>
     </div>
 
     <div id="agenda-bloco" class="card" style="display:none;">
-      <h3>Agenda disponível</h3>
+      <h3>Horários</h3>
       <div id="agenda-agendamento"></div>
     </div>
 
@@ -110,14 +106,16 @@ button {
 
 </div>
 
-<!-- CADASTRO (mantido como estava funcionando) -->
+<!-- CADASTRO -->
 <div id="cadastro" class="aba">
-  <div id="lista-view" class="card">
+
+  <div class="card">
     <button class="acao" onclick="abrirCadastro()">+ Cadastrar</button>
     <div id="lista-prestadores"></div>
   </div>
 
   <div id="form-view" style="display:none;">
+
     <div class="card">
       <input id="empresa" placeholder="Empresa">
       <input id="tecnicos" placeholder="Qtd técnicos">
@@ -128,7 +126,9 @@ button {
       <button onclick="cancelarCadastro()">Cancelar</button>
       <button class="acao" onclick="salvarPrestador()">Salvar</button>
     </div>
+
   </div>
+
 </div>
 
 <!-- PAINEL -->
@@ -181,7 +181,6 @@ const produtos = [
 /* ===== INIT ===== */
 window.onload = function(){
   let s=document.getElementById("produto");
-
   produtos.forEach((p,i)=>{
     let o=document.createElement("option");
     o.value=i;
@@ -190,22 +189,36 @@ window.onload = function(){
   });
 };
 
+/* ===== ABAS (CORRIGIDO) ===== */
+function trocarAba(id, btn){
+
+  document.querySelectorAll(".aba").forEach(a=>a.classList.remove("ativa"));
+  document.getElementById(id).classList.add("ativa");
+
+  document.querySelectorAll(".menu button").forEach(b=>b.classList.remove("ativo"));
+  btn.classList.add("ativo");
+}
+
 /* ===== AGENDAMENTO ===== */
 function buscar(){
+
   let l=document.getElementById("lista-prestadores-ag");
   l.innerHTML="";
 
   prestadores.forEach((p,i)=>{
     let b=document.createElement("button");
     b.innerText=p.empresa;
+
     b.onclick=()=>{
       prestadorSelecionadoIndex=i;
       document.getElementById("bloco-agendamento").style.display="block";
     };
+
     l.appendChild(b);
   });
 }
 
+/* ===== RESTANTE IGUAL (mantido) ===== */
 function adicionarItem(){
   let p=produtos[produto.value];
   let q=parseInt(quantidade.value||0);
@@ -237,6 +250,7 @@ function removerItem(i){
 }
 
 function liberarAgenda(){
+
   if(itensAgendamento.length===0){
     alert("Adicione produtos");
     return;
@@ -253,6 +267,7 @@ function mostrarAgenda(prestador){
   horariosSelecionados=[];
 
   Object.keys(prestador.agenda).forEach(dia=>{
+
     if(prestador.agenda[dia].length===0) return;
 
     let div=document.createElement("div");
@@ -314,11 +329,13 @@ function abrirCadastro(){
 }
 
 function salvarPrestador(){
+
   prestadores.push({
     empresa: empresa.value,
     tecnicos: parseInt(tecnicos.value||1),
     agenda:{Seg:[8,9,10],Ter:[10,11]}
   });
+
   alert("Salvo");
 }
 
