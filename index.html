@@ -474,36 +474,23 @@ renderizarAgendaAgendamento();
 
 function concluirAgendamento(){
 
+let prestadorIndex = document.getElementById("selectPrestador").value;
+
+if(prestadorIndex === "" || !prestadores[prestadorIndex]){
+alert("Selecione um prestador");
+return;
+}
+
 let selecionados = document.querySelectorAll("#agenda-agendamento .cell.selecionado");
 let necessario = parseInt(document.getElementById("horasNecessarias").innerText || 0);
-
-// pega horários válidos do prestador
-let horariosValidos = agendaAtualPrestador;
-
-// valida se tudo selecionado pertence à agenda do prestador
-let invalido = [...selecionados].some(c => !horariosValidos.includes(c.innerText));
-
-if(invalido){
-    alert("Você selecionou horários fora da agenda do prestador.");
-    return;
-}
 
 // valida quantidade
-if(selecionados.length !== necessario){
-    alert(`Você precisa selecionar exatamente ${necessario} horários`);
-    return;
-}
-
-let selecionados = document.querySelectorAll("#agenda-agendamento .cell.selecionado");
-let necessario = parseInt(document.getElementById("horasNecessarias").innerText || 0);
-
-// validação
 if(selecionados.length !== necessario){
 alert(`Você precisa selecionar exatamente ${necessario} horários`);
 return;
 }
 
-// monta registro simples de agendamento
+// monta registro
 let agendamento = {
 prestador: prestadores[prestadorIndex].nome,
 servicos: [...itensSelecionados],
@@ -511,13 +498,12 @@ horarios: [...selecionados].map(c => c.innerText),
 data: new Date().toLocaleString()
 };
 
-// salva em memória (pode evoluir depois para backend)
 if(!window.agendamentos) window.agendamentos = [];
 window.agendamentos.push(agendamento);
 
 alert("Agendamento concluído com sucesso!");
 
-// limpa tela
+// reset
 itensSelecionados = [];
 document.getElementById("lista-produtos").innerHTML = "";
 document.getElementById("horasNecessarias").innerText = "0";
@@ -529,7 +515,7 @@ document.getElementById("step-agendamento").style.display = "none";
 document.getElementById("step-cep").style.display = "block";
 }
 function renderizarAgendaAgendamento(){
-agendaAtualPrestador = prestadores[idx].agenda || [];
+
 let idx = document.getElementById("selectPrestador").value;
 let container = document.getElementById("agenda-agendamento");
 
@@ -537,14 +523,15 @@ container.innerHTML = "";
 
 if(idx === "" || !prestadores[idx]) return;
 
-let agenda = prestadores[idx].agenda || [];
+agendaAtualPrestador = prestadores[idx].agenda || [];
+
+let agenda = agendaAtualPrestador;
 
 if(agenda.length === 0){
     container.innerHTML = "<p>Prestador sem agenda cadastrada</p>";
     return;
 }
 
-// monta grade do prestador (dias + horários)
 const dias = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
 
 dias.forEach(dia => {
@@ -565,7 +552,6 @@ let cell = document.createElement("div");
 cell.className = "cell";
 cell.innerText = h;
 
-// clique com controle de limite de horas
 cell.addEventListener("click", function(){
 
     let max = parseInt(document.getElementById("horasNecessarias").innerText || 0);
