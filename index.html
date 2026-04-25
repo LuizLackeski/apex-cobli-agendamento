@@ -93,7 +93,7 @@ button { cursor: pointer; }
 <div id="step-agendamento" class="card" style="display:none;">
 
 <h3>Prestador</h3>
-<select id="selectPrestador" onchange="renderizarAgendaAgendamento()"></select>
+<select id="selectPrestador" onchange="rdaAgendamento()"></select>
 
 <h3>Serviços</h3>
 
@@ -343,7 +343,6 @@ prestadores[idx].agenda.forEach(item=>{
 let div = document.createElement("div");
 div.className = "cell";
 
-// 👇 AQUI está a correção principal
 div.style.display = "flex";
 div.style.justifyContent = "space-between";
 div.style.width = "200px";
@@ -356,6 +355,9 @@ hora.innerText = item.hora;
 
 div.appendChild(dia);
 div.appendChild(hora);
+
+container.appendChild(div);
+});
 }
 
 function concluirAgendamento(){
