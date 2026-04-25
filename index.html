@@ -25,9 +25,12 @@ body { margin:0; font-family: Arial; background:#f4f6f8; }
   border-radius:8px; margin-bottom:20px;
 }
 
-input, select {
+input {
   width:100%; padding:8px; margin:5px 0;
 }
+
+.row { display:flex; gap:10px; }
+.row input { flex:1; }
 
 button {
   padding:6px 10px;
@@ -53,6 +56,11 @@ button {
   background:#2F4EA1;
   color:white;
 }
+
+.tipo {
+  font-weight:bold;
+  margin-top:10px;
+}
 </style>
 </head>
 
@@ -72,7 +80,7 @@ button {
 <div id="consulta" class="aba ativa">
 
   <div class="card">
-    <input id="enderecoBusca" placeholder="Digite CEP ou endereço">
+    <input placeholder="Digite CEP ou endereço">
     <button class="acao" onclick="buscar()">Buscar</button>
   </div>
 
@@ -82,19 +90,14 @@ button {
 
     <div class="card">
       <h3>Produtos</h3>
-
-      <select id="produto"></select>
-      <input type="number" id="quantidade" placeholder="Qtd">
-      <button class="acao" onclick="adicionarItem()">Adicionar</button>
-
+      <div id="produtos"></div>
       <div id="lista-itens"></div>
       <p>Total: <strong id="tempoTotal">0h</strong></p>
-
       <button class="acao" onclick="liberarAgenda()">Avançar</button>
     </div>
 
     <div id="agenda-bloco" class="card" style="display:none;">
-      <h3>Horários</h3>
+      <h3>Agenda</h3>
       <div id="agenda-agendamento"></div>
     </div>
 
@@ -109,15 +112,38 @@ button {
 <!-- CADASTRO -->
 <div id="cadastro" class="aba">
 
-  <div class="card">
+  <div id="lista-view" class="card">
     <button class="acao" onclick="abrirCadastro()">+ Cadastrar</button>
     <div id="lista-prestadores"></div>
   </div>
 
   <div id="form-view" style="display:none;">
 
+    <!-- BLOCO 1 -->
     <div class="card">
+      <h3>Dados do Prestador</h3>
+
       <input id="empresa" placeholder="Empresa">
+      <input id="endereco" placeholder="Endereço">
+
+      <div class="row">
+        <input id="cidade" placeholder="Cidade">
+        <input id="uf" placeholder="UF">
+      </div>
+
+      <div class="row">
+        <input id="lat" placeholder="Latitude">
+        <input id="lng" placeholder="Longitude">
+      </div>
+
+      <input id="responsavel" placeholder="Responsável">
+      <input id="contato" placeholder="Contato">
+    </div>
+
+    <!-- BLOCO 2 -->
+    <div class="card">
+      <h3>Agenda</h3>
+
       <input id="tecnicos" placeholder="Qtd técnicos">
       <div id="agenda"></div>
     </div>
@@ -146,52 +172,50 @@ button {
 
 /* ===== DADOS ===== */
 let prestadores = [];
-let agendamentos = [];
 let agendaPrestador = {};
 let prestadorSelecionadoIndex = null;
 let itensAgendamento = [];
 let tempoTotal = 0;
-let horariosSelecionados = [];
-let ocupacao = {};
 
-/* ===== PRODUTOS COMPLETOS ===== */
-const produtos = [
-  { tipo:"Identificador", desc:"Identificador", tempo:60 },
-  { tipo:"Identificador", desc:"Identificador + CAN", tempo:90 },
-  { tipo:"Identificador", desc:"Identificador RFID", tempo:60 },
-  { tipo:"Identificador", desc:"Identificador RFID + CAN", tempo:80 },
+/* ===== PRODUTOS AGRUPADOS ===== */
+const produtos = {
+  "Telemetria":[
+    {desc:"Instalado veículos leves bloqueador", tempo:60},
+    {desc:"Instalado veículos leves e pesados + CAN", tempo:60},
+    {desc:"Instalado motos ou maquinários", tempo:40},
+    {desc:"Instalado veículos leves e pesados", tempo:40}
+  ],
 
-  { tipo:"Telemetria", desc:"Bloqueador", tempo:60 },
-  { tipo:"Telemetria", desc:"Telemetria + CAN", tempo:60 },
-  { tipo:"Telemetria", desc:"Motos ou maquinários", tempo:40 },
-  { tipo:"Telemetria", desc:"Veículos leves e pesados", tempo:40 },
+  "Identificador":[
+    {desc:"Instalado veículos leves e pesados identificador", tempo:60},
+    {desc:"Instalado veículos leves e pesados identificador + CAN", tempo:90},
+    {desc:"Instalado veículos leves e pesados identificador RFID", tempo:60},
+    {desc:"Instalado veículos leves e pesados identificador RFID + CAN", tempo:80}
+  ],
 
-  { tipo:"Trava de ignição", desc:"Imobilizador", tempo:80 },
-  { tipo:"Trava de ignição", desc:"Imobilizador RFID", tempo:80 },
-  { tipo:"Trava de ignição", desc:"Imobilizador RFID + CAN", tempo:90 },
-  { tipo:"Trava de ignição", desc:"Imobilizador + CAN", tempo:100 },
+  "Trava de ignição":[
+    {desc:"Instalado veículos leves imobilizador", tempo:80},
+    {desc:"Instalado veículos leves imobilizador RFID", tempo:80},
+    {desc:"Instalado veículos leves imobilizador RFID + CAN", tempo:90},
+    {desc:"Instalado veículos leves imobilizador + CAN", tempo:100}
+  ],
 
-  { tipo:"Videotelemetria", desc:"CobliCam (2 câmeras)", tempo:90 },
-  { tipo:"Videotelemetria", desc:"Multicam 3 câmeras", tempo:120 },
-  { tipo:"Videotelemetria", desc:"Multicam 2+1", tempo:240 },
-  { tipo:"Videotelemetria", desc:"Multicam 4 câmeras", tempo:240 },
-  { tipo:"Videotelemetria", desc:"Multicam 5 câmeras", tempo:300 }
-];
+  "Videotelemetria":[
+    {desc:"Coblicam (2 cameras)", tempo:90},
+    {desc:"Cobli-multicam (3 câmeras internas)", tempo:120},
+    {desc:"Cobli-multicam (2 câmeras + 1 externa)", tempo:240},
+    {desc:"Cobli-multicam (4 câmeras)", tempo:240},
+    {desc:"Cobli-multicam (5 câmeras)", tempo:300}
+  ]
+};
 
 /* ===== INIT ===== */
 window.onload = function(){
-  let s=document.getElementById("produto");
-  produtos.forEach((p,i)=>{
-    let o=document.createElement("option");
-    o.value=i;
-    o.text=p.tipo+" - "+p.desc;
-    s.appendChild(o);
-  });
+  renderProdutos();
 };
 
-/* ===== ABAS (CORRIGIDO) ===== */
+/* ===== ABAS ===== */
 function trocarAba(id, btn){
-
   document.querySelectorAll(".aba").forEach(a=>a.classList.remove("ativa"));
   document.getElementById(id).classList.add("ativa");
 
@@ -199,36 +223,43 @@ function trocarAba(id, btn){
   btn.classList.add("ativo");
 }
 
-/* ===== AGENDAMENTO ===== */
-function buscar(){
+/* ===== PRODUTOS ===== */
+function renderProdutos(){
 
-  let l=document.getElementById("lista-prestadores-ag");
-  l.innerHTML="";
+  let c=document.getElementById("produtos");
+  c.innerHTML="";
 
-  prestadores.forEach((p,i)=>{
-    let b=document.createElement("button");
-    b.innerText=p.empresa;
+  Object.keys(produtos).forEach(tipo=>{
 
-    b.onclick=()=>{
-      prestadorSelecionadoIndex=i;
-      document.getElementById("bloco-agendamento").style.display="block";
-    };
+    let t=document.createElement("div");
+    t.className="tipo";
+    t.innerText=tipo;
 
-    l.appendChild(b);
+    c.appendChild(t);
+
+    produtos[tipo].forEach(p=>{
+      let d=document.createElement("div");
+
+      d.innerHTML=`
+        ${p.desc}
+        <input type="number" placeholder="Qtd" onchange="addItem('${tipo}','${p.desc}',${p.tempo},this.value)">
+      `;
+
+      c.appendChild(d);
+    });
+
   });
 }
 
-/* ===== RESTANTE IGUAL (mantido) ===== */
-function adicionarItem(){
-  let p=produtos[produto.value];
-  let q=parseInt(quantidade.value||0);
-  if(!q) return;
+function addItem(tipo,desc,tempo,qtd){
+  qtd=parseInt(qtd||0);
+  if(!qtd) return;
 
-  itensAgendamento.push({nome:p.desc,tempo:p.tempo,qtd:q});
-  renderizarItens();
+  itensAgendamento.push({desc,tempo,qtd});
+  renderItens();
 }
 
-function renderizarItens(){
+function renderItens(){
   let c=document.getElementById("lista-itens");
   c.innerHTML="";
   tempoTotal=0;
@@ -237,7 +268,7 @@ function renderizarItens(){
     tempoTotal+=i.tempo*i.qtd;
 
     let d=document.createElement("div");
-    d.innerHTML=`<strong>${i.nome}</strong> (${i.qtd}) <button onclick="removerItem(${index})">X</button>`;
+    d.innerHTML=`${i.desc} (${i.qtd}) <button onclick="removerItem(${index})">X</button>`;
     c.appendChild(d);
   });
 
@@ -246,81 +277,7 @@ function renderizarItens(){
 
 function removerItem(i){
   itensAgendamento.splice(i,1);
-  renderizarItens();
-}
-
-function liberarAgenda(){
-
-  if(itensAgendamento.length===0){
-    alert("Adicione produtos");
-    return;
-  }
-
-  document.getElementById("agenda-bloco").style.display="block";
-  mostrarAgenda(prestadores[prestadorSelecionadoIndex]);
-}
-
-function mostrarAgenda(prestador){
-
-  let c=document.getElementById("agenda-agendamento");
-  c.innerHTML="";
-  horariosSelecionados=[];
-
-  Object.keys(prestador.agenda).forEach(dia=>{
-
-    if(prestador.agenda[dia].length===0) return;
-
-    let div=document.createElement("div");
-    div.innerHTML="<strong>"+dia+"</strong>";
-
-    let hDiv=document.createElement("div");
-    hDiv.className="horas";
-
-    prestador.agenda[dia].forEach(h=>{
-
-      let chave = prestadorSelecionadoIndex+"_"+h;
-      let usados = ocupacao[chave]||0;
-
-      let b=document.createElement("button");
-      b.innerText=h;
-      b.className="hora";
-
-      if(usados >= prestador.tecnicos){
-        b.disabled=true;
-        b.style.background="#ccc";
-      } else {
-        b.onclick=()=>{
-          b.classList.toggle("ativa");
-
-          if(horariosSelecionados.includes(h)){
-            horariosSelecionados=horariosSelecionados.filter(x=>x!==h);
-          } else {
-            horariosSelecionados.push(h);
-          }
-        };
-      }
-
-      hDiv.appendChild(b);
-    });
-
-    div.appendChild(hDiv);
-    c.appendChild(div);
-  });
-}
-
-function concluirAgendamento(){
-
-  horariosSelecionados.forEach(h=>{
-    let chave=prestadorSelecionadoIndex+"_"+h;
-    ocupacao[chave]=(ocupacao[chave]||0)+1;
-  });
-
-  agendamentos.push({
-    prestador: prestadores[prestadorSelecionadoIndex].empresa,
-    data: new Date().toISOString().split("T")[0]
-  });
-
-  alert("Agendado!");
+  renderItens();
 }
 
 /* ===== CADASTRO ===== */
@@ -328,15 +285,47 @@ function abrirCadastro(){
   document.getElementById("form-view").style.display="block";
 }
 
+function cancelarCadastro(){
+  document.getElementById("form-view").style.display="none";
+}
+
 function salvarPrestador(){
 
   prestadores.push({
     empresa: empresa.value,
     tecnicos: parseInt(tecnicos.value||1),
-    agenda:{Seg:[8,9,10],Ter:[10,11]}
+    agenda: agendaPrestador
   });
 
-  alert("Salvo");
+  renderPrestadores();
+}
+
+function renderPrestadores(){
+  let l=document.getElementById("lista-prestadores");
+  l.innerHTML="";
+
+  prestadores.forEach((p,i)=>{
+    let d=document.createElement("div");
+    d.innerHTML=`
+      <strong>${p.empresa}</strong>
+      <button onclick="editar(${i})">Editar</button>
+      <button onclick="excluir(${i})">Excluir</button>
+      <hr>
+    `;
+    l.appendChild(d);
+  });
+}
+
+function excluir(i){
+  prestadores.splice(i,1);
+  renderPrestadores();
+}
+
+function editar(i){
+  let p=prestadores[i];
+  empresa.value=p.empresa;
+  tecnicos.value=p.tecnicos;
+  abrirCadastro();
 }
 
 </script>
