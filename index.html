@@ -111,14 +111,21 @@ button.acao {
     </div>
 
     <div class="card">
-      <h3>Selecionar Horários</h3>
-      <div id="horarios"></div>
-      <p id="alertaTempo" style="color:red;"></p>
-    </div>
+      <h3>Selecionar Dia</h3>
+<select id="diaSelecionado" onchange="carregarHorarios()">
+  <option value="">Selecione</option>
+  <option value="Seg">Segunda</option>
+  <option value="Ter">Terça</option>
+  <option value="Qua">Quarta</option>
+  <option value="Qui">Quinta</option>
+  <option value="Sex">Sexta</option>
+  <option value="Sáb">Sábado</option>
+  <option value="Dom">Domingo</option>
+</select>
 
-  </div>
-
-</div>
+<h3>Horários disponíveis</h3>
+<div id="horarios"></div>
+<p id="alertaTempo" style="color:red;"></p>
 
 <!-- ================= CADASTRO ================= -->
 <div id="cadastro" class="aba">
@@ -262,13 +269,39 @@ function selecionarHorario(btn, hora) {
 function validarTempo() {
   const alerta = document.getElementById("alertaTempo");
 
+  const ordenados = [...horariosSelecionados].sort((a,b)=>a-b);
+
+  // verificar sequência contínua
+  let sequencial = true;
+
+  for (let i = 1; i < ordenados.length; i++) {
+    if (ordenados[i] !== ordenados[i-1] + 1) {
+      sequencial = false;
+      break;
+    }
+  }
+
+  if (!sequencial) {
+    alerta.innerText = "Selecione horários contínuos";
+    return;
+  }
+
   if (horariosSelecionados.length < tempoTotal) {
     alerta.innerText = "Tempo insuficiente";
-  } else {
-    alerta.innerText = "";
+    return;
   }
-}
 
+  // REGRA 18h / 19h
+  const inicio = Math.min(...ordenados);
+  const fim = Math.max(...ordenados) + 1;
+
+  if (fim > 19) {
+    alerta.innerText = "Excede limite permitido (máx 19h)";
+    return;
+  }
+
+  alerta.innerText = "";
+}
 /* ===== CADASTRO ===== */
 let etapa = 1;
 
@@ -365,6 +398,28 @@ function gerarAgendaCadastro() {
 }
 
 </script>
+    
+ function carregarHorarios() {
+  const dia = document.getElementById("diaSelecionado").value;
+  const container = document.getElementById("horarios");
 
+  container.innerHTML = "";
+  horariosSelecionados = []; // limpa seleção
+
+  if (!agendaPrestador[dia]) {
+    container.innerHTML = "<p>Sem horários disponíveis</p>";
+    return;
+  }
+
+  agendaPrestador[dia].forEach(h => {
+    const btn = document.createElement("button");
+    btn.innerText = h + ":00";
+    btn.style.margin = "5px";
+
+    btn.onclick = () => selecionarHorario(btn, h);
+
+    container.appendChild(btn);
+  });
+}
 </body>
 </html>
