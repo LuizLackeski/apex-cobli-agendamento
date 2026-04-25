@@ -1,0 +1,18 @@
+<div id="painel" class="aba">
+  <h2>Painel de Acompanhamento</h2>
+
+  <h4>Filtros</h4>
+  <input type="date" id="data-inicio">
+  <input type="date" id="data-fim">
+
+  <select id="filtro-prestador">
+    <option value="">Todos Prestadores</option>
+  </select>
+
+  <button onclick="filtrarAgendamentos()">Filtrar</button>
+
+  <hr>
+
+  <h3>Agendamentos Realizados</h3>
+  <div id="lista-agendamentos"></div>
+</div>
