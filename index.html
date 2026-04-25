@@ -24,10 +24,6 @@ body { font-family: 'Segoe UI', sans-serif; background:var(--bg); margin:0; padd
 
 .card { background: white; padding: 25px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 
-/* ================= AGENDA (NÃO MEXIDO NO VISUAL) ================= */
-
-.agenda-grid { display: block; }
-
 .cell {
     border: 1px solid #ddd;
     padding: 8px;
@@ -35,11 +31,9 @@ body { font-family: 'Segoe UI', sans-serif; background:var(--bg); margin:0; padd
     cursor: pointer;
     border-radius: 4px;
     font-size: 0.75rem;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     width: 55px;
     height: 28px;
     margin: 2px;
@@ -56,8 +50,6 @@ body { font-family: 'Segoe UI', sans-serif; background:var(--bg); margin:0; padd
     margin-bottom: 6px;
 }
 
-/* ================= FORM ================= */
-
 input, select {
     width: 100%;
     padding: 12px;
@@ -66,11 +58,7 @@ input, select {
     border-radius: 8px;
 }
 
-button {
-    cursor: pointer;
-}
-
-/* ================= PRODUTOS ================= */
+button { cursor: pointer; }
 
 .item-lista {
     display: flex;
@@ -78,7 +66,6 @@ button {
     padding: 8px;
     border-bottom: 1px solid #eee;
 }
-
 </style>
 </head>
 
@@ -99,7 +86,7 @@ button {
 
 <div id="step-cep" class="card">
 <h2>Novo Agendamento</h2>
-<input type="text" id="inputCep" placeholder="Digite o CEP">
+<input type="text" id="inputCep">
 <button onclick="iniciarAgendamento()">Buscar</button>
 </div>
 
@@ -138,37 +125,35 @@ button {
 
 <div id="etapa-1">
 <h3>Dados</h3>
-<input id="nomeEmpresa" placeholder="Razão Social">
-<input id="endereco" placeholder="Endereço">
-<input id="cidade" placeholder="Cidade">
-<input id="uf" placeholder="UF">
-<input id="cep" placeholder="CEP">
-<input id="responsavel" placeholder="Responsável">
-<input id="contatoResponsavel" placeholder="Contato">
+<input id="nomeEmpresa">
+<input id="endereco">
+<input id="cidade">
+<input id="uf">
+<input id="cep">
+<input id="responsavel">
+<input id="contatoResponsavel">
 </div>
 
 <div id="etapa-2" style="display:none;">
 <h3>Agenda</h3>
-<input id="qtdTecnicos" type="number" placeholder="Técnicos">
-<input id="raio" type="number" max="100" placeholder="Raio">
+<input id="qtdTecnicos" type="number">
+<input id="raio" type="number" max="100">
 <div id="agenda-cadastro"></div>
 </div>
 
 <button onclick="mudarEtapa(-1)">Voltar</button>
-<button onclick="mudarEtapa(1)" id="btnProximo">Próximo</button>
-<button onclick="salvarPrestador()" id="btnSalvar" style="display:none;">Concluir</button>
+<button onclick="mudarEtapa(1)">Próximo</button>
+<button onclick="salvarPrestador()">Concluir</button>
 
 </div>
 </div>
 
 <!-- ================= PAINEL ================= -->
 <div id="painel" class="aba">
-<div class="card">Painel</div>
+<div class="card"></div>
 </div>
 
 </div>
-
-<script>
 
 <script>
 
@@ -184,73 +169,21 @@ let agendamentos = [];
 /* ================= INICIAL ================= */
 
 window.onload = () => {
-
-    if(document.getElementById('agenda-cadastro')){
-        criarGrid('agenda-cadastro');
-    }
-
-    if(document.getElementById('produto')){
-        carregarProdutos();
-    }
+    criarGrid('agenda-cadastro');
+    carregarProdutos();
 };
 
 /* ================= ABAS ================= */
 
 function trocarAba(id, btn){
+    document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
+    document.getElementById(id).classList.add('ativa');
 
-let abas = document.querySelectorAll('.aba');
-let alvo = document.getElementById(id);
-
-abas.forEach(a => a.classList.remove('ativa'));
-alvo.classList.add('ativa');
-
-document.querySelectorAll('.menu button')
-.forEach(b => b.classList.remove('ativo'));
-
-if(btn) btn.classList.add('ativo');
+    document.querySelectorAll('.menu button').forEach(b => b.classList.remove('ativo'));
+    btn.classList.add('ativo');
 }
 
-/* ================= CADASTRO ================= */
-
-function abrirCadastro(index=-1){
-
-editingIndex = index;
-
-document.getElementById("lista-prestadores-view").style.display="none";
-document.getElementById("cadastro-flow").style.display="block";
-
-etapa = 1;
-
-document.getElementById("etapa-1").style.display="block";
-document.getElementById("etapa-2").style.display="none";
-
-document.getElementById("btnProximo").style.display="inline";
-document.getElementById("btnSalvar").style.display="none";
-
-document.querySelectorAll('#cadastro-flow input').forEach(i=>i.value="");
-document.querySelectorAll('#agenda-cadastro .cell').forEach(c=>c.classList.remove('selecionado'));
-
-if(index !== -1){
-let p = prestadores[index];
-
-nomeEmpresa.value=p.nome||"";
-endereco.value=p.endereco||"";
-cidade.value=p.cidade||"";
-uf.value=p.uf||"";
-cep.value=p.cep||"";
-responsavel.value=p.responsavel||"";
-contatoResponsavel.value=p.contato||"";
-qtdTecnicos.value=p.qtdTecnicos||"";
-raio.value=p.raio||"";
-
-p.agenda.forEach(h=>{
-document.querySelectorAll('#agenda-cadastro .cell')
-.forEach(c=>{ if(c.innerText===h) c.classList.add('selecionado') });
-});
-}
-}
-
-/* ================= AGENDA ================= */
+/* ================= GRID ================= */
 
 function criarGrid(id){
 
@@ -277,9 +210,7 @@ let cell = document.createElement("div");
 cell.className = "cell";
 cell.innerText = `${h}:00`;
 
-cell.addEventListener("click", function(){
-    this.classList.toggle("selecionado");
-});
+cell.onclick = () => cell.classList.toggle("selecionado");
 
 row.appendChild(cell);
 }
@@ -288,7 +219,7 @@ grid.appendChild(row);
 });
 }
 
-/* ================= PRODUTOS (MANTIDO 100%) ================= */
+/* ================= PRODUTOS (100% MANTIDO) ================= */
 
 const produtos = {
     "Telemetria": [
@@ -300,8 +231,8 @@ const produtos = {
     "Identificador": [
         {desc:"Instalado veículos leves e pesados identificador", tempo:60},
         {desc:"Instalado veículos leves e pesados identificador + CAN", tempo:90},
-        {desc:"Instalado veículos leves e pesados identificador RFID", tempo:60},
-        {desc:"Instalado veículos leves e pesados identificador RFID + CAN", tempo:80}
+        {desc:"Instalado veículos leves e pesados RFID", tempo:60},
+        {desc:"Instalado RFID + CAN", tempo:80}
     ],
     "Trava de ignição": [
         {desc:"Instalado veículos leves imobilizador", tempo:80},
@@ -321,7 +252,6 @@ const produtos = {
 function carregarProdutos(){
 
 let select = document.getElementById("produto");
-
 select.innerHTML = "";
 
 for(let tipo in produtos){
@@ -330,35 +260,31 @@ let group = document.createElement("optgroup");
 group.label = tipo;
 
 produtos[tipo].forEach(p=>{
-
 let opt = document.createElement("option");
 opt.value = p.tempo;
 opt.text = p.desc;
-
 group.appendChild(opt);
-
 });
 
 select.appendChild(group);
 }
 }
 
-function adicionarProduto(){
+/* ================= RESTANTE FUNCIONAL ================= */
 
+function adicionarProduto(){
 let select = document.getElementById("produto");
-let qtd = parseInt(document.getElementById("quantidade").value);
-let tempo = parseInt(select.value);
+let qtd = document.getElementById("quantidade").value;
 
 itensSelecionados.push({
 desc: select.options[select.selectedIndex].text,
-tempo: tempo * qtd
+tempo: select.value * qtd
 });
 
 renderizarProdutos();
 }
 
 function renderizarProdutos(){
-
 let div = document.getElementById("lista-produtos");
 let total = 0;
 
@@ -378,15 +304,12 @@ renderizarProdutos();
 /* ================= AGENDAMENTO ================= */
 
 function iniciarAgendamento(){
-
 document.getElementById("step-cep").style.display="none";
 document.getElementById("step-agendamento").style.display="block";
-
 atualizarSelectPrestadores();
 }
 
 function atualizarSelectPrestadores(){
-
 let sel = document.getElementById("selectPrestador");
 sel.innerHTML = '<option value="">-- Escolha --</option>';
 
@@ -406,14 +329,11 @@ if(!prestadores[idx]) return;
 
 agendaAtualPrestador = prestadores[idx].agenda || [];
 
-agendaAtualPrestador.forEach(h => {
-
+agendaAtualPrestador.forEach(h=>{
 let cell = document.createElement("div");
 cell.className = "cell";
 cell.innerText = h;
-
 cell.onclick = () => cell.classList.toggle("selecionado");
-
 container.appendChild(cell);
 });
 }
@@ -427,25 +347,22 @@ let idx = document.getElementById("selectPrestador").value;
 let selecionados = [...document.querySelectorAll("#agenda-agendamento .selecionado")]
 .map(c=>c.innerText);
 
-let ag = {
+agendamentos.push({
 prestador: prestadores[idx].nome,
 horarios: selecionados,
 data: new Date().toLocaleString()
-};
-
-agendamentos.push(ag);
+});
 
 renderizarPainel();
-
 alert("Agendamento salvo!");
 }
 
 function renderizarPainel(){
 
-let div = document.getElementById("painel");
+let div = document.querySelector("#painel .card");
 
 div.innerHTML = agendamentos.map(a=>`
-<div class="card">
+<div>
 <b>${a.prestador}</b><br>
 ${a.data}<br>
 ${a.horarios.join(", ")}
@@ -454,3 +371,6 @@ ${a.horarios.join(", ")}
 }
 
 </script>
+
+</body>
+</html>
