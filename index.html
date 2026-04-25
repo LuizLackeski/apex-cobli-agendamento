@@ -28,19 +28,25 @@ body { font-family: 'Segoe UI', sans-serif; background:var(--bg); margin:0; padd
 
 .cell {
     border: 1px solid #ddd;
-    padding: 10px;
+    padding: 8px;
     text-align: center;
     cursor: pointer;
     border-radius: 4px;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 55px;
+    height: 28px;
     margin: 2px;
-    display: inline-block;
-    min-width: 60px;
 }
 
-.cell.selecionado {
-    background: var(--primary);
-    color: white;
+.row-dia {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
 }
 
 input, select {
