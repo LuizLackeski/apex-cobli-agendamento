@@ -272,7 +272,30 @@ document.getElementById("step-agendamento").style.display="block";
 
 atualizarSelectPrestadores();
 }
+function adicionarProduto(){
 
+let select = document.getElementById("produto");
+let qtd = parseInt(document.getElementById("quantidade").value);
+
+if(!select || select.selectedIndex < 0){
+alert("Selecione um serviço");
+return;
+}
+
+let tempo = parseInt(select.value);
+
+if(!tempo){
+alert("Serviço inválido");
+return;
+}
+
+itensSelecionados.push({
+desc: select.options[select.selectedIndex].text,
+tempo: tempo * (qtd || 1)
+});
+
+renderizarProdutos();
+}
 /* ================= PRODUTOS ================= */
 const produtos = {
 "Telemetria":[
@@ -321,15 +344,18 @@ let div = document.createElement("div");
 div.className = "cell";
 
 // 👇 AQUI está a correção principal
-div.innerText = `${item.dia} ${item.hora}`;
+div.style.display = "flex";
+div.style.justifyContent = "space-between";
+div.style.width = "200px";
 
-div.dataset.dia = item.dia;
-div.dataset.hora = item.hora;
+let dia = document.createElement("span");
+dia.innerText = item.dia;
 
-div.onclick = () => div.classList.toggle("selecionado");
+let hora = document.createElement("span");
+hora.innerText = item.hora;
 
-container.appendChild(div);
-});
+div.appendChild(dia);
+div.appendChild(hora);
 }
 
 function concluirAgendamento(){
