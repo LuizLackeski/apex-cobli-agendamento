@@ -93,16 +93,6 @@ button {
       <div id="produtos"></div>
       <div id="lista-itens"></div>
       <p>Total: <strong id="tempoTotal">0h</strong></p>
-      <button class="acao" onclick="liberarAgenda()">Avançar</button>
-    </div>
-
-    <div id="agenda-bloco" class="card" style="display:none;">
-      <h3>Agenda</h3>
-      <div id="agenda-agendamento"></div>
-    </div>
-
-    <div class="card">
-      <button class="acao" onclick="concluirAgendamento()">Concluir</button>
     </div>
 
   </div>
@@ -112,41 +102,34 @@ button {
 <!-- CADASTRO -->
 <div id="cadastro" class="aba">
 
+  <!-- LISTA -->
   <div id="lista-view" class="card">
     <button class="acao" onclick="abrirCadastro()">+ Cadastrar</button>
     <div id="lista-prestadores"></div>
   </div>
 
-  <div id="form-view" style="display:none;">
+  <!-- FORM -->
+  <div id="form-view" class="card" style="display:none;">
 
-    <!-- BLOCO 1 -->
-    <div class="card">
-      <h3>Dados do Prestador</h3>
+    <h3>Dados do Prestador</h3>
+    <input id="empresa" placeholder="Empresa">
+    <input id="endereco" placeholder="Endereço">
 
-      <input id="empresa" placeholder="Empresa">
-      <input id="endereco" placeholder="Endereço">
-
-      <div class="row">
-        <input id="cidade" placeholder="Cidade">
-        <input id="uf" placeholder="UF">
-      </div>
-
-      <input id="responsavel" placeholder="Responsável">
-      <input id="contato" placeholder="Contato">
+    <div class="row">
+      <input id="cidade" placeholder="Cidade">
+      <input id="uf" placeholder="UF">
     </div>
 
-    <!-- BLOCO 2 -->
-    <div class="card">
-      <h3>Agenda</h3>
+    <input id="responsavel" placeholder="Responsável">
+    <input id="contato" placeholder="Contato">
 
-      <input id="tecnicos" placeholder="Qtd técnicos">
-      <div id="agenda"></div>
-    </div>
+    <h3>Agenda</h3>
+    <input id="tecnicos" placeholder="Qtd técnicos">
+    <div id="agenda"></div>
 
-    <div class="card">
-      <button onclick="cancelarCadastro()">Cancelar</button>
-      <button class="acao" onclick="salvarPrestador()">Salvar</button>
-    </div>
+    <br>
+    <button onclick="cancelarCadastro()">Cancelar</button>
+    <button class="acao" onclick="salvarPrestador()">Salvar</button>
 
   </div>
 
@@ -158,7 +141,6 @@ button {
     Hoje: <strong id="hoje">0</strong><br>
     Total: <strong id="total">0</strong>
   </div>
-  <div class="card" id="lista-agendamentos"></div>
 </div>
 
 </div>
@@ -168,11 +150,8 @@ button {
 /* ===== DADOS ===== */
 let prestadores = [];
 let agendaPrestador = {};
-let prestadorSelecionadoIndex = null;
 let itensAgendamento = [];
 let tempoTotal = 0;
-let horariosSelecionados = [];
-let ocupacao = {};
 
 /* ===== PRODUTOS ===== */
 const produtos = {
@@ -198,17 +177,18 @@ const produtos = {
   ],
 
   "Videotelemetria":[
-    {desc:"Coblicam (2 cameras)", tempo:90},
-    {desc:"Cobli-multicam (3 câmeras internas)", tempo:120},
-    {desc:"Cobli-multicam (2 câmeras + 1 externa)", tempo:240},
-    {desc:"Cobli-multicam (4 câmeras)", tempo:240},
-    {desc:"Cobli-multicam (5 câmeras)", tempo:300}
+    {desc:"CobliCam (2 câmeras)", tempo:90},
+    {desc:"Cobli Multicam (3 câmeras internas)", tempo:120},
+    {desc:"Cobli Multicam (2 câmeras + 1 externa)", tempo:240},
+    {desc:"Cobli Multicam (4 câmeras)", tempo:240},
+    {desc:"Cobli Multicam (5 câmeras)", tempo:300}
   ]
 };
 
 /* ===== INIT ===== */
 window.onload = function(){
   renderProdutos();
+  renderPrestadores();
 };
 
 /* ===== ABAS ===== */
@@ -220,75 +200,61 @@ function trocarAba(id, btn){
   btn.classList.add("ativo");
 }
 
-/* ===== PRODUTOS ===== */
-function renderProdutos(){
+/* ===== CADASTRO ===== */
+function abrirCadastro(){
+  document.getElementById("lista-view").style.display="none";
+  document.getElementById("form-view").style.display="block";
+  gerarAgenda();
+}
 
-  let c=document.getElementById("produtos");
-  c.innerHTML="";
+function cancelarCadastro(){
+  document.getElementById("form-view").style.display="none";
+  document.getElementById("lista-view").style.display="block";
+}
 
-  Object.keys(produtos).forEach(tipo=>{
+function salvarPrestador(){
 
-    let t=document.createElement("div");
-    t.className="tipo";
-    t.innerText=tipo;
-    c.appendChild(t);
-
-    produtos[tipo].forEach(p=>{
-      let d=document.createElement("div");
-
-      d.innerHTML=`
-        ${tipo.toUpperCase()} - ${p.desc} (${formatarTempo(p.tempo)}/veic)
-        <input type="number" placeholder="Qtd" onchange="addItem('${tipo}','${p.desc}',${p.tempo},this.value)">
-      `;
-
-      c.appendChild(d);
-    });
-
+  prestadores.push({
+    empresa: empresa.value,
+    tecnicos: parseInt(tecnicos.value||1),
+    agenda: JSON.parse(JSON.stringify(agendaPrestador))
   });
+
+  cancelarCadastro();
+  renderPrestadores();
 }
 
-function formatarTempo(min){
-  let h = Math.floor(min / 60);
-  let m = min % 60;
-  if(h && m) return `${h}h ${m}min`;
-  if(h) return `${h}h`;
-  return `${m}min`;
-}
+function renderPrestadores(){
+  let l=document.getElementById("lista-prestadores");
+  l.innerHTML="";
 
-function addItem(tipo,desc,tempo,qtd){
-  qtd=parseInt(qtd||0);
-  if(!qtd) return;
-
-  itensAgendamento.push({desc,tempo,qtd});
-  renderItens();
-}
-
-function renderItens(){
-  let c=document.getElementById("lista-itens");
-  c.innerHTML="";
-  tempoTotal=0;
-
-  itensAgendamento.forEach((i,index)=>{
-    let totalItem = i.tempo * i.qtd;
-    tempoTotal+=totalItem;
-
+  prestadores.forEach((p,i)=>{
     let d=document.createElement("div");
+
     d.innerHTML=`
-      ${i.desc} | ${i.qtd} veic (${(totalItem/60).toFixed(1)}h)
-      <button onclick="removerItem(${index})">X</button>
+      <strong>${p.empresa}</strong>
+      <button onclick="editar(${i})">Editar</button>
+      <button onclick="excluir(${i})">Excluir</button>
+      <hr>
     `;
-    c.appendChild(d);
+
+    l.appendChild(d);
   });
-
-  document.getElementById("tempoTotal").innerText=(tempoTotal/60).toFixed(1)+"h";
 }
 
-function removerItem(i){
-  itensAgendamento.splice(i,1);
-  renderItens();
+function excluir(i){
+  prestadores.splice(i,1);
+  renderPrestadores();
 }
 
-/* ===== AGENDA CADASTRO ===== */
+function editar(i){
+  let p=prestadores[i];
+  empresa.value=p.empresa;
+  tecnicos.value=p.tecnicos;
+  abrirCadastro();
+}
+
+/* ===== AGENDA ===== */
 function gerarAgenda(){
 
   const dias = ["Seg","Ter","Qua","Qui","Sex","Sab"];
@@ -330,61 +296,7 @@ function gerarAgenda(){
   });
 }
 
-/* ===== CADASTRO ===== */
-function abrirCadastro(){
-  document.getElementById("lista-view").style.display="none";
-  document.getElementById("form-view").style.display="block";
-  gerarAgenda();
-}
-
-function cancelarCadastro(){
-  document.getElementById("form-view").style.display="none";
-  document.getElementById("lista-view").style.display="block";
-}
-
-function salvarPrestador(){
-
-  prestadores.push({
-    empresa: empresa.value,
-    tecnicos: parseInt(tecnicos.value||1),
-    agenda: JSON.parse(JSON.stringify(agendaPrestador))
-  });
-
-  cancelarCadastro(); // 🔥 VOLTA PRA LISTA
-  renderPrestadores();
-}
-
-function renderPrestadores(){
-  let l=document.getElementById("lista-prestadores");
-  l.innerHTML="";
-
-  prestadores.forEach((p,i)=>{
-    let d=document.createElement("div");
-
-    d.innerHTML=`
-      <strong>${p.empresa}</strong>
-      <button onclick="editar(${i})">Editar</button>
-      <button onclick="excluir(${i})">Excluir</button>
-      <hr>
-    `;
-
-    l.appendChild(d);
-  });
-}
-function editar(i){
-  let p=prestadores[i];
-
-  empresa.value=p.empresa;
-  tecnicos.value=p.tecnicos;
-
-  abrirCadastro();
-}
-function excluir(i){
-  prestadores.splice(i,1);
-  renderPrestadores();
-}
-
-</script>
+/* ===== AGENDAMENTO ===== */
 function buscar(){
 
   let l=document.getElementById("lista-prestadores-ag");
@@ -395,12 +307,74 @@ function buscar(){
     b.innerText=p.empresa;
 
     b.onclick=()=>{
-      prestadorSelecionadoIndex=i;
       document.getElementById("bloco-agendamento").style.display="block";
     };
 
     l.appendChild(b);
   });
 }
+
+/* ===== PRODUTOS ===== */
+function renderProdutos(){
+
+  let c=document.getElementById("produtos");
+  c.innerHTML="";
+
+  Object.keys(produtos).forEach(tipo=>{
+
+    let t=document.createElement("div");
+    t.className="tipo";
+    t.innerText=tipo;
+    c.appendChild(t);
+
+    produtos[tipo].forEach(p=>{
+      let d=document.createElement("div");
+
+      d.innerHTML=`
+        ${tipo.toUpperCase()} - ${p.desc} (${p.tempo}min/veic)
+        <input type="number" placeholder="Qtd" onchange="addItem('${p.desc}',${p.tempo},this.value)">
+      `;
+
+      c.appendChild(d);
+    });
+
+  });
+}
+
+function addItem(desc,tempo,qtd){
+  qtd=parseInt(qtd||0);
+  if(!qtd) return;
+
+  itensAgendamento.push({desc,tempo,qtd});
+  renderItens();
+}
+
+function renderItens(){
+  let c=document.getElementById("lista-itens");
+  c.innerHTML="";
+  tempoTotal=0;
+
+  itensAgendamento.forEach((i,index)=>{
+    let totalItem = i.tempo * i.qtd;
+    tempoTotal+=totalItem;
+
+    let d=document.createElement("div");
+    d.innerHTML=`
+      ${i.desc} | ${i.qtd} veic (${(totalItem/60).toFixed(1)}h)
+      <button onclick="removerItem(${index})">X</button>
+    `;
+    c.appendChild(d);
+  });
+
+  document.getElementById("tempoTotal").innerText=(tempoTotal/60).toFixed(1)+"h";
+}
+
+function removerItem(i){
+  itensAgendamento.splice(i,1);
+  renderItens();
+}
+
+</script>
+
 </body>
 </html>
