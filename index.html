@@ -45,7 +45,7 @@ body { margin:0; font-family: Arial; background:#f4f6f8; }
 
 input, select {
   padding:8px;
-  margin:5px 5px 10px 0;
+  margin:5px;
 }
 
 button.acao {
@@ -62,7 +62,7 @@ button.acao {
 <body>
 
 <div class="topo">
-  <strong>Cobli | APEX</strong>
+  <strong>APEX</strong>
   <span>Agenda Prestadores</span>
 </div>
 
@@ -85,41 +85,25 @@ button.acao {
 
   <div id="fluxo-agendamento" style="display:none;">
 
-    <div class="card">
-      <strong id="prestadorSelecionado"></strong>
-    </div>
+    <div class="card" id="prestadorSelecionado"></div>
 
     <div class="card">
       <h3>Produtos</h3>
-
       <select id="produto">
         <option value="1">Produto A - 1h</option>
         <option value="2">Produto B - 2h</option>
       </select>
-
       <input type="number" id="quantidade" placeholder="Qtd">
-
       <button class="acao" onclick="calcularTempo()">Adicionar</button>
-
       <p>Tempo total: <strong id="tempoTotal">0h</strong></p>
     </div>
 
     <div class="card">
-      <h3>Selecionar Dia</h3>
-      <select id="diaSelecionado" onchange="carregarHorarios()">
-        <option value="">Selecione</option>
-        <option value="Seg">Segunda</option>
-        <option value="Ter">Terça</option>
-        <option value="Qua">Quarta</option>
-        <option value="Qui">Quinta</option>
-        <option value="Sex">Sexta</option>
-        <option value="Sáb">Sábado</option>
-        <option value="Dom">Domingo</option>
-      </select>
-
-      <h3>Horários disponíveis</h3>
+      <h3>Agenda</h3>
       <div id="horarios"></div>
       <p id="alertaTempo" style="color:red;"></p>
+      <br>
+      <button class="acao" onclick="concluirAgendamento()">Concluir Agendamento</button>
     </div>
 
   </div>
@@ -140,34 +124,27 @@ button.acao {
   <div id="cadastro-flow" style="display:none;">
 
     <div class="card">
-      <h3>Cadastro de Prestador</h3>
+      <h3>Cadastro</h3>
       <p>Etapa <span id="etapaAtual">1</span> de 4</p>
     </div>
 
-    <!-- ETAPA 1 -->
     <div class="card etapa" id="etapa1">
       <input id="nome" placeholder="Nome"><br>
-      <input id="telefone" placeholder="Telefone"><br>
-      <input id="contato" placeholder="Contato"><br>
       <input id="tecnicos" type="number" placeholder="Qtd Técnicos"><br>
     </div>
 
-    <!-- ETAPA 2 -->
     <div class="card etapa" id="etapa2" style="display:none;">
       <input id="endereco" placeholder="Endereço"><br>
-      <input id="raio" type="number" placeholder="Raio (km 1-100)">
+      <input id="raio" type="number" placeholder="Raio 1-100">
     </div>
 
-    <!-- ETAPA 3 -->
     <div class="card etapa" id="etapa3" style="display:none;">
       <h4>Agenda</h4>
       <div id="agenda-semana"></div>
     </div>
 
-    <!-- ETAPA 4 -->
     <div class="card etapa" id="etapa4" style="display:none;">
-      <h4>Revisão</h4>
-      <button class="acao" onclick="salvarPrestador()">Salvar Prestador</button>
+      <button class="acao" onclick="salvarPrestador()">Salvar</button>
     </div>
 
     <div class="card">
@@ -181,219 +158,293 @@ button.acao {
 
 <!-- ================= PAINEL ================= -->
 <div id="painel" class="aba">
+
   <div class="card">
-    <h2>Painel</h2>
+    <h3>Resumo</h3>
+    Hoje: <strong id="hoje"></strong><br>
+    Total: <strong id="total"></strong>
+  </div>
+
+  <div class="card">
+    <h3>Agendamentos</h3>
     <div id="lista-agendamentos"></div>
   </div>
+
 </div>
 
 </div>
 
 <script>
 
-/* ===== ABAS ===== */
-function trocarAba(id, botao) {
-  document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
-  document.getElementById(id).classList.add('ativa');
+let prestadores = [];
+let agendamentos = [];
+let agendaPrestador = {};
+let etapa = 1;
+let prestadorSelecionadoIndex = null;
+let prestadorEditando = null;
+let tempoTotal = 0;
+let horariosSelecionados = [];
 
-  document.querySelectorAll('.menu button').forEach(b => b.classList.remove('ativo'));
+function trocarAba(id, botao){
+  document.querySelectorAll('.aba').forEach(a=>a.classList.remove('ativa'));
+  document.getElementById(id).classList.add('ativa');
+  document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('ativo'));
   botao.classList.add('ativo');
 }
 
-/* ===== DADOS ===== */
-let prestadores = [];
-let agendaPrestador = {};
-let etapa = 1;
-
 /* ===== CADASTRO ===== */
-function abrirCadastro() {
-  document.getElementById("lista-prestadores-view").style.display = "none";
-  document.getElementById("cadastro-flow").style.display = "block";
+function abrirCadastro(){
+  document.getElementById("lista-prestadores-view").style.display="none";
+  document.getElementById("cadastro-flow").style.display="block";
 }
 
-function proximaEtapa() {
+function proximaEtapa(){
 
-  if (etapa === 2) {
-    const raio = document.getElementById("raio").value;
-    if (!raio || raio <= 0 || raio > 100) {
-      alert("Raio deve ser entre 1 e 100 km");
-      return;
-    }
+  if(etapa===2){
+    let r=document.getElementById("raio").value;
+    if(!r||r<1||r>100){ alert("Raio inválido"); return;}
   }
 
-  if (etapa < 4) {
-    document.getElementById("etapa" + etapa).style.display = "none";
+  if(etapa<4){
+    document.getElementById("etapa"+etapa).style.display="none";
     etapa++;
-    document.getElementById("etapa" + etapa).style.display = "block";
-    document.getElementById("etapaAtual").innerText = etapa;
+    document.getElementById("etapa"+etapa).style.display="block";
+    document.getElementById("etapaAtual").innerText=etapa;
 
-    if (etapa === 3) gerarAgenda();
+    if(etapa===3) gerarAgenda();
   }
 }
 
-function voltarEtapa() {
-  if (etapa > 1) {
-    document.getElementById("etapa" + etapa).style.display = "none";
+function voltarEtapa(){
+  if(etapa>1){
+    document.getElementById("etapa"+etapa).style.display="none";
     etapa--;
-    document.getElementById("etapa" + etapa).style.display = "block";
-    document.getElementById("etapaAtual").innerText = etapa;
+    document.getElementById("etapa"+etapa).style.display="block";
+    document.getElementById("etapaAtual").innerText=etapa;
   }
 }
 
-/* ===== AGENDA ===== */
-const dias = ["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+function gerarAgenda(){
+  const dias=["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+  let c=document.getElementById("agenda-semana");
+  c.innerHTML="";
 
-function gerarAgenda() {
-  const container = document.getElementById("agenda-semana");
-  container.innerHTML = "";
+  dias.forEach(d=>{
+    let div=document.createElement("div");
+    div.innerHTML="<strong>"+d+"</strong><br>";
 
-  dias.forEach(dia => {
-    const div = document.createElement("div");
-
-    const titulo = document.createElement("strong");
-    titulo.innerText = dia;
-    div.appendChild(titulo);
-
-    for (let h = 8; h <= 18; h++) {
-      const btn = document.createElement("button");
-      btn.innerText = h;
-
-      btn.onclick = () => {
-        if (!agendaPrestador[dia]) agendaPrestador[dia] = [];
-
-        if (agendaPrestador[dia].includes(h)) {
-          agendaPrestador[dia] = agendaPrestador[dia].filter(x => x !== h);
-          btn.style.background = "";
-        } else {
-          agendaPrestador[dia].push(h);
-          btn.style.background = "#2F4EA1";
-          btn.style.color = "white";
+    for(let h=8;h<=18;h++){
+      let b=document.createElement("button");
+      b.innerText=h;
+      b.onclick=()=>{
+        if(!agendaPrestador[d]) agendaPrestador[d]=[];
+        if(agendaPrestador[d].includes(h)){
+          agendaPrestador[d]=agendaPrestador[d].filter(x=>x!==h);
+          b.style.background="";
+        }else{
+          agendaPrestador[d].push(h);
+          b.style.background="#2F4EA1";
+          b.style.color="white";
         }
       };
-
-      div.appendChild(btn);
+      div.appendChild(b);
     }
-
-    container.appendChild(div);
+    c.appendChild(div);
   });
 }
 
-/* ===== SALVAR ===== */
-function salvarPrestador() {
+function salvarPrestador(){
 
-  prestadores.push({
-    nome: document.getElementById("nome").value,
-    endereco: document.getElementById("endereco").value,
-    tecnicos: document.getElementById("tecnicos").value,
-    raio: document.getElementById("raio").value,
+  let p={
+    nome: nome.value,
+    endereco: endereco.value,
+    tecnicos: tecnicos.value,
+    raio: raio.value,
     agenda: JSON.parse(JSON.stringify(agendaPrestador))
-  });
+  };
 
-  alert("Salvo!");
+  if(prestadorEditando!=null){
+    prestadores[prestadorEditando]=p;
+    prestadorEditando=null;
+  }else{
+    prestadores.push(p);
+  }
 
   resetCadastro();
   renderizarPrestadores();
 }
 
-function renderizarPrestadores() {
-  const lista = document.getElementById("lista-prestadores");
-  lista.innerHTML = "";
+function renderizarPrestadores(){
+  let l=document.getElementById("lista-prestadores");
+  l.innerHTML="";
 
-  prestadores.forEach(p => {
-    const div = document.createElement("div");
-    div.innerHTML = `<strong>${p.nome}</strong> - ${p.endereco} (Raio ${p.raio}km)`;
-    lista.appendChild(div);
+  prestadores.forEach((p,i)=>{
+    let d=document.createElement("div");
+    d.innerHTML=`
+      <strong>${p.nome}</strong> (${p.raio}km)
+      <br>
+      <button onclick="editarPrestador(${i})">Editar</button>
+      <button onclick="excluirPrestador(${i})">Excluir</button>
+      <hr>
+    `;
+    l.appendChild(d);
   });
 }
 
-function resetCadastro() {
-  document.getElementById("cadastro-flow").style.display = "none";
-  document.getElementById("lista-prestadores-view").style.display = "block";
+function editarPrestador(i){
+  let p=prestadores[i];
+  abrirCadastro();
+  nome.value=p.nome;
+  endereco.value=p.endereco;
+  tecnicos.value=p.tecnicos;
+  raio.value=p.raio;
+  agendaPrestador=JSON.parse(JSON.stringify(p.agenda));
+  prestadorEditando=i;
+}
 
-  etapa = 1;
-  agendaPrestador = {};
+function excluirPrestador(i){
+  if(confirm("Excluir?")){
+    prestadores.splice(i,1);
+    renderizarPrestadores();
+  }
+}
 
-  document.querySelectorAll(".etapa").forEach((e,i)=>{
-    e.style.display = i===0?"block":"none";
-  });
-
-  document.getElementById("etapaAtual").innerText = 1;
+function resetCadastro(){
+  document.getElementById("cadastro-flow").style.display="none";
+  document.getElementById("lista-prestadores-view").style.display="block";
+  etapa=1;
+  agendaPrestador={};
+  document.querySelectorAll(".etapa").forEach((e,i)=>e.style.display=i===0?"block":"none");
+  document.getElementById("etapaAtual").innerText=1;
 }
 
 /* ===== AGENDAMENTO ===== */
-function buscar() {
-  if (prestadores.length === 0) {
-    alert("Cadastre um prestador primeiro");
-    return;
-  }
+function buscar(){
 
-  document.getElementById("fluxo-agendamento").style.display = "block";
+  if(prestadores.length===0){ alert("Cadastre prestador"); return;}
 
-  const p = prestadores[0]; // pega primeiro (simulação)
-  document.getElementById("prestadorSelecionado").innerText = p.nome;
+  document.getElementById("fluxo-agendamento").style.display="block";
 
-  agendaPrestador = p.agenda;
-}
+  let c=document.getElementById("prestadorSelecionado");
+  c.innerHTML="<strong>Escolha:</strong><br>";
 
-let tempoTotal = 0;
-let horariosSelecionados = [];
-
-function calcularTempo() {
-  const produto = parseInt(document.getElementById("produto").value);
-  const qtd = parseInt(document.getElementById("quantidade").value || 0);
-
-  tempoTotal += produto * qtd;
-  document.getElementById("tempoTotal").innerText = tempoTotal + "h";
-}
-
-function carregarHorarios() {
-  const dia = document.getElementById("diaSelecionado").value;
-  const container = document.getElementById("horarios");
-
-  container.innerHTML = "";
-  horariosSelecionados = [];
-
-  if (!agendaPrestador[dia]) {
-    container.innerHTML = "Sem horários";
-    return;
-  }
-
-  agendaPrestador[dia].forEach(h => {
-    const btn = document.createElement("button");
-    btn.innerText = h;
-
-    btn.onclick = () => {
-      if (horariosSelecionados.includes(h)) {
-        horariosSelecionados = horariosSelecionados.filter(x=>x!==h);
-        btn.style.background="";
-      } else {
-        horariosSelecionados.push(h);
-        btn.style.background="#2F4EA1";
-        btn.style.color="white";
-      }
-      validarTempo();
-    };
-
-    container.appendChild(btn);
+  prestadores.forEach((p,i)=>{
+    let b=document.createElement("button");
+    b.innerText=p.nome;
+    b.onclick=()=>selecionarPrestador(i);
+    c.appendChild(b);
   });
 }
 
-function validarTempo() {
-  const alerta = document.getElementById("alertaTempo");
+function selecionarPrestador(i){
+  prestadorSelecionadoIndex=i;
+  let p=prestadores[i];
+  agendaPrestador=p.agenda;
 
-  if (horariosSelecionados.length < tempoTotal) {
-    alerta.innerText = "Tempo insuficiente";
+  let c=document.getElementById("prestadorSelecionado");
+  c.innerHTML="<strong>"+p.nome+"</strong>";
+
+  mostrarAgenda();
+}
+
+function mostrarAgenda(){
+  let c=document.getElementById("horarios");
+  c.innerHTML="";
+  horariosSelecionados=[];
+
+  Object.keys(agendaPrestador).forEach(d=>{
+    let div=document.createElement("div");
+    div.innerHTML="<strong>"+d+"</strong><br>";
+
+    agendaPrestador[d].forEach(h=>{
+      let b=document.createElement("button");
+      b.innerText=h;
+
+      b.onclick=()=>{
+        if(horariosSelecionados.includes(h)){
+          horariosSelecionados=horariosSelecionados.filter(x=>x!==h);
+          b.style.background="";
+        }else{
+          horariosSelecionados.push(h);
+          b.style.background="#2F4EA1";
+          b.style.color="white";
+        }
+        validarTempo();
+      };
+
+      div.appendChild(b);
+    });
+
+    c.appendChild(div);
+  });
+}
+
+function calcularTempo(){
+  tempoTotal+=parseInt(produto.value)*(quantidade.value||0);
+  tempoTotalSpan.innerText=tempoTotal+"h";
+}
+
+function validarTempo(){
+  let alerta=document.getElementById("alertaTempo");
+
+  if(horariosSelecionados.length<tempoTotal){
+    alerta.innerText="Tempo insuficiente";
     return;
   }
 
-  const fim = Math.max(...horariosSelecionados)+1;
-
-  if (fim > 19) {
-    alerta.innerText = "Excede limite (19h)";
+  if(Math.max(...horariosSelecionados)+1>19){
+    alerta.innerText="Excede 19h";
     return;
   }
 
-  alerta.innerText = "";
+  alerta.innerText="";
+}
+
+function concluirAgendamento(){
+
+  if(prestadorSelecionadoIndex==null){alert("Selecione prestador");return;}
+  if(horariosSelecionados.length==0){alert("Selecione horário");return;}
+  if(alertaTempo.innerText!=""){alert("Corrija horários");return;}
+
+  agendamentos.push({
+    prestador: prestadores[prestadorSelecionadoIndex].nome,
+    data: new Date().toISOString().split("T")[0],
+    horarios: [...horariosSelecionados],
+    tempo: tempoTotal
+  });
+
+  resetAgendamento();
+  renderizarPainel();
+}
+
+function resetAgendamento(){
+  fluxo-agendamento.style.display="none";
+  prestadorSelecionado.innerHTML="";
+  horarios.innerHTML="";
+  tempoTotal=0;
+  tempoTotalSpan.innerText="0h";
+  horariosSelecionados=[];
+  prestadorSelecionadoIndex=null;
+}
+
+/* ===== PAINEL ===== */
+function renderizarPainel(){
+
+  let hoje=new Date().toISOString().split("T")[0];
+
+  let hojeCount=agendamentos.filter(a=>a.data===hoje).length;
+
+  document.getElementById("hoje").innerText=hojeCount;
+  document.getElementById("total").innerText=agendamentos.length;
+
+  let l=document.getElementById("lista-agendamentos");
+  l.innerHTML="";
+
+  agendamentos.forEach(a=>{
+    let d=document.createElement("div");
+    d.innerHTML=`${a.prestador} - ${a.data} (${a.horarios.join(",")})`;
+    l.appendChild(d);
+  });
 }
 
 </script>
