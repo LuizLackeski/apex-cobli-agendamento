@@ -106,7 +106,7 @@ button {
 <div id="step-agendamento" class="card" style="display:none;">
 
 <h3>Prestador</h3>
-<select id="selectPrestador"></select>
+<select id="selectPrestador" onchange="renderizarAgendaAgendamento()"></select>
 
 <h3>Serviços</h3>
 
@@ -453,12 +453,51 @@ document.getElementById("step-cep").style.display="none";
 document.getElementById("step-agendamento").style.display="block";
 
 atualizarSelectPrestadores();
+renderizarAgendaAgendamento();
 }
 
 function concluirAgendamento(){
 alert("OK");
 }
+function renderizarAgendaAgendamento(){
 
+let idx = document.getElementById("selectPrestador").value;
+let container = document.getElementById("agenda-agendamento");
+
+container.innerHTML = "";
+
+if(idx === "" || !prestadores[idx]) return;
+
+let agenda = prestadores[idx].agenda || [];
+
+if(agenda.length === 0){
+    container.innerHTML = "<p>Prestador sem agenda cadastrada</p>";
+    return;
+}
+
+agenda.forEach(h => {
+
+let cell = document.createElement("div");
+cell.className = "cell";
+cell.innerText = h;
+
+cell.addEventListener("click", function(){
+
+    let max = parseInt(document.getElementById("horasNecessarias").innerText || 0);
+    let sel = document.querySelectorAll("#agenda-agendamento .cell.selecionado");
+
+    if(!this.classList.contains("selecionado") && sel.length >= max){
+        alert("Limite de horas atingido pelo serviço.");
+        return;
+    }
+
+    this.classList.toggle("selecionado");
+});
+
+container.appendChild(cell);
+
+});
+}
 </script>
 
 </body>
