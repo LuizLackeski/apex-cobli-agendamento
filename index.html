@@ -514,7 +514,63 @@ document.querySelectorAll("#agenda-agendamento .cell")
 document.getElementById("step-agendamento").style.display = "none";
 document.getElementById("step-cep").style.display = "block";
 }
+function renderizarAgendaAgendamento(){
 
+let idx = document.getElementById("selectPrestador").value;
+let container = document.getElementById("agenda-agendamento");
+
+container.innerHTML = "";
+
+if(idx === "" || !prestadores[idx]) return;
+
+let agenda = prestadores[idx].agenda || [];
+
+if(agenda.length === 0){
+    container.innerHTML = "<p>Prestador sem agenda cadastrada</p>";
+    return;
+}
+
+// monta grade do prestador (dias + horários)
+const dias = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
+
+dias.forEach(dia => {
+
+let row = document.createElement("div");
+row.className = "row-dia";
+
+let label = document.createElement("div");
+label.innerText = dia;
+label.style.width = "120px";
+label.style.fontWeight = "bold";
+
+row.appendChild(label);
+
+agenda.forEach(h => {
+
+let cell = document.createElement("div");
+cell.className = "cell";
+cell.innerText = h;
+
+// clique com controle de limite de horas
+cell.addEventListener("click", function(){
+
+    let max = parseInt(document.getElementById("horasNecessarias").innerText || 0);
+    let sel = document.querySelectorAll("#agenda-agendamento .cell.selecionado");
+
+    if(!this.classList.contains("selecionado") && sel.length >= max){
+        alert("Limite de horas atingido pelo serviço.");
+        return;
+    }
+
+    this.classList.toggle("selecionado");
+});
+
+row.appendChild(cell);
+});
+
+container.appendChild(row);
+});
+}
 </script>
 
 </body>
