@@ -515,29 +515,6 @@ document.getElementById("step-agendamento").style.display = "none";
 document.getElementById("step-cep").style.display = "block";
 }
 
-agenda.forEach(h => {
-
-let cell = document.createElement("div");
-cell.className = "cell";
-cell.innerText = h;
-
-cell.addEventListener("click", function(){
-
-    let max = parseInt(document.getElementById("horasNecessarias").innerText || 0);
-    let sel = document.querySelectorAll("#agenda-agendamento .cell.selecionado");
-
-    if(!this.classList.contains("selecionado") && sel.length >= max){
-        alert("Limite de horas atingido pelo serviço.");
-        return;
-    }
-
-    this.classList.toggle("selecionado");
-});
-
-container.appendChild(cell);
-
-});
-}
 </script>
 
 </body>
