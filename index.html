@@ -267,13 +267,11 @@ dias.forEach(d => {
 
 let row = document.createElement("div");
 row.className = "row-dia";
-row.style.marginBottom = "5px";
 
 let label = document.createElement("div");
 label.innerText = d;
 label.style.fontWeight = "bold";
 label.style.width = "120px";
-label.style.display = "inline-block";
 
 row.appendChild(label);
 
@@ -283,7 +281,10 @@ let cell = document.createElement("div");
 cell.className = "cell";
 cell.innerText = `${h}:00`;
 
-cell.onclick = () => cell.classList.toggle("selecionado");
+// 🔥 GARANTE CLICK SEM FALHAR
+cell.addEventListener("click", function(){
+    this.classList.toggle("selecionado");
+});
 
 row.appendChild(cell);
 }
@@ -291,7 +292,6 @@ row.appendChild(cell);
 grid.appendChild(row);
 });
 }
-
 /* ================= SALVAR (CORRIGIDO FINAL) ================= */
 
 function salvarPrestador(){
