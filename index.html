@@ -176,6 +176,7 @@ let prestadores = [];
 let itensSelecionados = [];
 let etapa = 1;
 let editingIndex = -1;
+let agendaAtualPrestador = [];
 
 /* ================= INICIAL ================= */
 
@@ -473,11 +474,24 @@ renderizarAgendaAgendamento();
 
 function concluirAgendamento(){
 
-let prestadorIndex = document.getElementById("selectPrestador").value;
+let selecionados = document.querySelectorAll("#agenda-agendamento .cell.selecionado");
+let necessario = parseInt(document.getElementById("horasNecessarias").innerText || 0);
 
-if(prestadorIndex === "" || !prestadores[prestadorIndex]){
-alert("Selecione um prestador");
-return;
+// pega horários válidos do prestador
+let horariosValidos = agendaAtualPrestador;
+
+// valida se tudo selecionado pertence à agenda do prestador
+let invalido = [...selecionados].some(c => !horariosValidos.includes(c.innerText));
+
+if(invalido){
+    alert("Você selecionou horários fora da agenda do prestador.");
+    return;
+}
+
+// valida quantidade
+if(selecionados.length !== necessario){
+    alert(`Você precisa selecionar exatamente ${necessario} horários`);
+    return;
 }
 
 let selecionados = document.querySelectorAll("#agenda-agendamento .cell.selecionado");
@@ -515,7 +529,7 @@ document.getElementById("step-agendamento").style.display = "none";
 document.getElementById("step-cep").style.display = "block";
 }
 function renderizarAgendaAgendamento(){
-
+agendaAtualPrestador = prestadores[idx].agenda || [];
 let idx = document.getElementById("selectPrestador").value;
 let container = document.getElementById("agenda-agendamento");
 
