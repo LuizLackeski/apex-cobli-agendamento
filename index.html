@@ -83,21 +83,36 @@
 </div>
 
 <script>
-    // CONFIGURAÇÃO SUPABASE
+// CONFIGURAÇÃO SUPABASE
     const SUPABASE_URL = 'https://tmjmjrhgmyqamuphgdvi.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtam1qcmhnbXlxYW11cGhnZHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjY4NzMsImV4cCI6MjA5MjcwMjg3M30.gjClWn46TOgfa-y4PAUMBg4ZxS4xhFjep1mk_DcU2QY';
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let prestadores = [];
-    let editingId = null;
+    let itensSelecionados = [];
 
-    window.onload = () => { carregarProdutos(); criarGrid('agenda-cadastro'); carregarPrestadores(); };
+    // INICIALIZAÇÃO SEGURA
+    window.onload = async () => {
+        try {
+            carregarProdutos();
+            criarGrid('agenda-cadastro');
+            await carregarPrestadores();
+        } catch (e) {
+            console.error("Erro ao carregar dados:", e);
+            alert("Erro ao conectar no banco de dados. Verifique o console (F12).");
+        }
+    };
 
     async function carregarPrestadores() {
-        let { data } = await supabase.from('prestadores').select('*');
-        prestadores = data || [];
-        atualizarSelectPrestadores();
-        renderizarListaPrestadores();
+        try {
+            let { data, error } = await supabase.from('prestadores').select('*');
+            if (error) throw error;
+            prestadores = data || [];
+            atualizarSelectPrestadores();
+            renderizarListaPrestadores();
+        } catch (e) {
+            console.warn("Sem conexão com banco, usando modo offline ou erro de API.");
+        }
     }
 
     async function salvarPrestador() {
