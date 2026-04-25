@@ -4,100 +4,71 @@
     <meta charset="UTF-8">
     <title>APEX - Sistema Completo</title>
     <style>
-        :root { --primary: #2F4EA1; --bg: #f4f6f8; }
-        body { font-family: 'Segoe UI', sans-serif; background:var(--bg); margin:0; padding:20px; }
-        .topo { background: var(--primary); color: white; padding: 15px 30px; }
-        .menu { background: #1F3C88; padding: 10px 30px; display: flex; }
-        .menu button { background: none; border: none; color: #cbd5e1; margin-right: 20px; cursor: pointer; padding: 10px; }
-        .menu button.ativo { color: white; border-bottom: 2px solid #4da3ff; }
-        .conteudo { padding: 40px; max-width: 1000px; margin: 0 auto; }
-        .aba { display: none; } .aba.ativa { display: block; }
-        .card { background: white; padding: 25px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        body { font-family: sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
+        .topo { background: #2F4EA1; color: white; padding: 15px; }
+        .menu { background: #1F3C88; padding: 10px; display: flex; gap: 15px; }
+        .menu button { padding: 10px; cursor: pointer; border: none; background: #1F3C88; color: white; }
+        .menu button.ativo { background: #4da3ff; }
+        .conteudo { padding: 20px; max-width: 900px; margin: auto; }
+        .aba { display: none; }
+        .aba.ativa { display: block; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .agenda-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 10px; }
-        .cell { border: 1px solid #ddd; padding: 10px; text-align: center; cursor: pointer; border-radius: 4px; font-size: 0.8rem; }
-        .cell.selecionado { background: var(--primary); color: white; border-color: var(--primary); }
-        input, select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button.acao { background: #4C5EB0; color: white; border: none; padding: 12px 20px; cursor: pointer; border-radius: 8px; width: 100%; font-weight: bold; }
-        .item-lista { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        .cell { border: 1px solid #ddd; padding: 8px; text-align: center; cursor: pointer; border-radius: 4px; font-size: 0.8rem; }
+        .cell.selecionado { background: #2F4EA1; color: white; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; box-sizing: border-box; }
+        button.acao { background: #4C5EB0; color: white; border: none; padding: 10px; cursor: pointer; width: 100%; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="topo"><strong>APEX</strong> <span>Agenda Prestadores</span></div>
+<div class="topo"><strong>APEX</strong> - Agenda Prestadores</div>
 <div class="menu">
-    <button class="ativo" onclick="trocarAba('consulta', this)">Agendamento</button>
-    <button onclick="trocarAba('cadastro', this)">Prestadores</button>
-    <button onclick="trocarAba('painel', this)">Painel</button>
+    <button id="btn-consulta" class="ativo" onclick="trocarAba('consulta', this)">Agendamento</button>
+    <button id="btn-cadastro" onclick="trocarAba('cadastro', this)">Prestadores</button>
 </div>
 
 <div class="conteudo">
-
     <div id="consulta" class="aba ativa">
         <div id="step-cep" class="card">
             <h2>Novo Agendamento</h2>
             <input type="text" id="inputCep" placeholder="Digite o CEP (00000-000)">
             <button class="acao" onclick="iniciarAgendamento()">Buscar Endereço</button>
         </div>
-        
-        <div id="step-agendamento" class="card" style="display: none;">
-            <h3>1. Prestador</h3>
+        <div id="step-agendamento" class="card" style="display:none;">
+            <h3>1. Escolha o Prestador</h3>
             <select id="selectPrestador" onchange="renderizarAgendaAgendamento()">
-                <option value="">-- Escolha um prestador --</option>
+                <option value="">-- Selecione --</option>
             </select>
-            
             <h3>2. Serviços</h3>
             <select id="produto"></select>
-            <input type="number" id="quantidade" value="1" min="1">
-            <button class="acao" onclick="adicionarProduto()">+ Adicionar Item</button>
-            
-            <div id="lista-produtos" style="margin-top:15px; border:1px solid #ddd; border-radius:8px; padding:10px;"></div>
-            <p><strong>Total Horas Necessárias: <span id="horasNecessarias">0</span>h</strong></p>
-            
+            <button class="acao" onclick="adicionarProduto()">Adicionar Item</button>
+            <div id="lista-produtos" style="margin-top:10px;"></div>
+            <p><strong>Total Horas: <span id="horasNecessarias">0</span>h</strong></p>
             <h3>3. Agenda</h3>
             <div id="agenda-agendamento" class="agenda-grid"></div>
-            
-            <button class="acao" style="background:#28a745; margin-top:20px;" onclick="concluirAgendamento()">Finalizar Agendamento</button>
-            <button onclick="resetarTelaParaInicio()" style="background:none; color:red; border:none; margin-top:10px; width:100%; cursor:pointer;">Cancelar/Reiniciar</button>
+            <button class="acao" style="background:green;" onclick="alert('Agendado!')">Finalizar</button>
         </div>
     </div>
 
     <div id="cadastro" class="aba">
-        <div id="lista-prestadores-view" class="card">
+        <div id="view-lista" class="card">
             <h2>Prestadores</h2>
             <button class="acao" onclick="abrirCadastro()">+ Novo Prestador</button>
-            <div id="lista-prestadores" style="margin-top: 20px;"></div>
+            <div id="lista-prestadores"></div>
         </div>
-        
-        <div id="cadastro-flow" class="card" style="display:none;">
-            <h3>Cadastro (Etapa <span id="etapaAtual">1</span>/4)</h3>
-            <div class="etapa-form" id="etapa-1" style="display:block;">
-                <input id="nomeEmpresa" placeholder="Razão Social *">
-                <input id="endereco" placeholder="Endereço Completo *">
-            </div>
-            <div class="etapa-form" id="etapa-2" style="display:none;">
-                <input id="cidade" placeholder="Cidade / UF">
-            </div>
-            <div class="etapa-form" id="etapa-3" style="display:none;">
-                <p>Marque os horários disponíveis (Seg-Sex, 08h-18h):</p>
-                <div id="agenda-cadastro" class="agenda-grid"></div>
-            </div>
-            <div class="etapa-form" id="etapa-4" style="display:none;"><p>Revisão Final.</p></div>
-
-            <div style="display:flex; gap:10px; margin-top:20px;">
-                <button onclick="mudarEtapa(-1)">Voltar</button>
-                <button class="acao" id="btnProximo" onclick="mudarEtapa(1)">Próximo</button>
-                <button class="acao" id="btnSalvar" style="display:none; background:#28a745;" onclick="salvarPrestador()">Salvar Prestador</button>
-            </div>
+        <div id="view-form" class="card" style="display:none;">
+            <h3>Cadastro de Prestador</h3>
+            <input id="nomeEmpresa" placeholder="Razão Social *">
+            <p>Selecione horários:</p>
+            <div id="agenda-cadastro" class="agenda-grid"></div>
+            <button class="acao" onclick="salvarPrestador()">Salvar</button>
+            <button onclick="document.getElementById('view-form').style.display='none'; document.getElementById('view-lista').style.display='block';">Cancelar</button>
         </div>
-    </div>
-
-    <div id="painel" class="aba">
-        <div class="card">Total de Agendamentos: <strong id="total">0</strong></div>
     </div>
 </div>
 
 <script>
-    /* DADOS EXATOS SOLICITADOS */
     const produtos = {
         "Telemetria": [
             {desc:"Instalado veículos leves bloqueador", tempo:60},
@@ -128,76 +99,83 @@
 
     let prestadores = [];
     let itensSelecionados = [];
-    let etapa = 1;
-    let editingIndex = -1;
 
-    window.onload = () => { carregarProdutos(); criarGrid('agenda-cadastro'); };
-
-    /* --- LÓGICA DE PRODUTOS --- */
-    function carregarProdutos() {
-        let select = document.getElementById("produto");
-        for (let tipo in produtos) {
-            let group = document.createElement('optgroup'); group.label = tipo;
+    // Carregar produtos ao iniciar
+    window.onload = () => {
+        let sel = document.getElementById("produto");
+        for(let tipo in produtos) {
+            let grp = document.createElement('optgroup'); grp.label = tipo;
             produtos[tipo].forEach(p => {
                 let opt = document.createElement("option"); opt.text = p.desc; opt.value = p.tempo;
-                group.appendChild(opt);
+                grp.appendChild(opt);
             });
-            select.appendChild(group);
+            sel.appendChild(grp);
         }
+        criarGrid('agenda-cadastro');
+    };
+
+    function trocarAba(id, btn) {
+        document.querySelectorAll('.aba').forEach(a => a.style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+        document.querySelectorAll('.menu button').forEach(b => b.classList.remove('ativo'));
+        btn.classList.add('ativo');
     }
 
-    function adicionarProduto() {
-        let select = document.getElementById("produto");
-        let qtd = parseInt(document.getElementById("quantidade").value);
-        let tempoTotal = parseInt(select.value) * qtd;
-        itensSelecionados.push({desc: `${select.options[select.selectedIndex].text} (x${qtd})`, tempo: tempoTotal});
-        renderizarListaProdutos();
-    }
-
-    function renderizarListaProdutos() {
-        let totalMinutos = itensSelecionados.reduce((acc, i) => acc + i.tempo, 0);
-        document.getElementById("horasNecessarias").innerText = Math.ceil(totalMinutos / 60);
-        document.getElementById("lista-produtos").innerHTML = itensSelecionados.map((i, idx) => `
-            <div class="item-lista">${i.desc} <button onclick="removerProduto(${idx})">x</button></div>
-        `).join('');
-    }
-
-    function removerProduto(idx) { itensSelecionados.splice(idx, 1); renderizarListaProdutos(); }
-
-    /* --- LÓGICA PRESTADORES (CRUD) --- */
-    function abrirCadastro(index = -1) {
-        editingIndex = index;
-        document.getElementById("lista-prestadores-view").style.display = "none";
-        document.getElementById("cadastro-flow").style.display = "block";
-        document.getElementById("nomeEmpresa").value = index !== -1 ? prestadores[index].nome : "";
+    function abrirCadastro() {
+        document.getElementById('view-lista').style.display = 'none';
+        document.getElementById('view-form').style.display = 'block';
     }
 
     function salvarPrestador() {
         let agenda = [];
         document.querySelectorAll('#agenda-cadastro .cell.selecionado').forEach(c => agenda.push(c.innerText));
-        let dados = { nome: document.getElementById("nomeEmpresa").value, agenda: agenda };
+        prestadores.push({nome: document.getElementById('nomeEmpresa').value, agenda: agenda});
         
-        if(editingIndex === -1) prestadores.push(dados);
-        else prestadores[editingIndex] = dados;
-
-        renderizarListaPrestadores();
-        atualizarSelectPrestadores();
-        resetCadastro();
+        // Atualizar lista e select
+        document.getElementById('lista-prestadores').innerHTML = prestadores.map((p,i) => `<div>${p.nome} <button onclick="excluir(${i})">Excluir</button></div>`).join('');
+        document.getElementById('selectPrestador').innerHTML = '<option>-- Selecione --</option>' + prestadores.map((p,i) => `<option value="${i}">${p.nome}</option>`).join('');
+        
+        document.getElementById('view-form').style.display = 'none';
+        document.getElementById('view-lista').style.display = 'block';
     }
 
-    function renderizarListaPrestadores() {
-        document.getElementById("lista-prestadores").innerHTML = prestadores.map((p, i) => `
-            <div class="card" style="padding:10px; margin-bottom:5px;">${p.nome} 
-                <button onclick="abrirCadastro(${i})">Editar</button> 
-                <button onclick="excluirPrestador(${i})">Excluir</button>
-            </div>
-        `).join('');
-    }
+    function excluir(i) { prestadores.splice(i,1); alert('Excluído'); }
 
-    function excluirPrestador(i) { prestadores.splice(i, 1); renderizarListaPrestadores(); atualizarSelectPrestadores(); }
-
-    /* --- AGENDA E AGENDAMENTO --- */
     function iniciarAgendamento() {
-        if(prestadores.length === 0) { alert("Cadastre um prestador primeiro!"); return; }
+        if(prestadores.length === 0) return alert("Cadastre prestadores primeiro!");
         document.getElementById('step-cep').style.display = 'none';
-        document
+        document.getElementById('step-agendamento').style.display = 'block';
+    }
+
+    function renderizarAgendaAgendamento() {
+        let idx = document.getElementById("selectPrestador").value;
+        let c = document.getElementById("agenda-agendamento"); c.innerHTML = "";
+        if(idx === "") return;
+        prestadores[idx].agenda.forEach(hora => {
+            let b = document.createElement("div"); b.className="cell"; b.innerText=hora;
+            b.onclick = () => b.classList.toggle("selecionado");
+            c.appendChild(b);
+        });
+    }
+
+    function adicionarProduto() {
+        let sel = document.getElementById("produto");
+        itensSelecionados.push({desc: sel.options[sel.selectedIndex].text, tempo: parseInt(sel.value)});
+        let total = itensSelecionados.reduce((a, b) => a + b.tempo, 0);
+        document.getElementById("horasNecessarias").innerText = Math.ceil(total/60);
+        document.getElementById("lista-produtos").innerHTML += `<div>• ${sel.options[sel.selectedIndex].text}</div>`;
+    }
+
+    function criarGrid(id) {
+        let grid = document.getElementById(id);
+        ['Seg','Ter','Qua','Qui','Sex'].forEach(d => {
+            for(let h=8; h<=18; h++){
+                let c = document.createElement('div'); c.className="cell"; c.innerText = d+" "+h+"h";
+                c.onclick = () => c.classList.toggle("selecionado");
+                grid.appendChild(c);
+            }
+        });
+    }
+</script>
+</body>
+</html>
