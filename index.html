@@ -244,6 +244,18 @@ document.getElementById("btnSalvar").style.display = etapa === 2 ? "inline" : "n
 
 /* ================= AGENDA ================= */
 
+function iniciarAgendamento(){
+
+    if(prestadores.length === 0){
+        alert("Cadastre um prestador primeiro!");
+        return;
+    }
+
+    document.getElementById("step-cep").style.display = "none";
+    document.getElementById("step-agendamento").style.display = "block";
+
+    atualizarSelectPrestadores();
+}
 function criarGrid(id){
 
 const grid = document.getElementById(id);
@@ -254,6 +266,7 @@ const dias = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
 dias.forEach(d => {
 
 let row = document.createElement("div");
+row.className = "row-dia";
 row.style.marginBottom = "5px";
 
 let label = document.createElement("div");
