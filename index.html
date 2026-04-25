@@ -131,11 +131,6 @@ button {
         <input id="uf" placeholder="UF">
       </div>
 
-      <div class="row">
-        <input id="lat" placeholder="Latitude">
-        <input id="lng" placeholder="Longitude">
-      </div>
-
       <input id="responsavel" placeholder="Responsável">
       <input id="contato" placeholder="Contato">
     </div>
@@ -176,8 +171,10 @@ let agendaPrestador = {};
 let prestadorSelecionadoIndex = null;
 let itensAgendamento = [];
 let tempoTotal = 0;
+let horariosSelecionados = [];
+let ocupacao = {};
 
-/* ===== PRODUTOS AGRUPADOS ===== */
+/* ===== PRODUTOS ===== */
 const produtos = {
   "Telemetria":[
     {desc:"Instalado veículos leves bloqueador", tempo:60},
@@ -234,14 +231,13 @@ function renderProdutos(){
     let t=document.createElement("div");
     t.className="tipo";
     t.innerText=tipo;
-
     c.appendChild(t);
 
     produtos[tipo].forEach(p=>{
       let d=document.createElement("div");
 
       d.innerHTML=`
-        ${p.desc}
+        ${tipo.toUpperCase()} - ${p.desc} (${formatarTempo(p.tempo)}/veic)
         <input type="number" placeholder="Qtd" onchange="addItem('${tipo}','${p.desc}',${p.tempo},this.value)">
       `;
 
@@ -249,6 +245,14 @@ function renderProdutos(){
     });
 
   });
+}
+
+function formatarTempo(min){
+  let h = Math.floor(min / 60);
+  let m = min % 60;
+  if(h && m) return `${h}h ${m}min`;
+  if(h) return `${h}h`;
+  return `${m}min`;
 }
 
 function addItem(tipo,desc,tempo,qtd){
@@ -265,10 +269,14 @@ function renderItens(){
   tempoTotal=0;
 
   itensAgendamento.forEach((i,index)=>{
-    tempoTotal+=i.tempo*i.qtd;
+    let totalItem = i.tempo * i.qtd;
+    tempoTotal+=totalItem;
 
     let d=document.createElement("div");
-    d.innerHTML=`${i.desc} (${i.qtd}) <button onclick="removerItem(${index})">X</button>`;
+    d.innerHTML=`
+      ${i.desc} | ${i.qtd} veic (${(totalItem/60).toFixed(1)}h)
+      <button onclick="removerItem(${index})">X</button>
+    `;
     c.appendChild(d);
   });
 
@@ -280,9 +288,52 @@ function removerItem(i){
   renderItens();
 }
 
+/* ===== AGENDA CADASTRO ===== */
+function gerarAgenda(){
+
+  const dias = ["Seg","Ter","Qua","Qui","Sex","Sab"];
+  agendaPrestador = {};
+
+  let c=document.getElementById("agenda");
+  c.innerHTML="";
+
+  dias.forEach(dia=>{
+
+    agendaPrestador[dia]=[];
+
+    let div=document.createElement("div");
+    div.innerHTML="<strong>"+dia+"</strong>";
+
+    let hDiv=document.createElement("div");
+    hDiv.className="horas";
+
+    for(let h=8;h<=18;h++){
+      let b=document.createElement("button");
+      b.innerText=h;
+      b.className="hora";
+
+      b.onclick=()=>{
+        if(agendaPrestador[dia].includes(h)){
+          agendaPrestador[dia]=agendaPrestador[dia].filter(x=>x!==h);
+          b.classList.remove("ativa");
+        } else {
+          agendaPrestador[dia].push(h);
+          b.classList.add("ativa");
+        }
+      };
+
+      hDiv.appendChild(b);
+    }
+
+    div.appendChild(hDiv);
+    c.appendChild(div);
+  });
+}
+
 /* ===== CADASTRO ===== */
 function abrirCadastro(){
   document.getElementById("form-view").style.display="block";
+  gerarAgenda();
 }
 
 function cancelarCadastro(){
@@ -294,7 +345,7 @@ function salvarPrestador(){
   prestadores.push({
     empresa: empresa.value,
     tecnicos: parseInt(tecnicos.value||1),
-    agenda: agendaPrestador
+    agenda: JSON.parse(JSON.stringify(agendaPrestador))
   });
 
   renderPrestadores();
@@ -308,7 +359,6 @@ function renderPrestadores(){
     let d=document.createElement("div");
     d.innerHTML=`
       <strong>${p.empresa}</strong>
-      <button onclick="editar(${i})">Editar</button>
       <button onclick="excluir(${i})">Excluir</button>
       <hr>
     `;
@@ -321,22 +371,7 @@ function excluir(i){
   renderPrestadores();
 }
 
-function editar(i){
-  let p=prestadores[i];
-  empresa.value=p.empresa;
-  tecnicos.value=p.tecnicos;
-  abrirCadastro();
-}
-
 </script>
-function gerarAgenda(){
 
-  const dias = ["Seg","Ter","Qua","Qui","Sex","Sab"];
-  agendaPrestador = {};
-
-  let container = document.getElementById("agenda");
-  container.innerHTML = "";
-
-  dias
 </body>
 </html>
