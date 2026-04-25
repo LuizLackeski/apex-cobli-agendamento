@@ -169,11 +169,13 @@ button.acao {
     </div>
 
     <!-- ETAPA 3 -->
-    <div class="card etapa" id="etapa3" style="display:none;">
-      <h4>Agenda</h4>
-      <p>Selecionar horários disponíveis:</p>
-      <div id="agenda"></div>
-    </div>
+   <div class="card etapa" id="etapa3" style="display:none;">
+  <h4>Agenda do Prestador</h4>
+
+  <p>Selecione dias e horários disponíveis:</p>
+
+  <div id="agenda-semana"></div>
+</div>
 
     <!-- ETAPA 4 -->
     <div class="card etapa" id="etapa4" style="display:none;">
@@ -312,22 +314,76 @@ function proximaEtapa() {
 
   if (etapa < 4) {
     document.getElementById("etapa" + etapa).style.display = "none";
-    etapa++;
-    document.getElementById("etapa" + etapa).style.display = "block";
-    document.getElementById("etapaAtual").innerText = etapa;
-  }
-}
 
-function voltarEtapa() {
-  if (etapa > 1) {
-    document.getElementById("etapa" + etapa).style.display = "none";
-    etapa--;
+    etapa++;
+
     document.getElementById("etapa" + etapa).style.display = "block";
     document.getElementById("etapaAtual").innerText = etapa;
+
+    // 🔥 quando entrar na etapa 3
+    if (etapa === 3) {
+      gerarAgendaCadastro();
+    }
   }
 }
 
 </script>
+const diasSemana = [
+  "Segunda", "Terça", "Quarta",
+  "Quinta", "Sexta", "Sábado", "Domingo"
+];
 
+let agendaPrestador = {};
+
+function gerarAgendaCadastro() {
+  const container = document.getElementById("agenda-semana");
+  container.innerHTML = "";
+
+  diasSemana.forEach(dia => {
+
+    const bloco = document.createElement("div");
+    bloco.style.marginBottom = "15px";
+
+    const titulo = document.createElement("strong");
+    titulo.innerText = dia;
+
+    bloco.appendChild(titulo);
+
+    const linha = document.createElement("div");
+
+    for (let h = 8; h <= 18; h++) {
+      const btn = document.createElement("button");
+      btn.innerText = h + ":00";
+      btn.style.margin = "3px";
+
+      btn.onclick = () => toggleHorarioCadastro(dia, h, btn);
+
+      linha.appendChild(btn);
+    }
+
+    bloco.appendChild(linha);
+    container.appendChild(bloco);
+  });
+}
+
+function toggleHorarioCadastro(dia, hora, btn) {
+
+  if (!agendaPrestador[dia]) {
+    agendaPrestador[dia] = [];
+  }
+
+  if (agendaPrestador[dia].includes(hora)) {
+    agendaPrestador[dia] =
+      agendaPrestador[dia].filter(h => h !== hora);
+
+    btn.style.background = "";
+    btn.style.color = "";
+  } else {
+    agendaPrestador[dia].push(hora);
+
+    btn.style.background = "#2F4EA1";
+    btn.style.color = "white";
+  }
+}
 </body>
 </html>
