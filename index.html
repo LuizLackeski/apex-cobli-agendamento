@@ -19,10 +19,6 @@
         input, select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; }
         button { cursor: pointer; }
         .item-lista { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; }
-        /* Painel */
-        .flex-cards { display: flex; gap: 20px; margin-bottom: 20px; }
-        .stats-card { background: white; padding: 20px; border-radius: 12px; flex: 1; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .painel-item { display: flex; justify-content: space-between; padding: 10px; background: #f9f9f9; margin-bottom: 5px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -44,14 +40,14 @@
         </div>
         <div id="step-agendamento" class="card" style="display:none;">
             <h3>Prestador</h3>
-            <select id="selectPrestador" onchange="renderSlots()"></select>
+            <select id="selectPrestador" onchange="rdaAgendamento()"></select>
             <h3>Serviços</h3>
             <select id="produto"></select>
             <input type="number" id="quantidade" value="1">
             <button onclick="adicionarProduto()">Adicionar</button>
             <div id="lista-produtos"></div>
             <p><strong>Horas: <span id="horasNecessarias">0</span></strong></p>
-            <h3>Agenda (Próximos 14 dias)</h3>
+            <h3>Agenda</h3>
             <div id="agenda-agendamento"></div>
             <button onclick="concluirAgendamento()">Finalizar</button>
         </div>
@@ -67,6 +63,11 @@
                 <h3>Dados</h3>
                 <input id="nomeEmpresa" placeholder="Nome / Empresa">
                 <input id="endereco" placeholder="Endereço">
+                <input id="cidade" placeholder="Cidade">
+                <input id="uf" placeholder="UF">
+                <input id="cep" placeholder="CEP">
+                <input id="responsavel" placeholder="Responsável">
+                <input id="contatoResponsavel" placeholder="Contato">
             </div>
             <div id="etapa-2" style="display:none;">
                 <h3>Agenda</h3>
@@ -78,14 +79,7 @@
         </div>
     </div>
 
-    <div id="painel" class="aba">
-        <div class="flex-cards">
-            <div class="stats-card">TOTAL<br><strong id="total-agend">0</strong></div>
-            <div class="stats-card">PRESTADORES<br><strong id="total-prest">0</strong></div>
-        </div>
-        <input type="date" onchange="renderPainel()">
-        <div id="painel-conteudo"></div>
-    </div>
+    <div id="painel" class="aba"><div class="card" id="painel-conteudo"></div></div>
 </div>
 
 <script>
@@ -93,24 +87,38 @@
     let itensSelecionados = [];
     let agendamentos = [];
     let etapa = 1;
+    let editingIndex = -1;
 
-    const produtos = { "Telemetria": [{desc:"Instalado veículos leves", tempo:60}], "Videotelemetria": [{desc:"CobliCam", tempo:90}] };
+    const produtos = {
+        "Telemetria": [{desc:"Instalado veículos leves bloqueador", tempo:60}, {desc:"Instalado veículos leves e pesados + CAN", tempo:60}],
+        "Identificador": [{desc:"Instalado veículos leves e pesados identificador", tempo:60}]
+    };
+
+    window.onload = () => { carregarProdutos(); };
 
     function trocarAba(id, btn){
         document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
         document.getElementById(id).classList.add('ativa');
         document.querySelectorAll('.menu button').forEach(b => b.classList.remove('ativo'));
         if(btn) btn.classList.add('ativo');
-        if(id === 'painel') renderPainel();
     }
 
-    function abrirCadastro(){
+    function abrirCadastro(index = -1){
+        editingIndex = index;
         document.getElementById("lista-prestadores-view").style.display="none";
         document.getElementById("cadastro-flow").style.display="block";
         etapa = 1;
         document.getElementById("etapa-1").style.display="block";
         document.getElementById("etapa-2").style.display="none";
         criarGrid("agenda-cadastro");
+        
+        if(index !== -1){
+            document.getElementById("nomeEmpresa").value = prestadores[index].nome;
+            prestadores[index].agenda.forEach(item => {
+                let cells = document.querySelectorAll("#agenda-cadastro .cell");
+                cells.forEach(c => { if(c.dataset.dia == item.dia && c.dataset.hora == item.hora) c.classList.add("selecionado"); });
+            });
+        }
     }
 
     function mudarEtapa(dir){
@@ -126,10 +134,10 @@
             let row = document.createElement("div"); row.className="row-dia";
             row.innerHTML = `<div style="width:80px">${d}</div>`;
             for(let h=8;h<=18;h++){
-                let cell = document.createElement("div"); cell.className="cell";
+                let cell=document.createElement("div"); cell.className="cell";
                 cell.dataset.dia = d; cell.dataset.hora = `${h}:00`;
                 cell.innerText = `${h}:00`;
-                cell.onclick = () => cell.classList.toggle("selecionado");
+                cell.onclick=()=>cell.classList.toggle("selecionado");
                 row.appendChild(cell);
             }
             grid.appendChild(row);
@@ -138,16 +146,15 @@
 
     function salvarPrestador(){
         let agenda = [...document.querySelectorAll('#agenda-cadastro .selecionado')].map(c => ({ dia: c.dataset.dia, hora: c.dataset.hora }));
-        prestadores.push({ nome: document.getElementById("nomeEmpresa").value, agenda: agenda });
-        renderizarListaPrestadores();
-        atualizarSelectPrestadores();
+        if(editingIndex === -1) prestadores.push({ nome: document.getElementById("nomeEmpresa").value, agenda: agenda });
+        else prestadores[editingIndex] = { nome: document.getElementById("nomeEmpresa").value, agenda: agenda };
+        renderizarListaPrestadores(); atualizarSelectPrestadores();
         document.getElementById("cadastro-flow").style.display="none";
         document.getElementById("lista-prestadores-view").style.display="block";
     }
 
     function renderizarListaPrestadores(){
-        document.getElementById("lista-prestadores").innerHTML = prestadores.map((p, i) => `<div class="card">${p.nome} <button onclick="excluirPrestador(${i})">Excluir</button></div>`).join('');
-        document.getElementById("total-prest").innerText = prestadores.length;
+        document.getElementById("lista-prestadores").innerHTML = prestadores.map((p, i) => `<div class="card">${p.nome} <button onclick="abrirCadastro(${i})">Editar</button> <button onclick="excluirPrestador(${i})">Excluir</button></div>`).join('');
     }
 
     function excluirPrestador(i){ prestadores.splice(i,1); renderizarListaPrestadores(); atualizarSelectPrestadores(); }
@@ -158,6 +165,18 @@
         prestadores.forEach((p,i) => sel.innerHTML += `<option value="${i}">${p.nome}</option>`);
     }
 
+    function carregarProdutos(){
+        let select=document.getElementById("produto");
+        for(let tipo in produtos){
+            let group=document.createElement("optgroup"); group.label=tipo;
+            produtos[tipo].forEach(p=>{
+                let opt=document.createElement("option"); opt.value=p.tempo; opt.text=p.desc;
+                group.appendChild(opt);
+            });
+            select.appendChild(group);
+        }
+    }
+
     function adicionarProduto(){
         let select = document.getElementById("produto");
         itensSelecionados.push({desc: select.options[select.selectedIndex].text, tempo: parseInt(select.value)});
@@ -165,8 +184,7 @@
     }
 
     function renderizarProdutos(){
-        let total = itensSelecionados.reduce((a, b) => a + b.tempo, 0);
-        document.getElementById("horasNecessarias").innerText = Math.ceil(total/60);
+        document.getElementById("horasNecessarias").innerText = Math.ceil(itensSelecionados.reduce((a, b) => a + b.tempo, 0)/60);
         document.getElementById("lista-produtos").innerHTML = itensSelecionados.map((i, idx) => `<div class="item-lista">${i.desc} <button onclick="itensSelecionados.splice(${idx},1); renderizarProdutos();">x</button></div>`).join('');
     }
 
@@ -176,52 +194,25 @@
         document.getElementById("step-agendamento").style.display="block";
     }
 
-    function renderSlots(){
+    function rdaAgendamento(){
         let idx = document.getElementById("selectPrestador").value;
-        let horas = parseInt(document.getElementById("horasNecessarias").innerText);
-        if(horas === 0){ alert("Adicione serviço!"); document.getElementById("selectPrestador").value=""; return; }
-        
         let container = document.getElementById("agenda-agendamento");
         container.innerHTML = "";
-        let hoje = new Date();
-        const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
-        
-        for(let i=0; i<14; i++) {
-            let data = new Date(); data.setDate(hoje.getDate() + i);
-            let dNome = diasSemana[data.getDay()];
-            prestadores[idx].agenda.filter(a => a.dia == dNome).forEach(slot => {
-                let div = document.createElement("div"); div.className = "cell";
-                div.innerText = `${data.toLocaleDateString('pt-BR').slice(0,5)} ${slot.hora}`;
-                div.onclick = () => {
-                    let sel = document.querySelectorAll("#agenda-agendamento .selecionado");
-                    if(!div.classList.contains("selecionado") && sel.length >= horas) return;
-                    div.classList.toggle("selecionado");
-                };
-                container.appendChild(div);
-            });
-        }
+        prestadores[idx].agenda.forEach(item => {
+            let div = document.createElement("div"); div.className = "cell";
+            div.innerText = `${item.dia} ${item.hora}`;
+            div.onclick = () => div.classList.toggle("selecionado");
+            container.appendChild(div);
+        });
     }
 
     function concluirAgendamento(){
+        let sel = document.querySelectorAll("#agenda-agendamento .selecionado");
+        if(sel.length === 0) return alert("Selecione um horário!");
         agendamentos.push({ prestador: prestadores[document.getElementById("selectPrestador").value].nome, data: new Date().toLocaleDateString() });
-        document.getElementById("total-agend").innerText = agendamentos.length;
+        document.getElementById("painel-conteudo").innerHTML = agendamentos.map(a => `<div class="card">Agendamento: ${a.prestador} - ${a.data}</div>`).join('');
         alert("Agendado!");
-        trocarAba('painel');
-    }
-
-    function renderPainel(){
-        document.getElementById("painel-conteudo").innerHTML = agendamentos.map((a, i) => `
-            <div class="painel-item">Agendamento: ${a.prestador} - ${a.data} 
-            <button onclick="agendamentos.splice(${i},1); renderPainel()">Excluir</button></div>
-        `).join('');
-    }
-
-    // Carrega produtos no load
-    let sel = document.getElementById("produto");
-    for(let tipo in produtos){
-        let g = document.createElement("optgroup"); g.label=tipo;
-        produtos[tipo].forEach(p => { let o = document.createElement("option"); o.value=p.tempo; o.text=p.desc; g.appendChild(o); });
-        sel.appendChild(g);
+        trocarAba('painel', document.querySelectorAll('.menu button')[2]);
     }
 </script>
 </body>
