@@ -7,12 +7,12 @@
 <style>
 body { margin:0; font-family: Arial; background:#f4f6f8; }
 
-.topo { background:#2F4EA1; color:white; padding:15px 30px; display:flex; justify-content:space-between; }
+.topo { background:#2F4EA1; color:white; padding:15px 30px; }
 .menu { background:#1F3C88; padding:10px 30px; }
 
 .menu button {
   background:none; border:none; color:#cbd5e1;
-  margin-right:20px; font-size:16px; cursor:pointer;
+  margin-right:20px; cursor:pointer;
 }
 .menu button.ativo { color:white; border-bottom:2px solid #4da3ff; }
 
@@ -26,9 +26,7 @@ body { margin:0; font-family: Arial; background:#f4f6f8; }
 }
 
 input, select {
-  padding:8px;
-  margin:5px 0;
-  width:100%;
+  width:100%; padding:8px; margin:5px 0;
 }
 
 .row { display:flex; gap:10px; }
@@ -40,18 +38,20 @@ button {
   cursor:pointer;
 }
 
-button.acao {
+.acao {
   background:#2F4EA1;
   color:white;
   border:none;
   border-radius:4px;
 }
 
+/* AGENDA */
+.horas { display:flex; flex-wrap:wrap; gap:5px; }
 .hora {
+  width:50px;
   border:1px solid #ccc;
   background:white;
 }
-
 .hora.ativa {
   background:#2F4EA1;
   color:white;
@@ -61,9 +61,7 @@ button.acao {
 
 <body>
 
-<div class="topo">
-  <strong>APEX</strong>
-</div>
+<div class="topo"><strong>APEX</strong></div>
 
 <div class="menu">
   <button class="ativo" onclick="trocarAba('consulta', this)">Agendamento</button>
@@ -81,9 +79,17 @@ button.acao {
     <button class="acao" onclick="buscar()">Buscar</button>
   </div>
 
-  <div id="fluxo-agendamento" style="display:none;">
+  <div class="card">
+    <h3>Prestadores</h3>
+    <div id="lista-prestadores-ag"></div>
+  </div>
 
-    <div class="card" id="prestadorSelecionado"></div>
+  <div id="bloco-agendamento" style="display:none;">
+
+    <div class="card">
+      <h3>Agenda disponível</h3>
+      <div id="agenda-agendamento"></div>
+    </div>
 
     <div class="card">
       <h3>Produtos</h3>
@@ -107,40 +113,39 @@ button.acao {
 <!-- CADASTRO -->
 <div id="cadastro" class="aba">
 
-  <div class="card">
-    <h3>Dados do Prestador</h3>
-
-    <input id="empresa" placeholder="Nome da empresa">
-    <input id="endereco" placeholder="Endereço completo">
-
-    <div class="row">
-      <input id="cidade" placeholder="Cidade">
-      <input id="uf" placeholder="UF">
-    </div>
-
-    <div class="row">
-      <input id="lat" placeholder="Latitude">
-      <input id="lng" placeholder="Longitude">
-    </div>
-
-    <input id="responsavel" placeholder="Responsável">
-    <input id="contato" placeholder="Contato">
-  </div>
-
-  <div class="card">
-    <h3>Agenda</h3>
-
-    <input id="tecnicos" type="number" placeholder="Qtd técnicos">
-    <div id="agenda"></div>
-  </div>
-
-  <div class="card">
-    <button class="acao" onclick="salvarPrestador()">Salvar</button>
-  </div>
-
-  <div class="card">
+  <div id="lista-view" class="card">
     <h3>Prestadores</h3>
+    <button class="acao" onclick="abrirCadastro()">+ Cadastrar</button>
     <div id="lista-prestadores"></div>
+  </div>
+
+  <div id="form-view" style="display:none;">
+
+    <div class="card">
+      <h3>Dados</h3>
+      <input id="empresa" placeholder="Empresa">
+      <input id="endereco" placeholder="Endereço">
+
+      <div class="row">
+        <input id="cidade" placeholder="Cidade">
+        <input id="uf" placeholder="UF">
+      </div>
+
+      <input id="responsavel" placeholder="Responsável">
+      <input id="contato" placeholder="Contato">
+    </div>
+
+    <div class="card">
+      <h3>Agenda</h3>
+      <input id="tecnicos" placeholder="Qtd técnicos">
+      <div id="agenda"></div>
+    </div>
+
+    <div class="card">
+      <button onclick="cancelarCadastro()">Cancelar</button>
+      <button class="acao" onclick="salvarPrestador()">Salvar</button>
+    </div>
+
   </div>
 
 </div>
@@ -153,9 +158,7 @@ button.acao {
     Total: <strong id="total">0</strong>
   </div>
 
-  <div class="card">
-    <div id="lista-agendamentos"></div>
-  </div>
+  <div class="card" id="lista-agendamentos"></div>
 
 </div>
 
@@ -167,20 +170,20 @@ button.acao {
 let prestadores = [];
 let agendamentos = [];
 let agendaPrestador = {};
+let prestadorSelecionadoIndex = null;
 let itensAgendamento = [];
 let tempoTotal = 0;
 
 /* ===== PRODUTOS ===== */
 const produtos = [
-  { tipo:"TELEMETRIA", desc:"Leves e pesados", tempo:40 },
-  { tipo:"IDENTIFICADOR", desc:"Identificador + CAN", tempo:90 },
-  { tipo:"TRAVA", desc:"Imobilizador", tempo:80 }
+  { tipo:"Telemetria", desc:"Leves e pesados", tempo:40 },
+  { tipo:"Identificador", desc:"Identificador + CAN", tempo:90 },
+  { tipo:"Trava", desc:"Imobilizador", tempo:80 }
 ];
 
 /* ===== INIT ===== */
 window.onload = function(){
   carregarProdutos();
-  gerarAgenda();
 };
 
 /* ===== ABAS ===== */
@@ -203,7 +206,18 @@ function carregarProdutos(){
   });
 }
 
-/* ===== AGENDA ===== */
+/* ===== CADASTRO ===== */
+function abrirCadastro(){
+  document.getElementById("lista-view").style.display="none";
+  document.getElementById("form-view").style.display="block";
+  gerarAgenda();
+}
+
+function cancelarCadastro(){
+  document.getElementById("lista-view").style.display="block";
+  document.getElementById("form-view").style.display="none";
+}
+
 function gerarAgenda(){
 
   const dias=["Seg","Ter","Qua","Qui","Sex","Sab"];
@@ -214,7 +228,10 @@ function gerarAgenda(){
 
   dias.forEach(d=>{
     let div=document.createElement("div");
-    div.innerHTML="<strong>"+d+"</strong><br>";
+    div.innerHTML="<strong>"+d+"</strong>";
+
+    let hDiv=document.createElement("div");
+    hDiv.className="horas";
 
     for(let h=8;h<=18;h++){
       let b=document.createElement("button");
@@ -231,14 +248,14 @@ function gerarAgenda(){
         }
       };
 
-      div.appendChild(b);
+      hDiv.appendChild(b);
     }
 
+    div.appendChild(hDiv);
     c.appendChild(div);
   });
 }
 
-/* ===== CADASTRO ===== */
 function salvarPrestador(){
 
   const temAgenda = Object.values(agendaPrestador).some(d=>d.length>0);
@@ -246,13 +263,11 @@ function salvarPrestador(){
 
   prestadores.push({
     empresa: empresa.value,
-    cidade: cidade.value,
-    tecnicos: tecnicos.value,
     agenda: JSON.parse(JSON.stringify(agendaPrestador))
   });
 
   renderizarPrestadores();
-  alert("Salvo!");
+  cancelarCadastro();
 }
 
 function renderizarPrestadores(){
@@ -267,6 +282,8 @@ function renderizarPrestadores(){
       <hr>`;
     l.appendChild(d);
   });
+
+  renderizarPrestadoresAg();
 }
 
 function excluirPrestador(i){
@@ -276,18 +293,54 @@ function excluirPrestador(i){
 
 /* ===== AGENDAMENTO ===== */
 function buscar(){
-  if(prestadores.length===0){ alert("Cadastre prestador"); return; }
+  renderizarPrestadoresAg();
+}
 
-  document.getElementById("fluxo-agendamento").style.display="block";
+function renderizarPrestadoresAg(){
 
-  let c=document.getElementById("prestadorSelecionado");
-  c.innerHTML="";
+  let l=document.getElementById("lista-prestadores-ag");
+  l.innerHTML="";
 
-  prestadores.forEach(p=>{
+  prestadores.forEach((p,i)=>{
     let b=document.createElement("button");
     b.innerText=p.empresa;
-    b.onclick=()=>c.innerHTML=p.empresa;
-    c.appendChild(b);
+
+    b.onclick=()=>{
+      prestadorSelecionadoIndex=i;
+      mostrarAgenda(p);
+    };
+
+    l.appendChild(b);
+  });
+}
+
+function mostrarAgenda(prestador){
+
+  document.getElementById("bloco-agendamento").style.display="block";
+
+  let c=document.getElementById("agenda-agendamento");
+  c.innerHTML="";
+
+  Object.keys(prestador.agenda).forEach(dia=>{
+
+    if(prestador.agenda[dia].length===0) return;
+
+    let div=document.createElement("div");
+    div.innerHTML="<strong>"+dia+"</strong>";
+
+    let hDiv=document.createElement("div");
+    hDiv.className="horas";
+
+    prestador.agenda[dia].forEach(h=>{
+      let b=document.createElement("button");
+      b.innerText=h;
+      b.className="hora";
+      b.onclick=()=>b.classList.toggle("ativa");
+      hDiv.appendChild(b);
+    });
+
+    div.appendChild(hDiv);
+    c.appendChild(div);
   });
 }
 
@@ -328,8 +381,13 @@ function removerItem(i){
 /* ===== FINALIZAR ===== */
 function concluirAgendamento(){
 
+  if(prestadorSelecionadoIndex===null){
+    alert("Selecione prestador");
+    return;
+  }
+
   agendamentos.push({
-    prestador: document.getElementById("prestadorSelecionado").innerText,
+    prestador: prestadores[prestadorSelecionadoIndex].empresa,
     data: new Date().toISOString().split("T")[0]
   });
 
