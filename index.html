@@ -195,7 +195,10 @@ function salvarPrestador(){
 let nome = document.getElementById("nomeEmpresa").value;
 
 let agenda = [...document.querySelectorAll('#agenda-cadastro .selecionado')]
-.map(c=>c.innerText);
+.map(c => ({
+    dia: c.dataset.dia,
+    hora: c.dataset.hora
+}));
 
 prestadores.push({
 nome:nome,
@@ -245,7 +248,9 @@ row.appendChild(label);
 for(let h=8;h<=18;h++){
 let cell=document.createElement("div");
 cell.className="cell";
-cell.innerText=h+":00";
+cell.dataset.dia = d;
+cell.dataset.hora = `${h}:00`;
+cell.innerText = `${h}:00`;
 cell.onclick=()=>cell.classList.toggle("selecionado");
 row.appendChild(cell);
 }
@@ -311,11 +316,14 @@ container.innerHTML="";
 
 if(!prestadores[idx]) return;
 
-prestadores[idx].agenda.forEach(h=>{
+prestadores[idx].agenda.forEach(item=>{
 let div=document.createElement("div");
 div.className="cell";
-div.innerText=h;
+div.innerText = item.hora;
+div.dataset.dia = item.dia;
+
 div.onclick=()=>div.classList.toggle("selecionado");
+
 container.appendChild(div);
 });
 }
