@@ -19,6 +19,12 @@ body { font-family: 'Segoe UI', sans-serif; background:var(--bg); margin:0; padd
 .cell.selecionado { background: var(--primary); color: white; }
 input, select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; }
 button.acao { background: #4C5EB0; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 8px; width: 100%; }
+    #agenda-cadastro {
+    display: block;
+}
+#agenda-cadastro .cell {
+    min-width: 60px;
+}
 </style>
 </head>
 
@@ -152,14 +158,21 @@ document.querySelectorAll('#agenda-cadastro .cell')
 }
 
 function mudarEtapa(dir){
-document.getElementById("etapa-"+etapa).style.display="none";
-etapa+=dir;
-if(etapa<1)etapa=1;
-if(etapa>2)etapa=2;
-document.getElementById("etapa-"+etapa).style.display="block";
 
-document.getElementById("btnProximo").style.display=etapa===2?"none":"inline";
-document.getElementById("btnSalvar").style.display=etapa===2?"inline":"none";
+    document.getElementById("etapa-"+etapa).style.display="none";
+
+    etapa += dir;
+
+    if(etapa < 1) etapa = 1;
+    if(etapa > 2) etapa = 2; // 🔥 aqui corrigido
+
+    document.getElementById("etapa-"+etapa).style.display="block";
+
+    document.getElementById("etapaAtual").innerText = etapa;
+
+    // controle dos botões
+    document.getElementById("btnProximo").style.display = etapa === 2 ? "none" : "inline";
+    document.getElementById("btnSalvar").style.display = etapa === 2 ? "inline" : "none";
 }
 
 function criarGrid(id){
