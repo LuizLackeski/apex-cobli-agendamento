@@ -5,84 +5,73 @@
 <title>APEX</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #f4f6f8;
-}
+body { margin:0; font-family: Arial; background:#f4f6f8; }
 
 /* TOPO */
 .topo {
-  background: #2F4EA1;
-  color: white;
-  padding: 15px 30px;
-  display: flex;
-  justify-content: space-between;
+  background:#2F4EA1;
+  color:white;
+  padding:15px 30px;
+  display:flex;
+  justify-content:space-between;
 }
 
 /* MENU */
-.menu {
-  background: #1F3C88;
-  padding: 10px 30px;
-}
+.menu { background:#1F3C88; padding:10px 30px; }
 
 .menu button {
-  background: none;
-  border: none;
-  color: #cbd5e1;
-  margin-right: 20px;
-  font-size: 16px;
-  cursor: pointer;
+  background:none;
+  border:none;
+  color:#cbd5e1;
+  margin-right:20px;
+  font-size:16px;
+  cursor:pointer;
 }
 
 .menu button.ativo {
-  color: white;
-  border-bottom: 2px solid #4da3ff;
+  color:white;
+  border-bottom:2px solid #4da3ff;
 }
 
 /* CONTEÚDO */
-.conteudo {
-  padding: 30px;
-}
+.conteudo { padding:30px; }
 
-.aba { display: none; }
-.ativa { display: block; }
+.aba { display:none; }
+.ativa { display:block; }
 
 /* CARD */
 .card {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  background:white;
+  padding:20px;
+  border-radius:8px;
+  margin-bottom:20px;
 }
 
 /* INPUT */
 input, select {
-  padding: 8px;
-  margin: 5px 5px 10px 0;
+  padding:8px;
+  margin:5px 5px 10px 0;
 }
 
 /* BOTÃO */
 button.acao {
-  background: #2F4EA1;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  cursor: pointer;
-  border-radius: 4px;
+  background:#2F4EA1;
+  color:white;
+  border:none;
+  padding:8px 15px;
+  cursor:pointer;
+  border-radius:4px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- TOPO -->
 <div class="topo">
   <strong>Cobli | APEX</strong>
   <span>Agenda Prestadores</span>
 </div>
 
-<!-- MENU -->
 <div class="menu">
   <button class="ativo" onclick="trocarAba('consulta', this)">Agendamento</button>
   <button onclick="trocarAba('cadastro', this)">Prestadores</button>
@@ -96,7 +85,7 @@ button.acao {
 
   <div class="card">
     <h2>Novo Agendamento</h2>
-    <input placeholder="Digite o endereço ou CEP">
+    <input placeholder="Digite endereço ou CEP">
     <button class="acao" onclick="buscar()">Buscar</button>
   </div>
 
@@ -165,17 +154,15 @@ button.acao {
       <label>Raio de atendimento (km)</label><br>
       <input type="number" id="raio" min="1" max="100" placeholder="Ex: 20">
 
-      <p style="font-size:12px;color:gray;">Máximo permitido: 100 km</p>
+      <p style="font-size:12px;color:gray;">Máx: 100 km</p>
     </div>
 
     <!-- ETAPA 3 -->
-   <div class="card etapa" id="etapa3" style="display:none;">
-  <h4>Agenda do Prestador</h4>
-
-  <p>Selecione dias e horários disponíveis:</p>
-
-  <div id="agenda-semana"></div>
-</div>
+    <div class="card etapa" id="etapa3" style="display:none;">
+      <h4>Agenda</h4>
+      <p>Selecione dias e horários:</p>
+      <div id="agenda-semana"></div>
+    </div>
 
     <!-- ETAPA 4 -->
     <div class="card etapa" id="etapa4" style="display:none;">
@@ -196,20 +183,13 @@ button.acao {
 <div id="painel" class="aba">
 
   <div class="card">
-    <h2>Painel de Agendamentos</h2>
-
+    <h2>Painel</h2>
     <input type="date">
     <input type="date">
-
-    <select>
-      <option>Todos Prestadores</option>
-    </select>
-
     <button class="acao">Filtrar</button>
   </div>
 
   <div class="card">
-    <h3>Lista</h3>
     <div id="lista-agendamentos"></div>
   </div>
 
@@ -283,7 +263,7 @@ function validarTempo() {
   const alerta = document.getElementById("alertaTempo");
 
   if (horariosSelecionados.length < tempoTotal) {
-    alerta.innerText = "Tempo insuficiente para execução";
+    alerta.innerText = "Tempo insuficiente";
   } else {
     alerta.innerText = "";
   }
@@ -301,10 +281,9 @@ function validarEtapa2() {
   const raio = document.getElementById("raio").value;
 
   if (!raio || raio <= 0 || raio > 100) {
-    alert("Informe um raio válido (1 a 100 km)");
+    alert("Raio deve ser entre 1 e 100 km");
     return false;
   }
-
   return true;
 }
 
@@ -313,6 +292,7 @@ function proximaEtapa() {
   if (etapa === 2 && !validarEtapa2()) return;
 
   if (etapa < 4) {
+
     document.getElementById("etapa" + etapa).style.display = "none";
 
     etapa++;
@@ -320,18 +300,24 @@ function proximaEtapa() {
     document.getElementById("etapa" + etapa).style.display = "block";
     document.getElementById("etapaAtual").innerText = etapa;
 
-    // 🔥 quando entrar na etapa 3
     if (etapa === 3) {
       gerarAgendaCadastro();
     }
   }
 }
 
-</script>
-const diasSemana = [
-  "Segunda", "Terça", "Quarta",
-  "Quinta", "Sexta", "Sábado", "Domingo"
-];
+function voltarEtapa() {
+  if (etapa > 1) {
+    document.getElementById("etapa" + etapa).style.display = "none";
+    etapa--;
+    document.getElementById("etapa" + etapa).style.display = "block";
+    document.getElementById("etapaAtual").innerText = etapa;
+  }
+}
+
+/* ===== AGENDA INTELIGENTE ===== */
+
+const diasSemana = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 
 let agendaPrestador = {};
 
@@ -342,7 +328,7 @@ function gerarAgendaCadastro() {
   diasSemana.forEach(dia => {
 
     const bloco = document.createElement("div");
-    bloco.style.marginBottom = "15px";
+    bloco.style.marginBottom = "10px";
 
     const titulo = document.createElement("strong");
     titulo.innerText = dia;
@@ -356,7 +342,19 @@ function gerarAgendaCadastro() {
       btn.innerText = h + ":00";
       btn.style.margin = "3px";
 
-      btn.onclick = () => toggleHorarioCadastro(dia, h, btn);
+      btn.onclick = function () {
+        if (!agendaPrestador[dia]) agendaPrestador[dia] = [];
+
+        if (agendaPrestador[dia].includes(h)) {
+          agendaPrestador[dia] = agendaPrestador[dia].filter(x => x !== h);
+          btn.style.background = "";
+          btn.style.color = "";
+        } else {
+          agendaPrestador[dia].push(h);
+          btn.style.background = "#2F4EA1";
+          btn.style.color = "white";
+        }
+      };
 
       linha.appendChild(btn);
     }
@@ -366,24 +364,7 @@ function gerarAgendaCadastro() {
   });
 }
 
-function toggleHorarioCadastro(dia, hora, btn) {
+</script>
 
-  if (!agendaPrestador[dia]) {
-    agendaPrestador[dia] = [];
-  }
-
-  if (agendaPrestador[dia].includes(hora)) {
-    agendaPrestador[dia] =
-      agendaPrestador[dia].filter(h => h !== hora);
-
-    btn.style.background = "";
-    btn.style.color = "";
-  } else {
-    agendaPrestador[dia].push(hora);
-
-    btn.style.background = "#2F4EA1";
-    btn.style.color = "white";
-  }
-}
 </body>
 </html>
