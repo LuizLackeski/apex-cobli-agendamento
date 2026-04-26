@@ -222,6 +222,15 @@
         if(n === 3) rdaAgendamento(); 
     }
 
+    function validarEAvancar() {
+        let totalMinutos = itensSelecionados.reduce((a, b) => a + (b.tempo * b.qtd), 0);
+        let horas = Math.ceil(totalMinutos / 60);
+        let sel = document.querySelectorAll("#agenda-agendamento .selecionado");
+        if (sel.length === 0) return alert("Selecione horário!");
+        if (sel.length !== horas) return alert("Selecione " + horas + " hora(s)!");
+        proximoPasso(4);
+    }
+
     function renderizarListaPrestadoresSelecao(lista) {
         document.getElementById('lista-prestadores-selecao').innerHTML = lista.map(p => `
             <div class="card-selecao">
@@ -311,7 +320,9 @@
     async function salvarPrestador() {
         const inputs = document.querySelectorAll('#etapa-1 input');
         for(let i of inputs) if(!i.value.trim()) return alert("Preencha todos os campos!");
+        
         let agenda = [...document.querySelectorAll('#agenda-cadastro .cell.selecionado')].map(c => ({ dia: c.dataset.dia, hora: c.dataset.hora }));
+        
         let p = { 
             nome: document.getElementById("nomeEmpresa").value, 
             endereco: document.getElementById("endereco").value, 
@@ -324,10 +335,17 @@
             range: document.getElementById("rangeAtendimento").value, 
             agenda: agenda 
         };
+
         const url = (editingIndex !== -1) ? `/api/prestadores/${prestadores[editingIndex].id}` : '/api/prestadores';
-        await fetch(url, { method: (editingIndex !== -1) ? 'PUT' : 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
+        await fetch(url, {
+            method: (editingIndex !== -1) ? 'PUT' : 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(p)
+        });
+        
         editingIndex = -1;
         await carregarDadosDoBanco();
+        
         document.getElementById("cadastro-flow").style.display="none";
         document.getElementById("lista-prestadores-view").style.display="block";
         showToast("Prestador salvo com sucesso!");
@@ -336,18 +354,31 @@
     function renderizarListaPrestadores(){
         document.getElementById("lista-prestadores").innerHTML = prestadores.map((p, i) => {
             let uniqueDays = p.agenda ? [...new Set(p.agenda.map(a => a.dia))].length : 0;
-            return `<div class="card"><strong>${p.nome}</strong> - ${p.cidade}/${p.uf}<br>Técnicos: ${p.qtdTecnicos} | Dias c/ agenda: ${uniqueDays}<div style="margin-top:10px"><button onclick="abrirCadastro(${i})">Editar</button> <button onclick="excluirPrestador(${i})">Excluir</button></div></div>`;
+            return `<div class="card">
+                <strong>${p.nome}</strong> - ${p.cidade}/${p.uf}<br>
+                Técnicos: ${p.qtdTecnicos} | Dias c/ agenda: ${uniqueDays}
+                <div style="margin-top:10px">
+                    <button onclick="abrirCadastro(${i})">Editar</button> 
+                    <button onclick="excluirPrestador(${i})">Excluir</button>
+                </div>
+            </div>`;
         }).join('');
         document.getElementById("total-prest").innerText = prestadores.length;
     }
 
-    async function excluirPrestador(i){ await fetch(`/api/prestadores/${prestadores[i].id}`, { method: 'DELETE' }); await carregarDadosDoBanco(); }
+    async function excluirPrestador(i){ 
+        await fetch(`/api/prestadores/${prestadores[i].id}`, { method: 'DELETE' });
+        await carregarDadosDoBanco();
+    }
 
     function carregarProdutos(){
         let select=document.getElementById("produto");
         for(let tipo in produtos){
             let group=document.createElement("optgroup"); group.label=tipo;
-            produtos[tipo].forEach(p=>{ let opt=document.createElement("option"); opt.value=p.tempo; opt.text=p.desc; group.appendChild(opt); });
+            produtos[tipo].forEach(p=>{
+                let opt=document.createElement("option"); opt.value=p.tempo; opt.text=p.desc;
+                group.appendChild(opt);
+            });
             select.appendChild(group);
         }
     }
@@ -364,7 +395,8 @@
     function renderizarProdutos(){
         let totalMinutos = itensSelecionados.reduce((a, b) => a + (b.tempo * b.qtd), 0);
         document.getElementById("horasNecessarias").innerText = Math.ceil(totalMinutos/60);
-        document.getElementById("lista-produtos").innerHTML = itensSelecionados.map((i, idx) => `<div class="item-lista">${i.desc} (Qtd: ${i.qtd} | Total: ${i.tempo * i.qtd} min) <button onclick="itensSelecionados.splice(${idx},1); renderizarProdutos(); rdaAgendamento();">x</button></div>`).join('');
+        document.getElementById("lista-produtos").innerHTML = itensSelecionados.map((i, idx) => 
+            `<div class="item-lista">${i.desc} (Qtd: ${i.qtd} | Total: ${i.tempo * i.qtd} min) <button onclick="itensSelecionados.splice(${idx},1); renderizarProdutos(); rdaAgendamento();">x</button></div>`).join('');
     }
 
     function rdaAgendamento(){
