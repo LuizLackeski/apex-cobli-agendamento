@@ -7,7 +7,6 @@ require('dotenv').config();
 
 const app = express();
 
-// --- Ajuste: Caminho Inteligente do Banco (Suporte ao Volume) ---
 const dbFolder = process.env.RAILWAY_VOLUME_MOUNT_PATH || './';
 const dbPath = path.join(dbFolder, 'apex.db');
 const db = new sqlite3.Database(dbPath);
@@ -15,31 +14,12 @@ const db = new sqlite3.Database(dbPath);
 app.use(express.json()); 
 app.use(cors());
 
-// Criar tabelas
 db.serialize(() => {
     db.run("CREATE TABLE IF NOT EXISTS prestadores (id INTEGER PRIMARY KEY, nome TEXT, endereco TEXT, cidade TEXT, uf TEXT, cep TEXT, responsavel TEXT, contato TEXT, qtdTecnicos INTEGER, range INTEGER, agenda TEXT)");
     db.run("CREATE TABLE IF NOT EXISTS agendamentos (id INTEGER PRIMARY KEY, prestador TEXT, qtdTecnicos INTEGER, produtos TEXT, data TEXT, ticket TEXT, cliente TEXT, solicitante TEXT, rawDate TEXT)");
 });
 
-// ROTAS
-app.get('/api/teste', (req, res) => {
-    res.send("O SERVIDOR ESTÁ LENDO O ARQUIVO CORRETO!");
-});
-
-app.put('/api/prestadores/:id', (req, res) => {
-    const { nome, endereco, cidade, uf, cep, responsavel, contato, qtdTecnicos, range, agenda } = req.body;
-    db.run("UPDATE prestadores SET nome=?, endereco=?, cidade=?, uf=?, cep=?, responsavel=?, contato=?, qtdTecnicos=?, range=?, agenda=? WHERE id=?",
-        [nome, endereco, cidade, uf, cep, responsavel, contato, qtdTecnicos, range, JSON.stringify(agenda), req.params.id],
-        (err) => { 
-            if (err) return res.status(500).json({error: err.message});
-            res.sendStatus(200); 
-        });
-});
-
-app.delete('/api/agendamentos/:id', (req, res) => {
-    db.run("DELETE FROM agendamentos WHERE id = ?", req.params.id, () => res.sendStatus(200));
-});
-
+// API ROTAS
 app.get('/api/prestadores', (req, res) => {
     db.all("SELECT * FROM prestadores", [], (err, rows) => {
         if (err) return res.status(500).json({error: err.message});
@@ -51,10 +31,14 @@ app.post('/api/prestadores', (req, res) => {
     const { nome, endereco, cidade, uf, cep, responsavel, contato, qtdTecnicos, range, agenda } = req.body;
     db.run("INSERT INTO prestadores (nome, endereco, cidade, uf, cep, responsavel, contato, qtdTecnicos, range, agenda) VALUES (?,?,?,?,?,?,?,?,?,?)",
         [nome, endereco, cidade, uf, cep, responsavel, contato, qtdTecnicos, range, JSON.stringify(agenda)],
-        function(err) { 
-            if (err) return res.status(500).json({error: err.message});
-            res.json({ id: this.lastID }); 
-        });
+        function(err) { if (err) return res.status(500).json({error: err.message}); res.json({ id: this.lastID }); });
+});
+
+app.put('/api/prestadores/:id', (req, res) => {
+    const { nome, endereco, cidade, uf, cep, responsavel, contato, qtdTecnicos, range, agenda } = req.body;
+    db.run("UPDATE prestadores SET nome=?, endereco=?, cidade=?, uf=?, cep=?, responsavel=?, contato=?, qtdTecnicos=?, range=?, agenda=? WHERE id=?",
+        [nome, endereco, cidade, uf, cep, responsavel, contato, qtdTecnicos, range, JSON.stringify(agenda), req.params.id],
+        (err) => { if (err) return res.status(500).json({error: err.message}); res.sendStatus(200); });
 });
 
 app.delete('/api/prestadores/:id', (req, res) => {
@@ -75,6 +59,10 @@ app.post('/api/agendamentos', (req, res) => {
         () => res.sendStatus(200));
 });
 
+app.delete('/api/agendamentos/:id', (req, res) => {
+    db.run("DELETE FROM agendamentos WHERE id = ?", req.params.id, () => res.sendStatus(200));
+});
+
 app.post('/api/distancia', async (req, res) => {
     try {
         const { origin, destination } = req.body;
@@ -84,14 +72,9 @@ app.post('/api/distancia', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Erro no Google Maps' }); }
 });
 
-// Servir o arquivo index.html (o seu site)
+// Front-end e Porta
 app.use(express.static(path.join(__dirname)));
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-// Porta Dinâmica (O segredo do Railway)
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor rodando na porta ${PORT}!`);
-});
+app.listen(PORT, '0.0.0.0', () => console.log(`Servidor rodando na porta ${PORT}!`));
