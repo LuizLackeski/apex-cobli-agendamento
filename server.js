@@ -7,7 +7,7 @@ require('dotenv').config();
 
 const app = express();
 
-// --- AJUSTE 1: Caminho Inteligente do Banco (Suporte ao Volume) ---
+// --- Ajuste: Caminho Inteligente do Banco (Suporte ao Volume) ---
 const dbFolder = process.env.RAILWAY_VOLUME_MOUNT_PATH || './';
 const dbPath = path.join(dbFolder, 'apex.db');
 const db = new sqlite3.Database(dbPath);
@@ -83,25 +83,15 @@ app.post('/api/distancia', async (req, res) => {
         res.json(response.data);
     } catch (error) { res.status(500).json({ error: 'Erro no Google Maps' }); }
 });
-app.use(express.static(path.join(__dirname)));
 
+// Servir o arquivo index.html (o seu site)
+app.use(express.static(path.join(__dirname)));
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- AJUSTE 2: Porta Dinâmica ---
+// Porta Dinâmica (O segredo do Railway)
 const PORT = process.env.PORT || 3000;
-
-app.use(express.static(path.join(__dirname)));
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// --- 2. Porta Dinâmica (O segredo do Railway) ---
-// O Railway injeta a porta certa na variável process.env.PORT
-const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor rodando na porta ${PORT}!`);
 });
