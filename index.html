@@ -120,6 +120,12 @@
         if(btn) btn.classList.add('ativo');
     }
 
+    function updateButtons() {
+        document.getElementById('btn-voltar').style.display = (etapa === 1) ? 'none' : 'inline-block';
+        document.getElementById('btn-proximo').style.display = (etapa === 1) ? 'inline-block' : 'none';
+        document.getElementById('btn-concluir').style.display = (etapa === 2) ? 'inline-block' : 'none';
+    }
+
     function abrirCadastro(index = -1){
         editingIndex = index;
         document.getElementById("lista-prestadores-view").style.display="none";
@@ -127,11 +133,7 @@
         etapa = 1; 
         document.getElementById("etapa-1").style.display="block"; 
         document.getElementById("etapa-2").style.display="none";
-        // Reset botões
-        document.getElementById('btn-voltar').style.display = 'none';
-        document.getElementById('btn-proximo').style.display = 'inline-block';
-        document.getElementById('btn-concluir').style.display = 'none';
-        
+        updateButtons();
         criarGrid("agenda-cadastro");
         
         if(index !== -1){
@@ -159,11 +161,7 @@
         etapa += dir;
         if(etapa < 1) etapa = 1; if(etapa > 2) etapa = 2;
         document.getElementById("etapa-"+etapa).style.display="block";
-        
-        // Controle de botões direto
-        document.getElementById('btn-voltar').style.display = (etapa === 1) ? 'none' : 'inline-block';
-        document.getElementById('btn-proximo').style.display = (etapa === 1) ? 'inline-block' : 'none';
-        document.getElementById('btn-concluir').style.display = (etapa === 2) ? 'inline-block' : 'none';
+        updateButtons();
     }
 
     function criarGrid(id){
