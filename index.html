@@ -152,18 +152,20 @@
 
     window.onload = async () => { 
         carregarProdutos(); 
-        await carregarDadosDoBanco();
+        try { await carregarDadosDoBanco(); } catch(e) { console.log("Servidor offline, trabalhando offline."); }
     };
 
     async function carregarDadosDoBanco() {
-        const resP = await fetch('http://localhost:3000/api/prestadores');
-        prestadores = await resP.json();
-        renderizarListaPrestadores();
-        
-        const resA = await fetch('http://localhost:3000/api/agendamentos');
-        agendamentos = await resA.json();
-        document.getElementById("total-agend").innerText = agendamentos.length;
-        renderPainel();
+        try {
+            const resP = await fetch('http://localhost:3000/api/prestadores');
+            prestadores = await resP.json();
+            renderizarListaPrestadores();
+            
+            const resA = await fetch('http://localhost:3000/api/agendamentos');
+            agendamentos = await resA.json();
+            document.getElementById("total-agend").innerText = agendamentos.length;
+            renderPainel();
+        } catch(e) { console.error("Erro ao carregar dados:", e); }
     }
 
     function showToast(mensagem) {
@@ -213,7 +215,7 @@
                     const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
                     for(let i=0; i<14 && datasProx.length < 2; i++){
                         let d = new Date(); d.setDate(hoje.getDate() + i);
-                        if(p.agenda.some(a => a.dia == diasSemana[d.getDay()])) datasProx.push(d.toLocaleDateString().slice(0, 5));
+                        if(p.agenda && p.agenda.some(a => a.dia == diasSemana[d.getDay()])) datasProx.push(d.toLocaleDateString().slice(0, 5));
                     }
                     if(dist <= parseFloat(p.range)) {
                         p.distanciaFinal = dist.toFixed(1);
@@ -281,10 +283,12 @@
             document.getElementById("contatoResponsavel").value = p.contato;
             document.getElementById("qtdTecnicos").value = p.qtdTecnicos;
             document.getElementById("rangeAtendimento").value = p.range;
-            p.agenda.forEach(item => {
-                let cells = document.querySelectorAll("#agenda-cadastro .cell");
-                cells.forEach(c => { if(c.dataset.dia == item.dia && c.dataset.hora == item.hora) c.classList.add("selecionado"); });
-            });
+            if(p.agenda) {
+                p.agenda.forEach(item => {
+                    let cells = document.querySelectorAll("#agenda-cadastro .cell");
+                    cells.forEach(c => { if(c.dataset.dia == item.dia && c.dataset.hora == item.hora) c.classList.add("selecionado"); });
+                });
+            }
         } else {
             document.querySelectorAll('input').forEach(i => i.value = "");
         }
@@ -349,7 +353,7 @@
 
     function renderizarListaPrestadores(){
         document.getElementById("lista-prestadores").innerHTML = prestadores.map((p, i) => {
-            let uniqueDays = [...new Set(p.agenda.map(a => a.dia))].length;
+            let uniqueDays = p.agenda ? [...new Set(p.agenda.map(a => a.dia))].length : 0;
             return `<div class="card">
                 <strong>${p.nome}</strong> - ${p.cidade}/${p.uf}<br>
                 Técnicos: ${p.qtdTecnicos} | Dias c/ agenda: ${uniqueDays}
@@ -405,7 +409,7 @@
             let data = new Date(); data.setDate(hoje.getDate() + i);
             let dNome = diasSemana[data.getDay()];
             let dStr = data.toLocaleDateString();
-            let allSlots = prestadores[prestadorSelecionadoIndex].agenda.filter(a => a.dia == dNome);
+            let allSlots = prestadores[prestadorSelecionadoIndex].agenda ? prestadores[prestadorSelecionadoIndex].agenda.filter(a => a.dia == dNome) : [];
             let availableSlots = allSlots.filter(item => !agendamentos.some(a => a.prestador == prestadores[prestadorSelecionadoIndex].nome && a.data == dStr && a.slots.includes(item.hora)));
             if(availableSlots.length > 0){
                 let card = document.createElement("div"); card.className = "agenda-day-card";
