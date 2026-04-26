@@ -81,7 +81,7 @@
                 <div id="agenda-cadastro"></div>
             </div>
             <div style="margin-top:20px;">
-                <button id="btn-voltar" onclick="mudarEtapa(-1)">Voltar</button>
+                <button id="btn-voltar" onclick="mudarEtapa(-1)" style="display:none;">Voltar</button>
                 <button id="btn-proximo" onclick="mudarEtapa(1)">Próximo</button>
                 <button id="btn-concluir" onclick="salvarPrestador()" style="background: green; display: none;">Concluir</button>
             </div>
@@ -120,12 +120,6 @@
         if(btn) btn.classList.add('ativo');
     }
 
-    function updateButtons() {
-        document.getElementById('btn-voltar').style.display = (etapa === 1) ? 'none' : 'inline-block';
-        document.getElementById('btn-proximo').style.display = (etapa === 1) ? 'inline-block' : 'none';
-        document.getElementById('btn-concluir').style.display = (etapa === 2) ? 'inline-block' : 'none';
-    }
-
     function abrirCadastro(index = -1){
         editingIndex = index;
         document.getElementById("lista-prestadores-view").style.display="none";
@@ -133,7 +127,11 @@
         etapa = 1; 
         document.getElementById("etapa-1").style.display="block"; 
         document.getElementById("etapa-2").style.display="none";
-        updateButtons();
+        // Reset botões
+        document.getElementById('btn-voltar').style.display = 'none';
+        document.getElementById('btn-proximo').style.display = 'inline-block';
+        document.getElementById('btn-concluir').style.display = 'none';
+        
         criarGrid("agenda-cadastro");
         
         if(index !== -1){
@@ -161,7 +159,11 @@
         etapa += dir;
         if(etapa < 1) etapa = 1; if(etapa > 2) etapa = 2;
         document.getElementById("etapa-"+etapa).style.display="block";
-        updateButtons();
+        
+        // Controle de botões direto
+        document.getElementById('btn-voltar').style.display = (etapa === 1) ? 'none' : 'inline-block';
+        document.getElementById('btn-proximo').style.display = (etapa === 1) ? 'inline-block' : 'none';
+        document.getElementById('btn-concluir').style.display = (etapa === 2) ? 'inline-block' : 'none';
     }
 
     function criarGrid(id){
