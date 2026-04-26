@@ -51,7 +51,7 @@
         <div id="step-1" class="card">
             <h2>1. Localização</h2>
             <input type="text" id="inputCep" placeholder="Digite o CEP do cliente">
-            <button onclick="proximoPasso(2)">Buscar Prestadores</button>
+            <button onclick="proximoPasso(2)" id="btnBuscar">Buscar Prestadores</button>
         </div>
 
         <div id="step-2" class="card" style="display:none;">
@@ -149,6 +149,22 @@
 
     window.onload = () => { carregarProdutos(); };
 
+    // Função para consultar o seu servidor local (que fala com o Google)
+    async function consultarDistancia(cepOrigem, enderecoPrestador) {
+        try {
+            const response = await fetch('http://localhost:3000/api/distancia', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ origin: cepOrigem, destination: enderecoPrestador })
+            });
+            const data = await response.json();
+            if (data.rows && data.rows[0].elements[0].status === 'OK') {
+                return parseFloat(data.rows[0].elements[0].distance.value) / 1000;
+            }
+            return null;
+        } catch (e) { console.error("Erro na API:", e); return null; }
+    }
+
     function trocarAba(id, btn){
         document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
         document.getElementById(id).classList.add('ativa');
@@ -157,11 +173,29 @@
         if(id === 'painel') atualizarFiltrosPrestador();
     }
 
-    function proximoPasso(n) {
+    async function proximoPasso(n) {
         if(n === 2) {
             if(prestadores.length === 0) return alert("Cadastre um prestador primeiro!");
-            renderizarListaPrestadoresSelecao();
+            const cepDigitado = document.getElementById('inputCep').value;
+            if(!cepDigitado) return alert("Digite o CEP!");
+            
+            const btn = document.getElementById('btnBuscar');
+            btn.innerText = "Calculando...";
+            
+            let prestadoresFiltrados = [];
+            for(let p of prestadores) {
+                const dist = await consultarDistancia(cepDigitado, p.endereco);
+                // Se o Google não achar a distância, vamos mostrar (ou bloquear se preferir)
+                if(dist !== null && dist <= p.range) {
+                    prestadoresFiltrados.push(p);
+                } else if(dist === null) {
+                    console.warn(`Não foi possível calcular distância para ${p.nome}`);
+                }
+            }
+            btn.innerText = "Buscar Prestadores";
+            renderizarListaPrestadoresSelecao(prestadoresFiltrados);
         }
+        
         if(n === 3 && prestadorSelecionadoIndex === null) return alert("Selecione um prestador!");
         
         document.querySelectorAll('#consulta > div').forEach(div => div.style.display = 'none');
@@ -185,17 +219,21 @@
         proximoPasso(4);
     }
 
-    function renderizarListaPrestadoresSelecao() {
-        document.getElementById('lista-prestadores-selecao').innerHTML = prestadores.map((p, i) => `
+    function renderizarListaPrestadoresSelecao(lista = prestadores) {
+        if(lista.length === 0) {
+            document.getElementById('lista-prestadores-selecao').innerHTML = "Nenhum prestador encontrado para este CEP/Range.";
+            return;
+        }
+        document.getElementById('lista-prestadores-selecao').innerHTML = lista.map((p, i) => `
             <div class="card">
                 <strong>${p.nome}</strong> - ${p.cidade}/${p.uf}
-                <button onclick="selecionarPrestador(${i})">Selecionar</button>
+                <button onclick="selecionarPrestadorPorObjeto('${p.nome}')">Selecionar</button>
             </div>
         `).join('');
     }
 
-    function selecionarPrestador(i) {
-        prestadorSelecionadoIndex = i;
+    function selecionarPrestadorPorObjeto(nome) {
+        prestadorSelecionadoIndex = prestadores.findIndex(p => p.nome === nome);
         proximoPasso(3);
     }
 
@@ -399,7 +437,6 @@
             solicitante: document.getElementById("solicitante").value
         });
         
-        // Limpeza dos campos e estados
         itensSelecionados = []; prestadorSelecionadoIndex = null;
         document.getElementById("lista-produtos").innerHTML = "";
         document.getElementById("horasNecessarias").innerText = "0";
