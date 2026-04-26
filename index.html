@@ -200,25 +200,32 @@ async function proximoPasso(n) {
         let prestadoresFiltrados = [];
         
         for(let p of prestadores) {
+            // --- VALIDAÇÃO: Se o endereço estiver vazio, a gente pula este prestador ---
+            if (!p.endereco || p.endereco.trim() === "") {
+                console.warn(`O prestador ${p.nome} está sem endereço. Ignorando.`);
+                continue; // Vai para o próximo da lista
+            }
+
             const dist = await consultarDistancia(cepDigitado, p.endereco);
             
             if(dist !== null) {
-                // DEBUG: Vamos ver os números reais
-                console.log(`Prestador: ${p.nome} | Distância: ${dist.toFixed(2)} km | Range Cadastrado: ${p.range} km`);
+                console.log(`Prestador: ${p.nome} | Distância: ${dist.toFixed(2)} km | Range: ${p.range} km`);
                 
                 if(dist <= parseFloat(p.range)) {
                     prestadoresFiltrados.push(p);
                 } else {
-                    console.log(`-> Prestador ${p.nome} ignorado (Distância maior que o range)`);
+                    console.log(`-> ${p.nome} fora do range.`);
                 }
-            } else {
-                console.error(`-> Erro ao calcular distância para ${p.nome}`);
             }
         }
         
         btn.innerText = "Buscar Prestadores";
-        console.log("Total de prestadores prontos para renderizar:", prestadoresFiltrados.length);
         renderizarListaPrestadoresSelecao(prestadoresFiltrados);
+        
+        // Se após filtrar a lista estiver vazia, avise o usuário
+        if(prestadoresFiltrados.length === 0) {
+            alert("Nenhum prestador encontrado dentro do range para esse CEP.");
+        }
     }
     
     if(n === 3 && prestadorSelecionadoIndex === null) return alert("Selecione um prestador!");
