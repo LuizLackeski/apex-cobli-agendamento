@@ -286,41 +286,50 @@
         updateButtons();
     }
 
-    async function salvarPrestador() {
-        const inputs = document.querySelectorAll('#etapa-1 input');
-        for(let i of inputs) if(!i.value.trim()) return alert("Preencha todos os campos!");
-        let agenda = [...document.querySelectorAll('#agenda-cadastro .selecionado')].map(c => ({ dia: c.dataset.dia, hora: c.dataset.hora }));
-        let p = { 
-            nome: document.getElementById("nomeEmpresa").value, 
-            endereco: document.getElementById("endereco").value, 
-            cidade: document.getElementById("cidade").value, 
-            uf: document.getElementById("uf").value, 
-            cep: document.getElementById("cep").value, 
-            responsavel: document.getElementById("responsavel").value, 
-            contato: document.getElementById("contatoResponsavel").value, 
-            qtdTecnicos: document.getElementById("qtdTecnicos").value, 
-            range: document.getElementById("rangeAtendimento").value, 
-            agenda: agenda 
-        };
+async function salvarPrestador() {
+    const inputs = document.querySelectorAll('#etapa-1 input');
+    for(let i of inputs) if(!i.value.trim()) return alert("Preencha todos os campos!");
+    
+    // Captura apenas os horários selecionados
+    let agenda = [...document.querySelectorAll('#agenda-cadastro .cell.selecionado')].map(c => ({ dia: c.dataset.dia, hora: c.dataset.hora }));
+    
+    let p = { 
+        nome: document.getElementById("nomeEmpresa").value, 
+        endereco: document.getElementById("endereco").value, 
+        cidade: document.getElementById("cidade").value, 
+        uf: document.getElementById("uf").value, 
+        cep: document.getElementById("cep").value, 
+        responsavel: document.getElementById("responsavel").value, 
+        contato: document.getElementById("contatoResponsavel").value, 
+        qtdTecnicos: document.getElementById("qtdTecnicos").value, 
+        range: document.getElementById("rangeAtendimento").value, 
+        agenda: agenda 
+    };
 
-        if (editingIndex !== -1) {
-            await fetch(`http://localhost:3000/api/prestadores/${prestadores[editingIndex].id}`, {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(p)
-            });
-        } else {
-            await fetch('http://localhost:3000/api/prestadores', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(p)
-            });
-        }
-        await carregarDadosDoBanco();
-        document.getElementById("cadastro-flow").style.display="none";
-        document.getElementById("lista-prestadores-view").style.display="block";
-        showToast("Salvo com sucesso!");
+    if (editingIndex !== -1) {
+        await fetch(`http://localhost:3000/api/prestadores/${prestadores[editingIndex].id}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(p)
+        });
+    } else {
+        await fetch('http://localhost:3000/api/prestadores', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(p)
+        });
     }
+    
+    // Reset da edição
+    editingIndex = -1;
+    
+    // Recarrega tudo do banco de dados para garantir que a agenda está lá
+    await carregarDadosDoBanco();
+    
+    document.getElementById("cadastro-flow").style.display="none";
+    document.getElementById("lista-prestadores-view").style.display="block";
+    showToast("Prestador salvo com sucesso!");
+}
 
     function renderizarListaPrestadores(){
         document.getElementById("lista-prestadores").innerHTML = prestadores.map((p, i) => {
@@ -444,31 +453,33 @@
         showToast("Agendamento salvo no banco!");
     }
 
-    function renderPainel(){
-        let fInicio = document.getElementById("filtroDataInicio").value;
-        let fFim = document.getElementById("filtroDataFim").value;
-        let fPrest = document.getElementById("filtroPrestador").value;
-        let filtrados = agendamentos.filter(a => {
-            let dataA = a.rawDate ? new Date(a.rawDate).toISOString().split('T')[0] : "";
-            let matchDate = (!fInicio || dataA >= fInicio) && (!fFim || dataA <= fFim);
-            let matchPrest = (!fPrest || a.prestador === fPrest);
-            return matchDate && matchPrest;
-        });
-        document.getElementById("painel-conteudo").innerHTML = filtrados.map((a) => `
-            <div class="painel-item">
-                <div><strong>Ticket: ${a.ticket}</strong> | Cliente: ${a.cliente}</div>
-                <div><strong>${a.prestador}</strong> | Técnicos: ${a.qtdTecnicos} | Data: ${a.data} | Solicitante: ${a.solicitante}</div>
-                <div style="margin: 5px 0; font-size: 0.9em; color: #555;">${Array.isArray(a.produtos) ? a.produtos.map(prod => `${prod.desc} (${prod.qtd}x)`).join('; ') : ""}</div>
-                <button onclick="excluirAgendamento(${a.id})" style="background: red;">Excluir Agendamento</button>
-            </div>`).join('');
-    }
+  function renderPainel(){
+    let fInicio = document.getElementById("filtroDataInicio").value;
+    let fFim = document.getElementById("filtroDataFim").value;
+    let fPrest = document.getElementById("filtroPrestador").value;
+    let filtrados = agendamentos.filter(a => {
+        let dataA = a.rawDate ? new Date(a.rawDate).toISOString().split('T')[0] : "";
+        let matchDate = (!fInicio || dataA >= fInicio) && (!fFim || dataA <= fFim);
+        let matchPrest = (!fPrest || a.prestador === fPrest);
+        return matchDate && matchPrest;
+    });
+    document.getElementById("painel-conteudo").innerHTML = filtrados.map((a) => `
+        <div class="painel-item">
+            <div><strong>Ticket: ${a.ticket}</strong> | Cliente: ${a.cliente}</div>
+            <div><strong>${a.prestador}</strong> | Técnicos: ${a.qtdTecnicos} | Data: ${a.data}</div>
+            <div>Incluído em: ${new Date(a.rawDate).toLocaleDateString()} | Solicitante: ${a.solicitante}</div>
+            <div style="margin: 5px 0; font-size: 0.9em; color: #555;">${Array.isArray(a.produtos) ? a.produtos.map(prod => `${prod.desc} (${prod.qtd}x)`).join('; ') : ""}</div>
+            <button onclick="excluirAgendamento(${a.id})" style="background: red; margin-top: 5px;">Excluir Agendamento</button>
+        </div>`).join('');
+}
 
-    async function excluirAgendamento(id) {
-        if(!confirm("Tem certeza que deseja excluir este agendamento?")) return;
-        await fetch(`http://localhost:3000/api/agendamentos/${id}`, { method: 'DELETE' });
-        await carregarDadosDoBanco();
-        showToast("Agendamento excluído!");
-    }
+   async function excluirAgendamento(id) {
+    if(!confirm("Tem certeza que deseja excluir este agendamento?")) return;
+    await fetch(`http://localhost:3000/api/agendamentos/${id}`, { method: 'DELETE' });
+    // Forçamos o recarregamento total dos dados do banco para garantir que a lista fique limpa
+    await carregarDadosDoBanco();
+    showToast("Agendamento excluído!");
+}
 
     function limparFiltros(){
         document.getElementById("filtroDataInicio").value = "";
