@@ -28,6 +28,7 @@
         .stats-card { background: white; padding: 20px; border-radius: 12px; flex: 1; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
         .painel-item { background: #f9f9f9; margin-bottom: 15px; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary); }
         
+        /* Ajuste de Filtros */
         .filtros-painel { display: flex; gap: 20px; margin-bottom: 30px; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .filtros-painel > div { flex: 1; }
         .filtros-painel label { font-size: 0.85rem; color: #666; font-weight: bold; display: block; }
@@ -118,7 +119,7 @@
             <div class="stats-card">PRESTADORES<br><strong id="total-prest">0</strong></div>
         </div>
         
-        <div class="card filtros-painel">
+        <div class="filtros-painel">
             <div><label>Início</label><input type="date" id="filtroDataInicio"></div>
             <div><label>Fim</label><input type="date" id="filtroDataFim"></div>
             <div><label>Prestador</label><select id="filtroPrestador"><option value="">Todos</option></select></div>
@@ -136,7 +137,7 @@
     let agendamentos = [];
     let etapa = 1;
     let editingIndex = -1;
-    let prestadorSelecionadoIndex = null; // Para guardar o prestador escolhido no step 2
+    let prestadorSelecionadoIndex = null;
 
     const produtos = {
         "Telemetria": [{desc:"Instalado veículos leves bloqueador", tempo:60}, {desc:"Instalado veículos leves e pesados + CAN", tempo:60}, {desc:"Instalado motos ou maquinários", tempo:40}, {desc:"Instalado veículos leves e pesados", tempo:40}],
@@ -147,7 +148,14 @@
 
     window.onload = () => { carregarProdutos(); };
 
-    // --- LÓGICA DE NAVEGAÇÃO DE ETAPAS ---
+    function trocarAba(id, btn){
+        document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
+        document.getElementById(id).classList.add('ativa');
+        document.querySelectorAll('.menu button').forEach(b => b.classList.remove('ativo'));
+        if(btn) btn.classList.add('ativo');
+        if(id === 'painel') atualizarFiltrosPrestador();
+    }
+
     function proximoPasso(n) {
         if(n === 2) {
             if(prestadores.length === 0) return alert("Cadastre um prestador primeiro!");
@@ -158,7 +166,7 @@
         document.querySelectorAll('#consulta > div').forEach(div => div.style.display = 'none');
         document.getElementById('step-' + n).style.display = 'block';
         
-        if(n === 3) rdaAgendamento(); // Carrega a agenda quando entra no passo 3
+        if(n === 3) rdaAgendamento();
     }
 
     function renderizarListaPrestadoresSelecao() {
@@ -173,15 +181,6 @@
     function selecionarPrestador(i) {
         prestadorSelecionadoIndex = i;
         proximoPasso(3);
-    }
-
-    // --- MANTENDO AS FUNÇÕES ORIGINAIS ---
-    function trocarAba(id, btn){
-        document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
-        document.getElementById(id).classList.add('ativa');
-        document.querySelectorAll('.menu button').forEach(b => b.classList.remove('ativo'));
-        if(btn) btn.classList.add('ativo');
-        if(id === 'painel') atualizarFiltrosPrestador();
     }
 
     function updateButtons() {
@@ -259,7 +258,7 @@
             agenda: agenda 
         };
         if(editingIndex === -1) prestadores.push(p); else prestadores[editingIndex] = p;
-        renderizarListaPrestadores(); atualizarSelectPrestadores();
+        renderizarListaPrestadores(); 
         document.getElementById("cadastro-flow").style.display="none";
         document.getElementById("lista-prestadores-view").style.display="block";
         alert("Prestador cadastrado com sucesso!");
@@ -280,7 +279,7 @@
         document.getElementById("total-prest").innerText = prestadores.length;
     }
 
-    function excluirPrestador(i){ prestadores.splice(i,1); renderizarListaPrestadores(); atualizarSelectPrestadores(); }
+    function excluirPrestador(i){ prestadores.splice(i,1); renderizarListaPrestadores(); }
 
     function carregarProdutos(){
         let select=document.getElementById("produto");
@@ -300,13 +299,14 @@
         let tempoBase = parseInt(select.value);
         itensSelecionados.push({desc: select.options[select.selectedIndex].text, tempo: tempoBase, qtd: qtd});
         renderizarProdutos();
+        if(prestadorSelecionadoIndex !== null) rdaAgendamento();
     }
 
     function renderizarProdutos(){
         let totalMinutos = itensSelecionados.reduce((a, b) => a + (b.tempo * b.qtd), 0);
         document.getElementById("horasNecessarias").innerText = Math.ceil(totalMinutos/60);
         document.getElementById("lista-produtos").innerHTML = itensSelecionados.map((i, idx) => 
-            `<div class="item-lista">${i.desc} (Qtd: ${i.qtd} | Total: ${i.tempo * i.qtd} min) <button onclick="itensSelecionados.splice(${idx},1); renderizarProdutos();">x</button></div>`).join('');
+            `<div class="item-lista">${i.desc} (Qtd: ${i.qtd} | Total: ${i.tempo * i.qtd} min) <button onclick="itensSelecionados.splice(${idx},1); renderizarProdutos(); rdaAgendamento();">x</button></div>`).join('');
     }
 
     function rdaAgendamento(){
@@ -324,12 +324,8 @@
             
             let slots = prestadores[prestadorSelecionadoIndex].agenda.filter(a => a.dia == dNome);
             if(slots.length > 0){
-                let card = document.createElement("div");
-                card.className = "agenda-day-card";
-                card.innerHTML = `<div class="agenda-day-title">${dStr.slice(0,5)} (${dNome})</div>`;
-                let wrapper = document.createElement("div");
-                wrapper.className = "slots-wrapper";
-                
+                let row = document.createElement("div"); row.className="row-dia";
+                row.innerHTML = `<div style="width:80px">${dStr.slice(0,5)}</div>`;
                 slots.forEach(item => {
                     let isBooked = agendamentos.some(a => a.prestador == prestadores[prestadorSelecionadoIndex].nome && a.data == dStr && a.slots.includes(item.hora));
                     if(isBooked) return;
@@ -346,14 +342,12 @@
                             sel.forEach(s => s.classList.remove('selecionado'));
                             sel = [];
                         }
-
                         if(!div.classList.contains("selecionado") && sel.length >= horas) return alert("Limite de "+horas+"h!");
                         div.classList.toggle("selecionado");
                     };
-                    wrapper.appendChild(div);
+                    row.appendChild(div);
                 });
-                card.appendChild(wrapper);
-                container.appendChild(card);
+                container.appendChild(row);
             }
         }
     }
@@ -378,8 +372,18 @@
             solicitante: document.getElementById("solicitante").value
         });
         
-        // Reset
-        itensSelecionados = []; prestadorSelecionadoIndex = null;
+        // Limpeza dos campos e estados
+        itensSelecionados = [];
+        prestadorSelecionadoIndex = null;
+        document.getElementById("lista-produtos").innerHTML = "";
+        document.getElementById("horasNecessarias").innerText = "0";
+        document.getElementById("quantidade").value = "1";
+        document.getElementById("agenda-agendamento").innerHTML = "";
+        document.getElementById("inputCep").value = "";
+        document.getElementById("ticket").value = "";
+        document.getElementById("clienteNome").value = "";
+        document.getElementById("solicitante").value = "";
+        
         proximoPasso(1);
         document.getElementById("total-agend").innerText = agendamentos.length;
         renderPainel();
@@ -401,9 +405,9 @@
         document.getElementById("painel-conteudo").innerHTML = filtrados.map((a, i) => `
             <div class="painel-item">
                 <div><strong>Ticket: ${a.ticket}</strong> | Cliente: ${a.cliente}</div>
-                <div><strong>${a.prestador}</strong> | Técnicos: ${a.qtdTecnicos} | Data: ${a.data}</div>
+                <div><strong>${a.prestador}</strong> | Técnicos: ${a.qtdTecnicos} | Data: ${a.data} | Solicitante: ${a.solicitante}</div>
                 <div style="margin: 5px 0; font-size: 0.9em; color: #555;">
-                    ${a.produtos.map(prod => `${prod.desc} (${prod.qtd}x)`).join('; ')}
+                    ${a.produtos.map(prod => `${prod.desc} (${prod.qtd}x | ${prod.tempo * prod.qtd} min)`).join('; ')}
                 </div>
                 <button onclick="agendamentos.splice(agendamentos.indexOf(a),1); renderPainel()">Excluir</button>
             </div>`).join('');
@@ -420,10 +424,6 @@
         let sel = document.getElementById("filtroPrestador");
         sel.innerHTML = '<option value="">Todos</option>';
         prestadores.forEach(p => sel.innerHTML += `<option value="${p.nome}">${p.nome}</option>`);
-    }
-
-    function atualizarSelectPrestadores(){
-        // Não usado mais diretamente na consulta agora, mas mantido p/ compatibilidade
     }
 </script>
 </body>
