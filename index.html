@@ -81,9 +81,9 @@
                 <div id="agenda-cadastro"></div>
             </div>
             <div style="margin-top:20px;">
-                <button id="btn-voltar" onclick="mudarEtapa(-1)" style="display:none;">Voltar</button>
+                <button id="btn-voltar" onclick="mudarEtapa(-1)">Voltar</button>
                 <button id="btn-proximo" onclick="mudarEtapa(1)">Próximo</button>
-                <button id="btn-concluir" onclick="salvarPrestador()" style="background: green; display: none;">Concluir</button>
+                <button id="btn-concluir" onclick="salvarPrestador()" style="background: green;">Concluir</button>
             </div>
         </div>
     </div>
@@ -121,9 +121,10 @@
     }
 
     function updateButtons() {
-        document.getElementById('btn-voltar').style.display = (etapa === 1) ? 'none' : 'inline-block';
-        document.getElementById('btn-proximo').style.display = (etapa === 1) ? 'inline-block' : 'none';
-        document.getElementById('btn-concluir').style.display = (etapa === 2) ? 'inline-block' : 'none';
+        // Garantindo exibição correta
+        document.getElementById('btn-voltar').style.visibility = (etapa === 1) ? 'hidden' : 'visible';
+        document.getElementById('btn-proximo').style.visibility = (etapa === 1) ? 'visible' : 'hidden';
+        document.getElementById('btn-concluir').style.visibility = (etapa === 2) ? 'visible' : 'hidden';
     }
 
     function abrirCadastro(index = -1){
@@ -181,12 +182,23 @@
     }
 
     function salvarPrestador(){
+        console.log("Salvando prestador...");
         let agenda = [...document.querySelectorAll('#agenda-cadastro .selecionado')].map(c => ({ dia: c.dataset.dia, hora: c.dataset.hora }));
-        let p = { nome: document.getElementById("nomeEmpresa").value, endereco: document.getElementById("endereco").value, cidade: document.getElementById("cidade").value, uf: document.getElementById("uf").value, cep: document.getElementById("cep").value, responsavel: document.getElementById("responsavel").value, contato: document.getElementById("contatoResponsavel").value, qtdTecnicos: document.getElementById("qtdTecnicos").value, range: document.getElementById("rangeAtendimento").value, agenda: agenda };
+        let p = { 
+            nome: document.getElementById("nomeEmpresa").value, 
+            endereco: document.getElementById("endereco").value, 
+            cidade: document.getElementById("cidade").value, 
+            uf: document.getElementById("uf").value, 
+            cep: document.getElementById("cep").value, 
+            responsavel: document.getElementById("responsavel").value, 
+            contato: document.getElementById("contatoResponsavel").value, 
+            qtdTecnicos: document.getElementById("qtdTecnicos").value, 
+            range: document.getElementById("rangeAtendimento").value, 
+            agenda: agenda 
+        };
         if(editingIndex === -1) prestadores.push(p); else prestadores[editingIndex] = p;
         renderizarListaPrestadores(); 
         atualizarSelectPrestadores();
-        // Garantindo que a tela troque corretamente
         document.getElementById("cadastro-flow").style.display="none";
         document.getElementById("lista-prestadores-view").style.display="block";
         alert("Prestador cadastrado com sucesso!");
@@ -224,7 +236,7 @@
         let totalMinutos = itensSelecionados.reduce((a, b) => a + (b.tempo * b.qtd), 0);
         document.getElementById("horasNecessarias").innerText = Math.ceil(totalMinutos/60);
         document.getElementById("lista-produtos").innerHTML = itensSelecionados.map((i, idx) => 
-            `<div class="item-lista">${i.desc} (Qtd: ${i.qtd} | Tempo Total: ${i.tempo * i.qtd} min) <button onclick="itensSelecionados.splice(${idx},1); renderizarProdutos(); rdaAgendamento();">x</button></div>`).join('');
+            `<div class="item-lista">${i.desc} (Qtd: ${i.qtd} | Total: ${i.tempo * i.qtd} min) <button onclick="itensSelecionados.splice(${idx},1); renderizarProdutos(); rdaAgendamento();">x</button></div>`).join('');
     }
 
     function iniciarAgendamento(){
@@ -310,6 +322,12 @@
 
     function renderPainel(){
         document.getElementById("painel-conteudo").innerHTML = agendamentos.map((a, i) => `<div class="painel-item">Agendamento: ${a.prestador} - ${a.data} <button onclick="agendamentos.splice(${i},1); renderPainel()">Excluir</button></div>`).join('');
+    }
+
+    function atualizarSelectPrestadores(){
+        let sel = document.getElementById("selectPrestador");
+        sel.innerHTML = '<option value="">-- Escolha --</option>';
+        prestadores.forEach((p,i) => sel.innerHTML += `<option value="${i}">${p.nome}</option>`);
     }
 </script>
 </body>
