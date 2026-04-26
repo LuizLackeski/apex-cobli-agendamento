@@ -14,7 +14,7 @@
         .aba { display: none; } .aba.ativa { display: block; }
         .card { background: white; padding: 25px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         
-        /* Layout Card da Agenda */
+        /* Layout Card da Agenda - Fixo */
         .agenda-day-card { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #e0e0e0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .agenda-day-title { font-weight: bold; color: var(--primary); margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; font-size: 0.9rem; }
         .slots-wrapper { display: flex; flex-wrap: wrap; gap: 5px; }
@@ -212,7 +212,7 @@
         etapa = 1; 
         document.getElementById("etapa-1").style.display="block"; 
         document.getElementById("etapa-2").style.display="none";
-        criarGrid("agenda-cadastro");
+        criarGridCadastro("agenda-cadastro");
         
         if(index !== -1){
             let p = prestadores[index];
@@ -235,18 +235,10 @@
         updateButtons();
     }
 
-    function mudarEtapa(dir){
-        document.getElementById("etapa-"+etapa).style.display="none";
-        etapa += dir;
-        if(etapa < 1) etapa = 1; if(etapa > 2) etapa = 2;
-        document.getElementById("etapa-"+etapa).style.display="block";
-        updateButtons();
-    }
-
-    function criarGrid(id){
+    function criarGridCadastro(id){
         let grid = document.getElementById(id); grid.innerHTML = "";
         ["Seg","Ter","Qua","Qui","Sex","Sab"].forEach(d=>{
-            let row = document.createElement("div"); row.className="row-dia";
+            let row = document.createElement("div"); row.style.display = "flex"; row.style.marginBottom = "6px";
             row.innerHTML = `<div style="width:80px">${d}</div>`;
             for(let h=8;h<=18;h++){
                 let cell = document.createElement("div"); cell.className="cell";
@@ -257,6 +249,14 @@
             }
             grid.appendChild(row);
         });
+    }
+
+    function mudarEtapa(dir){
+        document.getElementById("etapa-"+etapa).style.display="none";
+        etapa += dir;
+        if(etapa < 1) etapa = 1; if(etapa > 2) etapa = 2;
+        document.getElementById("etapa-"+etapa).style.display="block";
+        updateButtons();
     }
 
     function salvarPrestador(){
@@ -339,14 +339,16 @@
             let dStr = data.toLocaleDateString();
             
             let allSlots = prestadores[prestadorSelecionadoIndex].agenda.filter(a => a.dia == dNome);
-            // Filtra apenas os que não estão agendados
             let availableSlots = allSlots.filter(item => 
                 !agendamentos.some(a => a.prestador == prestadores[prestadorSelecionadoIndex].nome && a.data == dStr && a.slots.includes(item.hora))
             );
             
             if(availableSlots.length > 0){
-                let row = document.createElement("div"); row.className="row-dia";
-                row.innerHTML = `<div style="width:80px">${dStr.slice(0,5)}</div>`;
+                let card = document.createElement("div");
+                card.className = "agenda-day-card";
+                card.innerHTML = `<div class="agenda-day-title">${dStr.slice(0,5)} (${dNome})</div>`;
+                let wrapper = document.createElement("div");
+                wrapper.className = "slots-wrapper";
                 
                 availableSlots.forEach(item => {
                     let div = document.createElement("div"); div.className = "cell";
@@ -365,9 +367,10 @@
                         if(!div.classList.contains("selecionado") && sel.length >= horas) return alert("Limite de "+horas+"h!");
                         div.classList.toggle("selecionado");
                     };
-                    row.appendChild(div);
+                    wrapper.appendChild(div);
                 });
-                container.appendChild(row);
+                card.appendChild(wrapper);
+                container.appendChild(card);
             }
         }
     }
@@ -392,7 +395,7 @@
             solicitante: document.getElementById("solicitante").value
         });
         
-        // Limpeza dos campos
+        // Limpeza dos campos e estados
         itensSelecionados = []; prestadorSelecionadoIndex = null;
         document.getElementById("lista-produtos").innerHTML = "";
         document.getElementById("horasNecessarias").innerText = "0";
