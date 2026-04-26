@@ -173,14 +173,13 @@
         if(id === 'painel') atualizarFiltrosPrestador();
     }
 
-    // Função de segurança para evitar erro de 'undefined'
+    // Corrigido: Verifica corretamente se o slot já está cheio considerando o limite de técnicos
     function getAgendamentosNoSlot(prestador, data, hora) {
         if (!agendamentos) return 0;
         return agendamentos.filter(a => 
             a.prestador === prestador.nome && 
             a.data === data && 
-            Array.isArray(a.slots) && 
-            a.slots.includes(hora)
+            (Array.isArray(a.slots) ? a.slots.includes(hora) : false)
         ).length;
     }
 
@@ -197,8 +196,9 @@
             
             if (agendaDays.includes(d.getDay())) {
                 let slotsDoDia = prestador.agenda.filter(a => a.dia === dNome);
-                // Verifica se tem algum slot livre (agendamentos < técnicos)
+                // Verifica se tem ao menos um slot livre considerando capacidade de técnicos
                 let temLivre = slotsDoDia.some(s => getAgendamentosNoSlot(prestador, dStr, s.hora) < parseInt(prestador.qtdTecnicos));
+                
                 if (temLivre) dates.push(dStr.slice(0,5));
             }
         }
@@ -491,6 +491,7 @@
             <div class="painel-item">
                 <div><strong>Ticket: ${a.ticket}</strong> | Cliente: ${a.cliente}</div>
                 <div><strong>${a.prestador}</strong> | Técnicos: ${a.qtdTecnicos} | Data: ${a.data} | Solicitante: ${a.solicitante}</div>
+                <div>Horários: ${Array.isArray(a.slots) ? a.slots.join(', ') : 'N/A'}</div>
                 <div>Solicitado em: ${a.rawDate ? new Date(a.rawDate).toLocaleDateString() : 'N/A'}</div>
                 <div style="margin: 5px 0; font-size: 0.9em; color: #555;">${Array.isArray(a.produtos) ? a.produtos.map(prod => `${prod.desc} (${prod.qtd}x)`).join('; ') : ""}</div>
                 <button onclick="excluirAgendamento(${a.id})" style="background: red;">Excluir Agendamento</button>
