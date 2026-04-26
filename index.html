@@ -173,36 +173,45 @@
         if(id === 'painel') atualizarFiltrosPrestador();
     }
 
-    async function proximoPasso(n) {
-        if(n === 2) {
-            if(prestadores.length === 0) return alert("Cadastre um prestador primeiro!");
-            const cepDigitado = document.getElementById('inputCep').value;
-            if(!cepDigitado) return alert("Digite o CEP!");
+async function proximoPasso(n) {
+    if(n === 2) {
+        if(prestadores.length === 0) return alert("Cadastre um prestador primeiro!");
+        const cepDigitado = document.getElementById('inputCep').value;
+        if(!cepDigitado) return alert("Digite o CEP!");
+        
+        const btn = document.getElementById('btnBuscar');
+        btn.innerText = "Calculando...";
+        
+        let prestadoresFiltrados = [];
+        
+        for(let p of prestadores) {
+            const dist = await consultarDistancia(cepDigitado, p.endereco);
             
-            const btn = document.getElementById('btnBuscar');
-            btn.innerText = "Calculando...";
-            
-            let prestadoresFiltrados = [];
-            for(let p of prestadores) {
-                const dist = await consultarDistancia(cepDigitado + ", Brasil", p.endereco + ", Brasil");
-                // Se o Google não achar a distância, vamos mostrar (ou bloquear se preferir)
-                if(dist !== null && dist <= p.range) {
+            if(dist !== null) {
+                // DEBUG: Vamos ver os números reais
+                console.log(`Prestador: ${p.nome} | Distância: ${dist.toFixed(2)} km | Range Cadastrado: ${p.range} km`);
+                
+                if(dist <= parseFloat(p.range)) {
                     prestadoresFiltrados.push(p);
-                } else if(dist === null) {
-                    console.warn(`Não foi possível calcular distância para ${p.nome}`);
+                } else {
+                    console.log(`-> Prestador ${p.nome} ignorado (Distância maior que o range)`);
                 }
+            } else {
+                console.error(`-> Erro ao calcular distância para ${p.nome}`);
             }
-            btn.innerText = "Buscar Prestadores";
-            renderizarListaPrestadoresSelecao(prestadoresFiltrados);
         }
         
-        if(n === 3 && prestadorSelecionadoIndex === null) return alert("Selecione um prestador!");
-        
-        document.querySelectorAll('#consulta > div').forEach(div => div.style.display = 'none');
-        document.getElementById('step-' + n).style.display = 'block';
-        
-        if(n === 3) rdaAgendamento(); 
+        btn.innerText = "Buscar Prestadores";
+        console.log("Total de prestadores prontos para renderizar:", prestadoresFiltrados.length);
+        renderizarListaPrestadoresSelecao(prestadoresFiltrados);
     }
+    
+    if(n === 3 && prestadorSelecionadoIndex === null) return alert("Selecione um prestador!");
+    
+    document.querySelectorAll('#consulta > div').forEach(div => div.style.display = 'none');
+    document.getElementById('step-' + n).style.display = 'block';
+    if(n === 3) rdaAgendamento(); 
+}
 
     function validarEAvancar() {
         let totalMinutos = itensSelecionados.reduce((a, b) => a + (b.tempo * b.qtd), 0);
