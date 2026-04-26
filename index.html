@@ -81,9 +81,9 @@
                 <div id="agenda-cadastro"></div>
             </div>
             <div style="margin-top:20px;">
-                <button onclick="mudarEtapa(-1)">Voltar</button>
-                <button onclick="mudarEtapa(1)">Próximo</button>
-                <button onclick="salvarPrestador()" style="background: green;">Concluir</button>
+                <button id="btn-voltar" onclick="mudarEtapa(-1)">Voltar</button>
+                <button id="btn-proximo" onclick="mudarEtapa(1)">Próximo</button>
+                <button id="btn-concluir" onclick="salvarPrestador()" style="background: green;">Concluir</button>
             </div>
         </div>
     </div>
@@ -120,6 +120,12 @@
         if(btn) btn.classList.add('ativo');
     }
 
+    function updateButtons() {
+        document.getElementById('btn-voltar').style.display = (etapa === 1) ? 'none' : 'inline-block';
+        document.getElementById('btn-proximo').style.display = (etapa === 1) ? 'inline-block' : 'none';
+        document.getElementById('btn-concluir').style.display = (etapa === 2) ? 'inline-block' : 'none';
+    }
+
     function abrirCadastro(index = -1){
         editingIndex = index;
         document.getElementById("lista-prestadores-view").style.display="none";
@@ -127,6 +133,7 @@
         etapa = 1; 
         document.getElementById("etapa-1").style.display="block"; 
         document.getElementById("etapa-2").style.display="none";
+        updateButtons();
         criarGrid("agenda-cadastro");
         
         if(index !== -1){
@@ -154,6 +161,7 @@
         etapa += dir;
         if(etapa < 1) etapa = 1; if(etapa > 2) etapa = 2;
         document.getElementById("etapa-"+etapa).style.display="block";
+        updateButtons();
     }
 
     function criarGrid(id){
@@ -179,6 +187,7 @@
         renderizarListaPrestadores(); atualizarSelectPrestadores();
         document.getElementById("cadastro-flow").style.display="none";
         document.getElementById("lista-prestadores-view").style.display="block";
+        alert("Prestador cadastrado com sucesso!");
     }
 
     function renderizarListaPrestadores(){
