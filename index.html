@@ -19,7 +19,6 @@
         input, select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; }
         button { cursor: pointer; padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 6px; }
         .item-lista { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; }
-        
         .flex-cards { display: flex; gap: 20px; margin-bottom: 20px; }
         .stats-card { background: white; padding: 20px; border-radius: 12px; flex: 1; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
         .painel-item { display: flex; justify-content: space-between; padding: 10px; background: #f9f9f9; margin-bottom: 5px; border-radius: 4px; border-left: 4px solid var(--primary); }
@@ -105,7 +104,8 @@
     let etapa = 1;
     let editingIndex = -1;
 
-   const produtos = {
+    const produtos = {
+     const produtos = {
   "Telemetria":[
     {desc:"Instalado veículos leves bloqueador", tempo:60},
     {desc:"Instalado veículos leves e pesados + CAN", tempo:60},
@@ -149,9 +149,7 @@
         editingIndex = index;
         document.getElementById("lista-prestadores-view").style.display="none";
         document.getElementById("cadastro-flow").style.display="block";
-        etapa = 1; 
-        document.getElementById("etapa-1").style.display="block"; 
-        document.getElementById("etapa-2").style.display="none";
+        etapa = 1; document.getElementById("etapa-1").style.display="block"; document.getElementById("etapa-2").style.display="none";
         criarGrid("agenda-cadastro");
         
         if(index !== -1){
@@ -169,6 +167,16 @@
                 let cells = document.querySelectorAll("#agenda-cadastro .cell");
                 cells.forEach(c => { if(c.dataset.dia == item.dia && c.dataset.hora == item.hora) c.classList.add("selecionado"); });
             });
+        } else {
+            document.getElementById("nomeEmpresa").value = "";
+            document.getElementById("endereco").value = "";
+            document.getElementById("cidade").value = "";
+            document.getElementById("uf").value = "";
+            document.getElementById("cep").value = "";
+            document.getElementById("responsavel").value = "";
+            document.getElementById("contatoResponsavel").value = "";
+            document.getElementById("qtdTecnicos").value = "";
+            document.getElementById("rangeAtendimento").value = "";
         }
     }
 
@@ -243,7 +251,8 @@
     function adicionarProduto(){
         let select = document.getElementById("produto");
         let qtd = parseInt(document.getElementById("quantidade").value) || 1;
-        itensSelecionados.push({desc: select.options[select.selectedIndex].text, tempo: parseInt(select.value), qtd: qtd});
+        let tempoBase = parseInt(select.value);
+        itensSelecionados.push({desc: select.options[select.selectedIndex].text, tempo: tempoBase, qtd: qtd});
         renderizarProdutos();
     }
 
@@ -254,11 +263,16 @@
             `<div class="item-lista">${i.desc} (Qtd: ${i.qtd}) <button onclick="itensSelecionados.splice(${idx},1); renderizarProdutos();">x</button></div>`).join('');
     }
 
+    function iniciarAgendamento(){
+        if(prestadores.length === 0){ alert("Cadastre um prestador!"); return; }
+        document.getElementById("step-cep").style.display="none";
+        document.getElementById("step-agendamento").style.display="block";
+    }
+
     function rdaAgendamento(){
         let idx = document.getElementById("selectPrestador").value;
         let totalMinutos = itensSelecionados.reduce((a, b) => a + (b.tempo * b.qtd), 0);
         let horas = Math.ceil(totalMinutos / 60);
-        
         if(horas === 0){ alert("Adicione um serviço!"); document.getElementById("selectPrestador").value=""; return; }
         
         let container = document.getElementById("agenda-agendamento");
@@ -307,24 +321,27 @@
             slots: [...sel].map(s => s.dataset.hora)
         });
         
+        // Limpeza Total
         itensSelecionados = [];
         document.getElementById("lista-produtos").innerHTML = "";
         document.getElementById("horasNecessarias").innerText = "0";
+        document.getElementById("inputCep").value = "";
+        document.getElementById("selectPrestador").value = "";
         document.getElementById("step-cep").style.display = "block";
         document.getElementById("step-agendamento").style.display = "none";
         document.getElementById("total-agend").innerText = agendamentos.length;
         renderPainel();
-        alert("Agendado com sucesso!");
+        alert("Agendado!");
+    }
+
+    function renderPainel(){
+        document.getElementById("painel-conteudo").innerHTML = agendamentos.map((a, i) => `<div class="painel-item">Agendamento: ${a.prestador} - ${a.data} <button onclick="agendamentos.splice(${i},1); renderPainel()">Excluir</button></div>`).join('');
     }
 
     function atualizarSelectPrestadores(){
         let sel = document.getElementById("selectPrestador");
         sel.innerHTML = '<option value="">-- Escolha --</option>';
         prestadores.forEach((p,i) => sel.innerHTML += `<option value="${i}">${p.nome}</option>`);
-    }
-
-    function renderPainel(){
-        document.getElementById("painel-conteudo").innerHTML = agendamentos.map((a, i) => `<div class="painel-item">Agendamento: ${a.prestador} - ${a.data} <button onclick="agendamentos.splice(${i},1); renderPainel()">Excluir</button></div>`).join('');
     }
 </script>
 </body>
