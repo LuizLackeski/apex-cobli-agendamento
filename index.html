@@ -157,7 +157,6 @@
         if(id === 'painel') atualizarFiltrosPrestador();
     }
 
-    // --- LOGICA DE WIZARD ---
     function proximoPasso(n) {
         if(n === 2) {
             if(prestadores.length === 0) return alert("Cadastre um prestador primeiro!");
@@ -199,7 +198,6 @@
         prestadorSelecionadoIndex = i;
         proximoPasso(3);
     }
-    // --- FIM LOGICA WIZARD ---
 
     function updateButtons() {
         document.getElementById('btn-voltar').style.display = (etapa === 1) ? 'none' : 'inline-block';
@@ -340,17 +338,17 @@
             let dNome = diasSemana[data.getDay()];
             let dStr = data.toLocaleDateString();
             
-            let slots = prestadores[prestadorSelecionadoIndex].agenda.filter(a => a.dia == dNome);
-            if(slots.length > 0){
-                let card = document.createElement("div");
-                card.className = "agenda-day-card";
-                card.innerHTML = `<div class="agenda-day-title">${dStr.slice(0,5)} (${dNome})</div>`;
-                let wrapper = document.createElement("div");
-                wrapper.className = "slots-wrapper";
+            let allSlots = prestadores[prestadorSelecionadoIndex].agenda.filter(a => a.dia == dNome);
+            // Filtra apenas os que não estão agendados
+            let availableSlots = allSlots.filter(item => 
+                !agendamentos.some(a => a.prestador == prestadores[prestadorSelecionadoIndex].nome && a.data == dStr && a.slots.includes(item.hora))
+            );
+            
+            if(availableSlots.length > 0){
+                let row = document.createElement("div"); row.className="row-dia";
+                row.innerHTML = `<div style="width:80px">${dStr.slice(0,5)}</div>`;
                 
-                slots.forEach(item => {
-                    let isBooked = agendamentos.some(a => a.prestador == prestadores[prestadorSelecionadoIndex].nome && a.data == dStr && a.slots.includes(item.hora));
-                    if(isBooked) return;
+                availableSlots.forEach(item => {
                     let div = document.createElement("div"); div.className = "cell";
                     div.innerText = item.hora;
                     div.dataset.hora = item.hora;
@@ -367,10 +365,9 @@
                         if(!div.classList.contains("selecionado") && sel.length >= horas) return alert("Limite de "+horas+"h!");
                         div.classList.toggle("selecionado");
                     };
-                    wrapper.appendChild(div);
+                    row.appendChild(div);
                 });
-                card.appendChild(wrapper);
-                container.appendChild(card);
+                container.appendChild(row);
             }
         }
     }
