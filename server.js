@@ -19,10 +19,17 @@ db.serialize(() => {
     db.run("CREATE TABLE IF NOT EXISTS agendamentos (id INTEGER PRIMARY KEY, prestador TEXT, qtdTecnicos INTEGER, produtos TEXT, data TEXT, ticket TEXT, cliente TEXT, solicitante TEXT, rawDate TEXT)");
 });
 
+// GET Prestadores com segurança para dados antigos
 app.get('/api/prestadores', (req, res) => {
     db.all("SELECT * FROM prestadores", [], (err, rows) => {
         if (err) return res.status(500).json({error: err.message});
-        res.json(rows.map(r => ({...r, agenda: JSON.parse(r.agenda)})));
+        res.json(rows.map(r => {
+            let agenda = [];
+            try {
+                if (r.agenda) agenda = JSON.parse(r.agenda);
+            } catch (e) { agenda = []; }
+            return { ...r, agenda: agenda };
+        }));
     });
 });
 
@@ -44,10 +51,17 @@ app.delete('/api/prestadores/:id', (req, res) => {
     db.run("DELETE FROM prestadores WHERE id = ?", req.params.id, () => res.sendStatus(200));
 });
 
+// GET Agendamentos com segurança para dados antigos
 app.get('/api/agendamentos', (req, res) => {
     db.all("SELECT * FROM agendamentos", [], (err, rows) => {
         if (err) return res.status(500).json({error: err.message});
-        res.json(rows.map(r => ({...r, produtos: JSON.parse(r.produtos)})));
+        res.json(rows.map(r => {
+            let produtos = [];
+            try {
+                if (r.produtos) produtos = JSON.parse(r.produtos);
+            } catch (e) { produtos = []; }
+            return { ...r, produtos: produtos };
+        }));
     });
 });
 
@@ -74,6 +88,5 @@ app.post('/api/distancia', async (req, res) => {
 app.use(express.static(path.join(__dirname)));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
-// O Railway injeta a porta certa aqui
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => console.log(`Servidor rodando na porta ${PORT}!`));
