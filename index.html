@@ -200,14 +200,16 @@
     function adicionarProduto(){
         let select = document.getElementById("produto");
         let qtd = parseInt(document.getElementById("quantidade").value) || 1;
-        itensSelecionados.push({desc: select.options[select.selectedIndex].text, tempo: parseInt(select.value), qtd: qtd});
+        let tempoBase = parseInt(select.value);
+        itensSelecionados.push({desc: select.options[select.selectedIndex].text, tempo: tempoBase, qtd: qtd});
         renderizarProdutos();
+        if(document.getElementById("selectPrestador").value !== "") rdaAgendamento();
     }
 
     function renderizarProdutos(){
         let totalMinutos = itensSelecionados.reduce((a, b) => a + (b.tempo * b.qtd), 0);
         document.getElementById("horasNecessarias").innerText = Math.ceil(totalMinutos/60);
-        document.getElementById("lista-produtos").innerHTML = itensSelecionados.map((i, idx) => `<div class="item-lista">${i.desc} (Qtd: ${i.qtd}) <button onclick="itensSelecionados.splice(${idx},1); renderizarProdutos();">x</button></div>`).join('');
+        document.getElementById("lista-produtos").innerHTML = itensSelecionados.map((i, idx) => `<div class="item-lista">${i.desc} (Qtd: ${i.qtd}) <button onclick="itensSelecionados.splice(${idx},1); renderizarProdutos(); rdaAgendamento();">x</button></div>`).join('');
     }
 
     function iniciarAgendamento(){
@@ -237,17 +239,14 @@
                 slots.forEach(item => {
                     let isBooked = agendamentos.some(a => a.prestador == prestadores[idx].nome && a.data == dStr && a.slots.includes(item.hora));
                     if(isBooked) return;
-
                     let div = document.createElement("div"); div.className = "cell";
                     div.innerText = item.hora;
                     div.dataset.hora = item.hora;
                     div.dataset.date = dStr;
                     div.onclick = () => {
-                        // Recalculo dinâmico das horas necessárias no momento do clique
                         let totalMinutos = itensSelecionados.reduce((a, b) => a + (b.tempo * b.qtd), 0);
                         let horas = Math.ceil(totalMinutos / 60);
                         let sel = document.querySelectorAll("#agenda-agendamento .selecionado");
-                        
                         if(!div.classList.contains("selecionado") && sel.length >= horas) return alert("Limite de "+horas+"h!");
                         div.classList.toggle("selecionado");
                     };
@@ -262,14 +261,14 @@
         let totalMinutos = itensSelecionados.reduce((a, b) => a + (b.tempo * b.qtd), 0);
         let horas = Math.ceil(totalMinutos / 60);
         let sel = document.querySelectorAll("#agenda-agendamento .selecionado");
-        if(sel.length !== horas) return alert("Selecione exatamente " + horas + " hora(s)!");
+        if(sel.length !== horas) return alert("Selecione " + horas + " hora(s)!");
         
         agendamentos.push({ prestador: prestadores[document.getElementById("selectPrestador").value].nome, data: sel[0].dataset.date, slots: [...sel].map(s => s.dataset.hora) });
         
-        // Limpeza Total
         itensSelecionados = [];
         document.getElementById("lista-produtos").innerHTML = "";
         document.getElementById("horasNecessarias").innerText = "0";
+        document.getElementById("quantidade").value = "1";
         document.getElementById("selectPrestador").value = "";
         document.getElementById("agenda-agendamento").innerHTML = "";
         document.getElementById("inputCep").value = "";
@@ -277,7 +276,13 @@
         document.getElementById("step-agendamento").style.display = "none";
         document.getElementById("total-agend").innerText = agendamentos.length;
         renderPainel();
-        alert("Agendado com sucesso!");
+        alert("Agendado!");
+    }
+
+    function atualizarSelectPrestadores(){
+        let sel = document.getElementById("selectPrestador");
+        sel.innerHTML = '<option value="">-- Escolha --</option>';
+        prestadores.forEach((p,i) => sel.innerHTML += `<option value="${i}">${p.nome}</option>`);
     }
 
     function renderPainel(){
