@@ -19,11 +19,13 @@
         h2 { font-size: 1.1rem; margin-top: 0; color: #1e293b; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
         input, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
         button { cursor: pointer; padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 5px; font-weight: 500; }
+        
         .agenda-day-card { background: #fafafa; padding: 10px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #e5e7eb; }
         .agenda-day-title { font-weight: 600; color: var(--primary); margin-bottom: 6px; font-size: 0.85rem; }
         .slots-wrapper { display: flex; flex-wrap: wrap; gap: 4px; }
         .cell { border: 1px solid #cbd5e1; padding: 4px; text-align: center; cursor: pointer; border-radius: 4px; font-size: 0.75rem; width: 45px; height: 22px; display: flex; align-items: center; justify-content: center; }
         .cell.selecionado { background: var(--primary); color: white; border-color: var(--primary); }
+        
         .item-lista { display: flex; justify-content: space-between; padding: 6px; border-bottom: 1px solid #f1f5f9; align-items: center; font-size: 0.9rem; }
         .flex-cards { display: flex; gap: 15px; margin-bottom: 20px; }
         .stats-card { background: white; padding: 15px; border-radius: 8px; flex: 1; border: 1px solid #e5e7eb; text-align: center; }
@@ -35,18 +37,10 @@
         .card-selecao strong { color: var(--primary); font-size: 1.1rem; }
         .card-selecao .dates { color: #555; font-size: 0.9rem; margin: 10px 0; display: block; }
         
-        /* Modal Aprimorado */
+        /* Modal Style */
         .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:9999; }
-        .modal-card { background:white; border-radius:12px; width:450px; max-width:90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow:hidden; }
-        .modal-header { background: var(--primary); color: white; padding: 15px 20px; font-weight: bold; }
-        .modal-body { padding: 20px; }
-        .modal-footer { padding: 15px 20px; background: #f8fafc; text-align: right; border-top: 1px solid #e5e7eb; }
-        .info-group { margin-bottom: 15px; }
-        .info-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
-        .info-value { font-size: 0.95rem; color: #1e293b; }
-        .agenda-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
-        .agenda-item { background: #f1f5f9; padding: 8px; border-radius: 4px; font-size: 0.85rem; }
-
+        .modal-card { background:white; padding:25px; border-radius:12px; width:500px; max-width:90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-header { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-bottom: 15px; }
         #toast { display:none; position:fixed; bottom:20px; right:20px; background:#1e293b; color:white; padding:12px 24px; border-radius:6px; z-index:9999; box-shadow:0 4px 6px rgba(0,0,0,0.2); }
     </style>
 </head>
@@ -61,10 +55,10 @@
 
 <div id="modalAviso" class="modal-overlay" onclick="fecharModal()">
     <div class="modal-card" onclick="event.stopPropagation()">
-        <div id="modalHeader" class="modal-header">Título</div>
-        <div id="modalBody" class="modal-body"></div>
-        <div class="modal-footer">
-            <button onclick="fecharModal()" style="background:gray;">Fechar</button>
+        <div id="modalHeader" class="modal-header"></div>
+        <div id="modalBody"></div>
+        <div style="margin-top:20px; text-align: right;">
+            <button onclick="fecharModal()">Fechar</button>
         </div>
     </div>
 </div>
@@ -155,7 +149,6 @@
 <script>
     const API_URL = 'https://fqaqlofndeihmhkopvan.supabase.co/functions/v1/smart-service';
     const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxYXFsb2ZuZGVpaG1oa29wdmFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMjU4ODIsImV4cCI6MjA5MjgwMTg4Mn0.nauPYoB9RDhLLueMEuop2H2FxdChjIxFkAmBcYbJLzc';
-
     function getHeaders() { return { 'Content-Type': 'application/json', 'apikey': ANON_KEY, 'Authorization': `Bearer ${ANON_KEY}` }; }
     let prestadores = [], itensSelecionados = [], agendamentos = [], etapa = 1, editingIndex = -1, prestadorSelecionadoIndex = null;
     const produtos = { "Telemetria": [{desc:"Instalado veículos leves bloqueador", tempo:60}, {desc:"Instalado veículos leves e pesados + CAN", tempo:60}, {desc:"Instalado motos ou maquinários", tempo:40}, {desc:"Instalado veículos leves e pesados", tempo:40}], "Identificador": [{desc:"Instalado veículos leves e pesados identificador", tempo:60}, {desc:"Instalado veículos leves e pesados identificador + CAN", tempo:90}, {desc:"Instalado veículos leves e pesados identificador RFID", tempo:60}, {desc:"Instalado veículos leves e pesados identificador RFID + CAN", tempo:80}], "Trava de ignição": [{desc:"Instalado veículos leves imobilizador", tempo:80}, {desc:"Instalado veículos leves imobilizador RFID", tempo:80}, {desc:"Instalado veículos leves imobilizador RFID + CAN", tempo:90}, {desc:"Instalado veículos leves imobilizador + CAN", tempo:100}], "Videotelemetria": [{desc:"CobliCam (2 câmeras)", tempo:90}, {desc:"Cobli Multicam (3 câmeras internas)", tempo:120}, {desc:"Cobli Multicam (2 câmeras + 1 externa)", tempo:240}, {desc:"Cobli Multicam (4 câmeras)", tempo:240}, {desc:"Cobli Multicam (5 câmeras)", tempo:300}] };
@@ -163,23 +156,28 @@
     async function carregarDadosDoBanco() { try { const resP = await fetch(`${API_URL}/prestadores`, { headers: getHeaders() }); prestadores = await resP.json(); renderizarListaPrestadores(); const resA = await fetch(`${API_URL}/agendamentos`, { headers: getHeaders() }); agendamentos = await resA.json(); document.getElementById("total-agend").innerText = agendamentos.length; renderPainel(); } catch(e) { console.error("Erro ao carregar dados:", e); } }
     function showToast(msg) { let t = document.getElementById("toast"); t.innerText = msg; t.style.display = "block"; setTimeout(() => { t.style.display = "none"; }, 3000); }
     
-    // Modal Logics
+    // Funções do Modal e Visualização
     function exibirModal(titulo, htmlBody) { document.getElementById('modalHeader').innerText = titulo; document.getElementById('modalBody').innerHTML = htmlBody; document.getElementById('modalAviso').style.display = 'flex'; }
     function fecharModal() { document.getElementById('modalAviso').style.display = 'none'; }
 
-    // DETALHES PRESTADOR (NOVO)
     function abrirDetalhesPrestador(index) {
         let p = prestadores[index];
-        let agendaHtml = '<div class="agenda-grid">';
+        let agendaHtml = '';
         ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab"].forEach(d => {
-            let slots = p.agenda.filter(a => a.dia === d).map(a => a.hora).join(", ");
-            if(slots) agendaHtml += `<div class="agenda-item"><strong>${d}</strong><br>${slots}</div>`;
+            let slots = p.agenda.filter(a => a.dia === d).map(a => `<div class="cell">${a.hora}</div>`).join('');
+            if(slots) {
+                agendaHtml += `
+                <div class="agenda-day-card" style="margin-bottom:10px;">
+                    <div class="agenda-day-title">${d}</div>
+                    <div class="slots-wrapper">${slots}</div>
+                </div>`;
+            }
         });
-        agendaHtml += '</div>';
         exibirModal("Detalhes do Prestador", `
-            <div class="info-group"><div class="info-label">Nome</div><div class="info-value">${p.nome}</div></div>
-            <div class="info-group"><div class="info-label">Responsável</div><div class="info-value">${p.responsavel} - ${p.contato}</div></div>
-            <div class="info-label">Horários</div>
+            <div class="info-group" style="margin-bottom:15px;">
+                <div style="font-weight:bold; font-size:1.1rem;">${p.nome}</div>
+                <div style="font-size:0.9rem; color:#64748b;">Resp: ${p.responsavel} | ${p.contato}</div>
+            </div>
             ${agendaHtml}
         `);
     }
@@ -223,6 +221,7 @@
     }
     function limparFiltros(){ document.getElementById("filtroDataInicio").value = ""; document.getElementById("filtroDataFim").value = ""; document.getElementById("filtroPrestador").value = ""; renderPainel(); }
     function atualizarFiltrosPrestador(){ let sel = document.getElementById("filtroPrestador"); sel.innerHTML = '<option value="">Todos</option>'; prestadores.forEach(p => sel.innerHTML += `<option value="${p.nome}">${p.nome}</option>`); }
+
 </script>
 </body>
 </html>
