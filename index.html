@@ -108,14 +108,14 @@
             <div id="etapa-1">
                 <h3>Dados do Prestador</h3>
                 <label>Nome / Empresa</label><input id="nomeEmpresa" required>
-                <label>Endereço</label><input id="endereco" required>
+                <label>Endereço padrão Goggle - EX:R. Lourenço Marques, 297 - Vila Olímpia, São Paulo - SP, 04547-100</label><input id="endereco" required>
                 <label>Cidade</label><input id="cidade" required>
                 <label>UF</label><input id="uf" required>
                 <label>CEP</label><input id="cep" required>
                 <label>Responsável</label><input id="responsavel" required>
                 <label>Contato</label><input id="contatoResponsavel" required>
                 <label>Quantidade de Técnicos</label><input id="qtdTecnicos" type="number" required>
-                <label>Range (Km)</label><input id="rangeAtendimento" type="number" required>
+                <label>Range de atendimento (Km)</label><input id="rangeAtendimento" type="number" required>
             </div>
             <div id="etapa-2" style="display:none;">
                 <h3>Agenda</h3>
@@ -125,7 +125,7 @@
                 <button id="btn-voltar" onclick="window.mudarEtapa(-1)">Voltar</button>
                 <button id="btn-proximo" onclick="window.mudarEtapa(1)">Próximo</button>
                 <button id="btn-concluir" onclick="window.salvarPrestador(this)" style="background: green;">Concluir</button>
-                <button onclick="window.cancelarCadastro()" style="background:gray;">Cancelar</button>
+                <button onclick="window.cancelarCadastro()" style="background:red;">Cancelar</button>
             </div>
         </div>
     </div>
