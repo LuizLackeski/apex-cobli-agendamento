@@ -197,13 +197,13 @@
 
     // --- SLACK INTEGRATION ---
 window.enviarNotificacaoSlack = async function(msg) {
-    // Substitua pelo link que aparece na página principal da sua Edge Function 'notificar-slack'
-    const SUPABASE_URL = "https://fqaqlofndeihmhkopvan.supabase.co/functions/v1/notificar-slack"; 
+    const SUPABASE_URL = "https://fqaqlofndeihmhkopvan.supabase.co/functions/v1/notificar-slack";
     
     try {
         await fetch(SUPABASE_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            // AQUI ESTÁ O SEGREDO: usamos a função getHeaders() que você já tem no código
+            headers: getHeaders(), 
             body: JSON.stringify({ text: msg })
         });
     } catch (e) { 
