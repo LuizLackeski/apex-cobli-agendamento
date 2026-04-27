@@ -158,7 +158,7 @@
     window.onload = async () => { carregarProdutos(); await carregarDadosDoBanco(); };
     async function carregarDadosDoBanco() { try { const resP = await fetch(`${API_URL}/prestadores`, { headers: getHeaders() }); prestadores = await resP.json(); renderizarListaPrestadores(); const resA = await fetch(`${API_URL}/agendamentos`, { headers: getHeaders() }); agendamentos = await resA.json(); document.getElementById("total-agend").innerText = agendamentos.length; renderPainel(); } catch(e) { console.error("Erro ao carregar dados:", e); } }
     
-    // Globais para evitar erros de referência
+    // Utilitários globais
     window.showToast = function(msg) { let t = document.getElementById("toast"); t.innerText = msg; t.style.display = "block"; setTimeout(() => { t.style.display = "none"; }, 3000); };
     window.exibirModal = function(titulo, htmlBody) { document.getElementById('modalHeader').innerText = titulo; document.getElementById('modalBody').innerHTML = htmlBody; document.getElementById('modalAviso').style.display = 'flex'; };
     window.fecharModal = function() { document.getElementById('modalAviso').style.display = 'none'; };
@@ -240,7 +240,6 @@
                         if(sel.length > 0) {
                             if(sel[0].dataset.date !== div.dataset.date) { sel.forEach(s => s.classList.remove('selecionado')); sel = []; }
                             else {
-                                // Lógica de sequência: verifica se é adjacente
                                 let isAdjacent = false;
                                 sel.forEach(s => { let h = parseInt(s.dataset.hora.split(':')[0]); if(Math.abs(h - clickedHour) === 1) isAdjacent = true; });
                                 if(!isAdjacent && !div.classList.contains("selecionado")) return alert("Os horários precisam ser em sequência!");
@@ -257,6 +256,7 @@
     };
     
     window.validarEAvancar = function() {
+        if (itensSelecionados.length === 0) return alert("Adicione pelo menos um serviço!"); // Trava de segurança
         let totalMinutos = itensSelecionados.reduce((a, b) => a + (b.tempo * b.qtd), 0); let horas = Math.ceil(totalMinutos / 60); let sel = document.querySelectorAll("#agenda-agendamento .cell.selecionado");
         if (sel.length === 0) return alert("Selecione horário!"); if (sel.length !== horas && horas > 0) return alert("Selecione exatamente " + horas + " hora(s)!");
         document.querySelectorAll('#consulta > div').forEach(div => div.style.display = 'none'); document.getElementById('step-4').style.display = 'block';
