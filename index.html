@@ -116,14 +116,14 @@
             <div id="etapa-1">
                 <h3>Dados do Prestador</h3>
                 <label>Nome / Empresa</label><input id="nomeEmpresa" required>
-                <label>Endereço</label><input id="endereco" required>
+                <label>Endereço completo - Ex: R. Lourenço Marques, 297 - Vila Olímpia, São Paulo - SP, 04547-100</label><input id="endereco" required>
                 <label>Cidade</label><input id="cidade" required>
                 <label>UF</label><input id="uf" required>
                 <label>CEP</label><input id="cep" required>
                 <label>Responsável</label><input id="responsavel" required>
-                <label>Contato</label><input id="contatoResponsavel" required>
+                <label>nº do Telefone</label><input id="contatoResponsavel" required>
                 <label>Quantidade de Técnicos</label><input id="qtdTecnicos" type="number" required>
-                <label>Range (Km)</label><input id="rangeAtendimento" type="number" required>
+                <label>Range de atendimento (Km)</label><input id="rangeAtendimento" type="number" required>
             </div>
             <div id="etapa-2" style="display:none;">
                 <h3>Agenda</h3>
@@ -157,13 +157,13 @@
 <div id="toast"></div>
 
 <script>
-    const ADMIN_EMAILS = ["luiz.lackeski@cobli.co", "seuemail@exemplo.com"]; 
+    const ADMIN_EMAILS = ["luiz.lackeski@cobli.co", "fernando.souza@cobli.co"]; 
     let isAuthorized = false;
 
     function checkAuth() {
         let email = localStorage.getItem('userEmail');
         while (!email || email.trim() === "") {
-            email = prompt("Digite seu e-mail para acesso ADMIN | Nome acesso usuário:");
+            email = prompt("Digite seu e-mail para acesso ADMIN | Nome para acesso usuário:");
             if (email && email.trim() !== "") {
                 localStorage.setItem('userEmail', email);
             }
