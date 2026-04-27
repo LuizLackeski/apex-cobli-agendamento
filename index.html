@@ -254,6 +254,10 @@
 
     function trocarAba(id, btn){ document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa')); document.getElementById(id).classList.add('ativa'); document.querySelectorAll('.menu button').forEach(b => b.classList.remove('ativo')); if(btn) btn.classList.add('ativo'); if(id === 'painel') atualizarFiltrosPrestador(); }
     
+    function getAgendamentosNoDia(prestador, data) {
+        return agendamentos.filter(a => a.prestador === prestador.nome && a.data === data).length;
+    }
+    
     function getAgendamentosNoSlot(prestador, data, hora) { if (!agendamentos) return 0; return agendamentos.filter(a => a.prestador === prestador.nome && a.data === data && (Array.isArray(a.slots) ? a.slots.includes(hora) : false)).length; }
     
     function getNextDates(prestador) {
@@ -265,7 +269,9 @@
             let d = new Date(); d.setDate(today.getDate() + i);
             let dStr = d.toLocaleDateString();
             let dNome = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"][d.getDay()];
-            if (agendaDays.includes(d.getDay())) {
+            
+            // Só processa se o número de agendamentos no dia for menor que o limite de técnicos
+            if (agendaDays.includes(d.getDay()) && getAgendamentosNoDia(prestador, dStr) < qtdLimit) {
                 let slotsDoDia = prestador.agenda.filter(a => a.dia === dNome);
                 let temLivre = slotsDoDia.some(s => getAgendamentosNoSlot(prestador, dStr, s.hora) < qtdLimit);
                 if (temLivre) dates.push(dStr.slice(0,5));
@@ -313,6 +319,9 @@
             let data = new Date(); data.setDate(hoje.getDate() + i);
             let dNome = diasSemana[data.getDay()];
             let dStr = data.toLocaleDateString();
+            
+            // Regra principal: Se agendamentos no dia >= qtdTecnicos, pula o dia
+            if (getAgendamentosNoDia(p, dStr) >= qtdLimit) continue;
             
             let allSlots = p.agenda ? p.agenda.filter(a => a.dia == dNome) : [];
             let availableSlots = allSlots.filter(item => getAgendamentosNoSlot(p, dStr, item.hora) < qtdLimit);
