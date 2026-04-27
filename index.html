@@ -152,13 +152,11 @@
 <div id="toast"></div>
 
 <script>
-    // --- AUTENTICAÇÃO ---
     const ADMIN_EMAILS = ["luiz.lackeski@cobli.co", "seuemail@exemplo.com"]; 
     let isAuthorized = false;
 
     function checkAuth() {
         let email = localStorage.getItem('userEmail');
-        // Loop enquanto não for preenchido
         while (!email || email.trim() === "") {
             email = prompt("Digite seu e-mail para acesso:");
             if (email && email.trim() !== "") {
@@ -170,10 +168,7 @@
     }
     checkAuth();
 
-    window.logout = function() {
-        localStorage.removeItem('userEmail');
-        window.location.reload();
-    };
+    window.logout = function() { localStorage.removeItem('userEmail'); window.location.reload(); };
 
     const API_URL = 'https://fqaqlofndeihmhkopvan.supabase.co/functions/v1/smart-service';
     const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxYXFsb2ZuZGVpaG1oa29wdmFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMjU4ODIsImV4cCI6MjA5MjgwMTg4Mn0.nauPYoB9RDhLLueMEuop2H2FxdChjIxFkAmBcYbJLzc';
@@ -238,7 +233,6 @@
     
     window.limparFormulario = function() { itensSelecionados = []; prestadorSelecionadoIndex = null; document.getElementById("lista-produtos").innerHTML = ""; document.getElementById("horasNecessarias").innerText = "0"; document.getElementById("agenda-agendamento").innerHTML = ""; document.getElementById("inputCep").value = ""; document.getElementById("ticket").value = ""; document.getElementById("clienteNome").value = ""; document.getElementById("solicitante").value = ""; };
     window.trocarAba = function(id, btn){ document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa')); document.getElementById(id).classList.add('ativa'); document.querySelectorAll('.menu button').forEach(b => b.classList.remove('ativo')); if(btn) btn.classList.add('ativo'); if(id === 'painel') window.atualizarFiltrosPrestador(); };
-    
     window.getNextDates = function(prestador) {
         let dates = []; let today = new Date(); const daysMap = {"Dom":0, "Seg":1, "Ter":2, "Qua":3, "Qui":4, "Sex":5, "Sab":6}; let agendaDays = prestador.agenda ? [...new Set(prestador.agenda.map(a => a.dia))].map(d => daysMap[d]) : []; let qtdLimit = parseInt(prestador.qtdtecnicos) || 1;
         for (let i = 0; i < 14; i++) {
@@ -250,9 +244,7 @@
         }
         return dates;
     };
-
     window.proximoPasso = async function(n) { if(n === 2) { if(prestadores.length === 0) return alert("Cadastre um prestador!"); const cepDigitado = document.getElementById('inputCep').value; if(!cepDigitado) return alert("Digite o CEP!"); const btn = document.getElementById('btnBuscar'); btn.disabled = true; btn.innerText = "Calculando..."; let prestadoresFiltrados = []; for(let p of prestadores) { if (!p.endereco) continue; const dist = await consultarDistancia(cepDigitado, p.endereco); let available = window.getNextDates(p); if(dist !== null && dist <= parseFloat(p.range) && available.length > 0) { p.distanciaFinal = dist.toFixed(1); p.nextDates = available.join(', '); prestadoresFiltrados.push(p); } } btn.disabled = false; btn.innerText = "Buscar Prestadores"; if(prestadoresFiltrados.length === 0) { window.exibirModal("Atenção", "Nenhum prestador encontrado no raio de atendimento."); return; } window.renderizarListaPrestadoresSelecao(prestadoresFiltrados); } if(n === 3 && prestadorSelecionadoIndex === null) return alert("Selecione um prestador!"); document.querySelectorAll('#consulta > div').forEach(div => div.style.display = 'none'); document.getElementById('step-' + n).style.display = 'block'; if(n === 3) window.rdaAgendamento(); };
-    
     window.rdaAgendamento = function() {
         let p = prestadores[prestadorSelecionadoIndex]; let container = document.getElementById("agenda-agendamento"); container.innerHTML = ""; let hoje = new Date(); const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
         let cap = parseInt(p.qtdtecnicos) || 1;
@@ -280,11 +272,10 @@
                     };
                     wrapper.appendChild(div);
                 });
-                card.appendChild(wrapper); card.appendChild(wrapper); container.appendChild(card);
+                card.appendChild(wrapper); container.appendChild(card);
             }
         }
     };
-    
     window.validarEAvancar = function() { if (itensSelecionados.length === 0) return alert("Adicione pelo menos um serviço!"); let totalMinutos = itensSelecionados.reduce((a, b) => a + (b.tempo * b.qtd), 0); let horas = Math.ceil(totalMinutos / 60); let sel = document.querySelectorAll("#agenda-agendamento .cell.selecionado"); if (sel.length === 0) return alert("Selecione horário!"); if (sel.length !== horas && horas > 0) return alert("Selecione exatamente " + horas + " hora(s)!"); document.querySelectorAll('#consulta > div').forEach(div => div.style.display = 'none'); document.getElementById('step-4').style.display = 'block'; };
     window.renderizarListaPrestadoresSelecao = function(lista) { document.getElementById('lista-prestadores-selecao').innerHTML = lista.map(p => `<div class="card-selecao"><strong>${p.nome}</strong><br>Distância: ${p.distanciaFinal} km<br><span class="dates">Disponível em: ${p.nextDates}</span><div style="margin-top:10px"><button onclick="window.selecionarPrestadorPorObjeto('${p.nome}')">Selecionar Prestador</button></div></div>`).join(''); };
     window.selecionarPrestadorPorObjeto = function(nome) { prestadorSelecionadoIndex = prestadores.findIndex(p => p.nome === nome); window.proximoPasso(3); };
@@ -298,7 +289,7 @@
         document.getElementById("lista-prestadores").innerHTML = prestadores.map((p, i) => {
             let btns = `<button onclick="window.abrirDetalhesPrestador(${i})" style="background:gray;">Ver</button>`;
             if (isAuthorized) btns += ` <button onclick="window.abrirCadastro(${i})">Editar</button> <button onclick="window.excluirPrestador(${i})" class="btn-cancelar">Excluir</button>`;
-            return `<div class="card"><strong>${p.nome}</strong> - ${p.cidade}/${p.uf}<br>Técnicos: ${p.qtdtecnicos} | Dias c/ agenda: ${[...new Set(p.agenda.map(a => a.dia))].length} | Raio Atendimento: ${p.range}km<div style="margin-top:10px">${btns}</div></div>`; 
+            return `<div class="card"><strong>${p.nome}</strong> - ${p.cidade}/${p.uf}<br>Técnicos: ${p.qtdtecnicos} | Dias c/ agenda: ${[...new Set(p.agenda.map(a => a.dia))].length} | Raio Atendimento: ${p.range}km<div style="margin-top:10px; height: 35px;">${btns}</div></div>`; 
         }).join(''); 
         document.getElementById("total-prest").innerText = prestadores.length; 
     };
