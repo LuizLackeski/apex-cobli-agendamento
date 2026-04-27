@@ -166,13 +166,11 @@
     </div>
 </div>
 
-<div id="toast"></div>
-
 <script>
     const ADMIN_EMAILS = ["luiz.lackeski@cobli.co", "fernando.souza@cobli.co"]; 
     let isAuthorized = false;
 
-    // --- MÓDULOS DE INTERFACE ---
+    // --- FUNÇÕES DE INTERFACE ---
     window.exibirModal = function(titulo, htmlBody) {
         document.getElementById('modalHeader').innerText = titulo;
         document.getElementById('modalBody').innerHTML = htmlBody;
@@ -196,11 +194,10 @@
         footer.appendChild(btnNao); footer.appendChild(btnSim);
         document.getElementById('modalAviso').style.display = 'flex';
     };
-    window.showToast = function(msg) { let t = document.getElementById("toast"); t.innerText = msg; t.style.display = "block"; setTimeout(() => { t.style.display = "none"; }, 3000); };
-    
-    // --- SLACK INTEGRAÇÃO ---
+
+    // --- SLACK INTEGRATION ---
     window.enviarNotificacaoSlack = async function(msg) {
-        const SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/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"; 
+        const SLACK_WEBHOOK_URL = "COLE_AQUI_SEU_WEBHOOK_URL"; 
         try {
             await fetch(SLACK_WEBHOOK_URL, {
                 method: 'POST',
@@ -254,12 +251,11 @@
     window.confirmarExclusaoAgendamento = async function(id) { await fetch(`${API_URL}/agendamentos/${id}`, { method: 'DELETE', headers: getHeaders() }); await carregarDadosDoBanco(); window.showToast("Agendamento excluído!"); };
     window.concluirAgendamentoFinal = async function(btn){ const ticket = document.getElementById("ticket").value; const cli = document.getElementById("clienteNome").value; const sol = document.getElementById("solicitante").value; if(!ticket || !cli || !sol) return window.showMessage("Preencha todos os campos!"); let sel = document.querySelectorAll("#agenda-agendamento .cell.selecionado"); if(sel.length === 0) return window.showMessage("Selecione um horário!"); let p = prestadores[prestadorSelecionadoIndex]; let qtdLimit = parseInt(p.qtdtecnicos) || 1; for(let s of sel) { if(window.getOcupacaoSlot(p, s.dataset.date, s.dataset.hora) >= qtdLimit) { window.showMessage("Limite de técnicos atingido no horário " + s.dataset.hora); return; } } const originalText = btn.innerText; btn.innerText = "Confirmando..."; btn.disabled = true; try { let agendamento = { prestador: p.nome, qtdtecnicos: p.qtdtecnicos, produtos: itensSelecionados, data: sel[0].dataset.date, rawdate: new Date().toISOString(), slots: [...sel].map(s => s.dataset.hora), ticket, cliente: cli, solicitante: sol }; await fetch(`${API_URL}/agendamentos`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(agendamento) }); 
         
-        // SLACK CALL
+        // SLACK NOTIFICATION
         let msgSlack = `🚀 *Novo Agendamento*\n🎟️ Ticket: ${ticket}\n👤 Cliente: ${cli}\n🛠️ Prestador: ${p.nome}`;
         window.enviarNotificacaoSlack(msgSlack);
         
         window.limparFormulario(); await carregarDadosDoBanco(); window.proximoPasso(1); window.showToast("Agendamento salvo com sucesso!"); } catch(e) { window.showMessage("Erro ao salvar."); } finally { btn.innerText = originalText; btn.disabled = false; } };
-    
     window.limparFormulario = function() { itensSelecionados = []; prestadorSelecionadoIndex = null; document.getElementById("lista-produtos").innerHTML = ""; document.getElementById("horasNecessarias").innerText = "0"; document.getElementById("agenda-agendamento").innerHTML = ""; document.getElementById("inputCep").value = ""; document.getElementById("ticket").value = ""; document.getElementById("clienteNome").value = ""; document.getElementById("solicitante").value = ""; };
     window.trocarAba = function(id, btn){ document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa')); document.getElementById(id).classList.add('ativa'); document.querySelectorAll('.menu button').forEach(b => b.classList.remove('ativo')); if(btn) btn.classList.add('ativo'); if(id === 'painel') window.atualizarFiltrosPrestador(); };
     window.getNextDates = function(prestador) { let dates = []; let today = new Date(); const daysMap = {"Dom":0, "Seg":1, "Ter":2, "Qua":3, "Qui":4, "Sex":5, "Sab":6}; let agendaDays = prestador.agenda ? [...new Set(prestador.agenda.map(a => a.dia))].map(d => daysMap[d]) : []; let qtdLimit = parseInt(prestador.qtdtecnicos) || 1; for (let i = 0; i < 14; i++) { let d = new Date(); d.setDate(today.getDate() + i); let dStr = d.toLocaleDateString(); let dNome = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"][d.getDay()]; let blocked = window.getBlockedHours(prestador, dStr); let slotsDoDia = prestador.agenda.filter(a => a.dia == dNome); let temLivre = slotsDoDia.some(s => !blocked.has(parseInt(s.hora.split(':')[0])) && window.getOcupacaoSlot(prestador, dStr, s.hora) < qtdLimit); if (agendaDays.includes(d.getDay()) && temLivre) dates.push(dStr.slice(0,5)); } return dates; };
