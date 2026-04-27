@@ -73,6 +73,7 @@
             <h2>Selecione o Prestador</h2>
             <div id="lista-prestadores-selecao"></div>
             <button onclick="proximoPasso(1)" style="background:gray;">Voltar</button>
+            <button onclick="cancelarAgendamento()" style="background:red;">Cancelar</button>
         </div>
         <div id="step-3" class="card" style="display:none;">
             <h2>Serviços e Agenda</h2>
@@ -85,6 +86,7 @@
             <div id="agenda-agendamento"></div>
             <button onclick="proximoPasso(2)" style="background:gray;">Voltar</button>
             <button onclick="validarEAvancar()" style="background:green;">Próximo</button>
+            <button onclick="cancelarAgendamento()" style="background:red;">Cancelar</button>
         </div>
         <div id="step-4" class="card" style="display:none;">
             <h2>Dados do Cliente</h2>
@@ -93,6 +95,7 @@
             <label>Responsável pela solicitação</label><input id="solicitante" required>
             <button onclick="proximoPasso(3)" style="background:gray;">Voltar</button>
             <button onclick="concluirAgendamentoFinal()" style="background:green;">Confirmar</button>
+            <button onclick="cancelarAgendamento()" style="background:red;">Cancelar</button>
         </div>
     </div>
 
@@ -154,6 +157,9 @@
     window.onload = async () => { carregarProdutos(); await carregarDadosDoBanco(); };
     async function carregarDadosDoBanco() { try { const resP = await fetch(`${API_URL}/prestadores`, { headers: getHeaders() }); prestadores = await resP.json(); renderizarListaPrestadores(); const resA = await fetch(`${API_URL}/agendamentos`, { headers: getHeaders() }); agendamentos = await resA.json(); document.getElementById("total-agend").innerText = agendamentos.length; renderPainel(); } catch(e) { console.error("Erro ao carregar dados:", e); } }
     function showToast(msg) { let t = document.getElementById("toast"); t.innerText = msg; t.style.display = "block"; setTimeout(() => { t.style.display = "none"; }, 3000); }
+    
+    // Novas Funções
+    function cancelarAgendamento() { if(confirm("Deseja realmente cancelar este agendamento?")) { limparFormulario(); proximoPasso(1); } }
     function exibirModal(titulo, htmlBody) { document.getElementById('modalHeader').innerText = titulo; document.getElementById('modalBody').innerHTML = htmlBody; document.getElementById('modalAviso').style.display = 'flex'; }
     function fecharModal() { document.getElementById('modalAviso').style.display = 'none'; }
     function abrirDetalhesPrestador(index) {
@@ -165,6 +171,7 @@
         });
         exibirModal("Detalhes do Prestador", `<div class="info-group" style="margin-bottom:15px;"><div style="font-weight:bold; font-size:1.1rem;">${p.nome}</div><div style="font-size:0.9rem; color:#64748b;">Resp: ${p.responsavel} | Contato: ${p.contato} | Raio: ${p.range} km</div></div>${agendaHtml}`);
     }
+
     async function consultarDistancia(cepOrigem, enderecoPrestador) { try { const response = await fetch(`${API_URL}/distancia`, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ origin: cepOrigem, destination: enderecoPrestador }) }); const data = await response.json(); return (data.status === 'OK') ? parseFloat(data.rows[0].elements[0].distance.value) / 1000 : null; } catch (e) { return null; } }
     async function salvarPrestador() { const inputs = document.querySelectorAll('#etapa-1 input'); for(let i of inputs) if(!i.value.trim()) return alert("Preencha todos os campos!"); let agenda = [...document.querySelectorAll('#agenda-cadastro .cell.selecionado')].map(c => ({ dia: c.dataset.dia, hora: c.dataset.hora })); let p = { nome: document.getElementById("nomeEmpresa").value, endereco: document.getElementById("endereco").value, cidade: document.getElementById("cidade").value, uf: document.getElementById("uf").value, cep: document.getElementById("cep").value, responsavel: document.getElementById("responsavel").value, contato: document.getElementById("contatoResponsavel").value, qtdtecnicos: parseInt(document.getElementById("qtdTecnicos").value), range: document.getElementById("rangeAtendimento").value, agenda: agenda }; const url = (editingIndex !== -1) ? `${API_URL}/prestadores/${prestadores[editingIndex].id}` : `${API_URL}/prestadores`; await fetch(url, { method: (editingIndex !== -1) ? 'PUT' : 'POST', headers: getHeaders(), body: JSON.stringify(p) }); editingIndex = -1; await carregarDadosDoBanco(); document.getElementById("cadastro-flow").style.display="none"; document.getElementById("lista-prestadores-view").style.display="block"; showToast("Prestador salvo com sucesso!"); }
     async function excluirPrestador(i) { await fetch(`${API_URL}/prestadores/${prestadores[i].id}`, { method: 'DELETE', headers: getHeaders() }); await carregarDadosDoBanco(); }
