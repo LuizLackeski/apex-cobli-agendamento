@@ -235,24 +235,30 @@
     let isAuthorized = false;
     function checkAuth() {
     let email = localStorage.getItem('userEmail');
-    if (email) {
+    
+    // Verifica se existe e se termina com @cobli.co (usando toLowerCase para evitar erros de digitação)
+    if (email && email.toLowerCase().endsWith("@cobli.co")) {
         document.getElementById('login-overlay').style.display = 'none';
-        
-        // AQUI ESTÁ O AJUSTE: .toLowerCase() garante que a comparação ignore maiúsculas
-        isAuthorized = ADMIN_EMAILS.includes(email.toLowerCase()); 
-        
+        isAuthorized = ADMIN_EMAILS.includes(email.toLowerCase());
         document.getElementById('user-display').innerText = email;
         if(window.renderizarListaPrestadores) window.renderizarListaPrestadores();
     } else {
+        // Se o e-mail não for válido, limpa tudo e força o login
+        localStorage.removeItem('userEmail');
         document.getElementById('login-overlay').style.display = 'flex';
     }
 }
-    window.performLogin = function() {
-        let email = document.getElementById('loginEmail').value;
-        if (!email || email.trim() === "") return window.showMessage("Por favor, digite uma identificação.");
-        localStorage.setItem('userEmail', email);
-        window.location.reload();
+window.performLogin = function() {
+    let email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    
+    // Regra: tem que terminar com @cobli.co
+    if (!email.endsWith("@cobli.co")) {
+        return window.showMessage("Acesso negado: Utilize um e-mail corporativo (@cobli.co).");
     }
+
+    localStorage.setItem('userEmail', email);
+    window.location.reload();
+}
     window.logout = function() { localStorage.removeItem('userEmail'); window.location.reload(); };
     checkAuth();
 
