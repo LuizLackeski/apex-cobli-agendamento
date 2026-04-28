@@ -249,13 +249,20 @@
     }
 }
 window.performLogin = function() {
-    let email = document.getElementById('loginEmail').value.trim().toLowerCase();
-    
-    // Regra: tem que terminar com @cobli.co
-    if (!email.endsWith("@cobli.co")) {
-        return window.showMessage("Acesso negado: Utilize um e-mail corporativo (@cobli.co).");
+    let emailInput = document.getElementById('loginEmail');
+    let email = emailInput.value.trim().toLowerCase();
+
+    // 1. Verifica se o campo está vazio
+    if (!email) {
+        return window.showMessage("Por favor, digite sua identificação.");
     }
 
+    // 2. Verifica se termina com @cobli.co
+    if (!email.endsWith("@cobli.co")) {
+        return window.showMessage("Acesso restrito. Por favor, informe seu e-mail corporativo (@cobli.co).");
+    }
+
+    // 3. Se passou, salva e recarrega
     localStorage.setItem('userEmail', email);
     window.location.reload();
 }
