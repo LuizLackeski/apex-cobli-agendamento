@@ -33,8 +33,8 @@
         .menu .btn-sair { color: #ff9999; }
         
         /* AJUSTE NO LAYOUT DAS INTEGRAÇÕES */
-        .slack-adm-panel { display: none; /* Ativado via JS para ADMs */ flex-direction: column; align-items: center; background: rgba(255, 255, 255, 0.1); padding: 4px 13px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2); /* Removemos o margin: 0 auto e deixamos o flex cuidar do centro */margin: 0px 0;min-width: fit-content;}
-        .slack-adm-panel .label-integracoes {font-size: 0.55rem; color: #ffffff; font-weight: 700; text-transform: uppercase; margin-bottom:2px; opacity: 0.5; }
+        .slack-adm-panel { display: none; /* Ativado via JS para ADMs */ flex-direction: column; align-items: center; background: rgba(255, 255, 255, 0.1); padding: 2px 13px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2); /* Removemos o margin: 0 auto e deixamos o flex cuidar do centro */margin: 0px 0;min-width: fit-content;}
+        .slack-adm-panel .label-integracoes {font-size: 0.55rem; color: #ffffff; font-weight: 700; text-transform: uppercase; margin-bottom:2px; opacity: 0.7; }
         .slack-adm-panel .switches-row { display: flex; gap: 10px; align-items: center; margin-top: 2px; }
         .slack-adm-panel span { color: white; font-size: 0.6rem; font-weight: bold; }
        .slack-adm-panel select { width: 60px; height: 19px; padding: 0; font-size: 0.6rem; margin: 0; border-radius: 4px; border: none; background: white; color: var(--primary); cursor: pointer; line-height: 1; /* Força o texto a ocupar o mínimo de altura possível */}
@@ -156,9 +156,9 @@
         <div id="step-1" class="card">
             <h2>Localização do Atendimento</h2>
             
-            <label>CEP</label>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="inputCep" placeholder="00000-000">
+           <label>CEP</label>
+                <div style="display: flex; gap: 10px;">
+                <input type="text" id="inputCep" placeholder="00000-000" oninput="window.maskCEP(this)">
                 <button onclick="window.buscarEnderecoPorCep()" id="btnValidarCep" style="background:#10b981; white-space:nowrap;">Validar CEP</button>
             </div>
 
@@ -243,12 +243,13 @@
         
         <div id="step-4" class="card" style="display:none;">
             <h2>Dados do Cliente</h2>
-            <label>Nº do Ticket</label><input id="ticket" placeholder="Digite o nº do ticket" required>
+            <label>Nº do Ticket</label><div style="display: flex; gap: 8px; margin-bottom: 12px;"><input id="ticket" placeholder="Ex: 123654789" required style="flex: 1;"><button type="button" id="btnChecarSequencia" onclick="verificarSequenciaEFOP()" 
+                style="background:#4f46e5; color:white; padding:0 15px; border-radius:6px; font-size:12px; cursor:pointer; border:none; height: 42px;">Checar Sequência</button></div>
             <label>Nome do Cliente</label><input id="clienteNome" required>
-            <label>CNPJ / CPF</label><input id="clienteCnpj" placeholder="00.000.000/0000-00" required>
+            <label>CNPJ / CPF</label><input id="clienteCnpj" placeholder="00.000.000/0000-00" oninput="window.maskCPFCNPJ(this)" required>
             <label>Responsável pela solicitação (APEX)</label><input id="solicitante" required>
             <label>Responsável pelo acompanhamento (Local)</label><input id="respAcompanhamento" required>
-            <label>Telefone do responsável</label><input id="telResponsavel" placeholder="(00) 00000-0000" required>
+            <label>Telefone do responsável</label><input id="telResponsavel" placeholder="(00) 00000-0000" oninput="window.maskPhone(this)" required>
             <button onclick="window.proximoPasso(3)" style="background:gray;">Voltar</button>
             <button id="btnConfirmar" onclick="window.revisarAgendamento(this)" style="background:green;">Confirmar</button>
             <button onclick="window.cancelarAgendamento()" class="btn-cancelar">Cancelar</button>
@@ -315,6 +316,33 @@
 <script>
     let filtradosPainel = []; 
     let myChart = null; 
+
+    // --- FUNÇÕES DE MÁSCARA E VALIDAÇÃO ---
+window.maskCPFCNPJ = function(i) {
+    let v = i.value.replace(/\D/g, "");
+    if (v.length <= 11) { // CPF
+        v = v.replace(/(\={3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");
+        v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    } else { // CNPJ
+        v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+        v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+        v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+        v = v.replace(/(\d{4})(\d)/, "$1-$2");
+    }
+    i.value = v.substring(0, 18);
+};
+window.maskPhone = function(i) {
+    let v = i.value.replace(/\D/g, "");
+    v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+    v = v.replace(/(\d)(\d{4})$/, "$1-$2");
+    i.value = v.substring(0, 15);
+};
+window.maskCEP = function(i) {
+    let v = i.value.replace(/\D/g, "");
+    v = v.replace(/^(\d{5})(\d)/, "$1-$2");
+    i.value = v.substring(0, 9);
+};
     
 window.updateSwitchColor = function(el) {
     if (el.value === 'ON') {
@@ -421,7 +449,7 @@ window.buscarEnderecoPorCep = async function() {
 
 // --- SISTEMA DE AUTENTICAÇÃO (NOVO PADRÃO: nome.sobrenome@cobli.co) ---
 
-const ADMIN_EMAILS = ["luiz.lackeski@cobli.co", "fernando.souza@cobli.co", "anni.torrecilhas@cobli.co", "igor.moreira@cobli.co", "sergio.garcia@cobli.co", "carpegiani.damasceno@cobli.co", "victor.martins@cobli.co"];
+const ADMIN_EMAILS = ["luiz.lackeski@cobli.co", "fernando.souza@cobli.co", "anni.torrecilhas@cobli.co"];
 let isAuthorized = false;
 
 // 1. Função que verifica se está logado (Roda ao abrir a página)
@@ -471,7 +499,7 @@ checkAuth();
 // --- CONFIGURAÇÃO DE URLs ---
 const API_URL = 'https://fqaqlofndeihmhkopvan.supabase.co/functions/v1/smart-service'; 
 const DB_URL = 'https://fqaqlofndeihmhkopvan.supabase.co/rest/v1'; 
-const EDGE_URL = 'https://fqaqlofndeihmhkopvan.supabase.co/functions/v1/integracao-field';
+const EDGE_URL = 'https://fqaqlofndeihmhkopvan.supabase.co/functions/v1/ntegracao-field';
 
 const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxYXFsb2ZuZGVpaG1oa29wdmFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMjU4ODIsImV4cCI6MjA5MjgwMTg4Mn0.nauPYoB9RDhLLueMEuop2H2FxdChjIxFkAmBcYbJLzc';
 
@@ -535,7 +563,62 @@ async function carregarDadosDoBanco() {
         console.error("Erro ao sincronizar agendamentos:", e); 
     } 
 }
+async function verificarSequenciaEFOP() {
+    const input = document.getElementById('ticket');
+    const baseOriginal = input.value.trim();
     
+    if (!baseOriginal) {
+        window.showMessage("⚠️ Digite o número base do ticket primeiro.");
+        return;
+    }
+
+    const btn = document.getElementById('btnChecarSequencia');
+    btn.innerText = "🔍...";
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(EDGE_URL, {
+            method: 'POST',
+            headers: getHeaders(), 
+            body: JSON.stringify({ 
+                acao: 'checar_sequencia', 
+                ticket_base: baseOriginal 
+            })
+        });
+        
+        const result = await response.json();
+        
+        // Se a API mandou qualquer aviso de delay ou offline, mostra no popup central
+        if (result.warning) {
+            window.showMessage(result.warning);
+        }
+
+        if (result.sugerido) {
+            if (result.sugerido !== baseOriginal) {
+                input.value = result.sugerido;
+                input.style.border = "2px solid #f59e0b";
+                
+                // Exibe a sugestão no modal padronizado do APEX
+                if (!result.warning) {
+                    window.showMessage(`🔄 <strong>Sequência encontrada!</strong><br><br>O próximo número sugerido é: <strong>${result.sugerido}</strong>`);
+                }
+            } else {
+                input.style.border = "2px solid #10b981";
+                
+                if (!result.warning) {
+                    window.showMessage("✅ <strong>Tudo certo!</strong><br><br>Esse número está totalmente disponível para uso.");
+                }
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        window.showMessage("❌ Erro de conexão ao tentar verificar a sequência.");
+    } finally {
+        btn.innerText = "Checar Sequência";
+        btn.disabled = false;
+        setTimeout(() => { input.style.border = ""; }, 3000);
+    }
+}
     window.renderDashboard = function() {
         let totalAgend = agendamentos.length;
         let totalServ = 0;
@@ -692,10 +775,12 @@ window.concluirAgendamentoFinal = async function(btn) {
     const dispararSlack = document.getElementById('slackSwitch').value === 'ON';
     const dispararField = document.getElementById('fieldSwitch').value === 'ON';
     const dispararBanco = document.getElementById('dbSwitch').value === 'ON';
+
     if (!prestador || slotsSelecionados.length === 0) {
         window.showMessage("Erro: Selecione o prestador e o horário.");
         return;
     }
+
     const agendamento = {
         prestador: prestador.nome,
         qtdtecnicos: prestador.qtdtecnicos,
@@ -731,25 +816,36 @@ window.concluirAgendamentoFinal = async function(btn) {
             headers: getHeaders(),
             body: JSON.stringify(agendamento)
         });
+        const result = await response.json(); // <-- CAPTURA O RETORNO DA API AQUI
         if (response.ok) {
+            // 1. Notificação para o Slack com dados REAIS da API
             if (dispararSlack && dispararBanco) {
-                const msgSlack = `✅ *Novo Agendamento*\n*Ticket:* ${agendamento.ticket}...`;
+                const msgSlack = `✅ *Novo Agendamento: ${result.ticket}*\n` +
+                                 `*Status:* ${result.status}\n` +
+                                 `*Origem:* ${result.origin}\n` +
+                                 `*Cliente:* ${agendamento.cliente}`;
                 await window.enviarNotificacaoSlack(msgSlack);
             }
-            let statusMsg = "✅ Processado: ";
-            statusMsg += dispararBanco ? "Banco [ON]✅" : "Banco [OFF]❌ ";
-            statusMsg += dispararField ? "Field [ON]✅" : "Field [OFF]❌";
-            statusMsg += dispararSlack ? "Slack [ON]✅" : "Slack [OFF]❌";
-
-            window.showMessage(statusMsg);
+            // 2. Montagem da mensagem rica para o Popup na tela
+            let statusMsg = `🚀 **Sucesso!**\n\n`;
+            statusMsg += `🎫 **Ticket:** ${result.ticket}\n`;
+            statusMsg += `📊 **Status EFOP:** ${result.status}\n`;
+            statusMsg += `📍 **Origem:** ${result.origin}\n`;
+            statusMsg += `\nSincronização: ` + 
+                         (dispararBanco ? "Banco [OK] " : "") + 
+                         (dispararField ? "Field [OK]" : "");
+            window.showMessage(statusMsg, "success");
             await carregarDadosDoBanco();
-            setTimeout(() => window.location.reload(), 2000); 
+           
+            // Tempo de 10s para você conseguir ler a Origem e o Status
+            setTimeout(() => window.location.reload(), 10000); 
         } else {
-            const result = await response.json();
-            window.showMessage("❌ Erro: " + (result.error || "Erro na integração"));
+            // Se a Edge Function retornar erro (ex: Escudo da Field Control)
+            window.showMessage("❌ Erro: " + (result.error || "Erro na integração"), "error");
         }
     } catch (error) {
-        window.showMessage("Erro de conexão.");
+        console.error("Erro na chamada:", error);
+        window.showMessage("Erro de conexão com a Edge Function.");
     } finally {
         btn.innerText = originalText; btn.disabled = false;
     }
@@ -966,19 +1062,20 @@ window.renderPainel = function(){
     }); 
     document.getElementById("painel-conteudo").innerHTML = filtradosPainel.map((a, i) => {
         let dataRegistro = a.created_at ? new Date(a.created_at).toLocaleString('pt-BR') : "N/A";
-        return `<div class="painel-item">
-            <div style="flex-grow: 1; font-size: 0.95rem;">
-                <strong>🎟️ #${a.ticket}</strong> &nbsp; 📅 Agendado: ${a.data} &nbsp; ⏰ ${Array.isArray(a.slots) ? a.slots.join(', ') : (a.slots || 'N/A')}<br>
-                <div style="margin-top:5px;">
-                    👤 <strong>Cliente:</strong> ${a.cliente}<br>
-                    🛠️ <strong>Prestador:</strong> ${a.prestador} | <strong>Solicitante:</strong> ${a.solicitante}
-                </div>
-                <div style="margin-top:5px; font-size: 0.75rem; color: #94a3b8;">
-                    Registrado em: ${dataRegistro}
-                </div>
-            </div>
-            <button style="background:var(--primary); padding: 8px 12px; font-size: 0.85rem; margin-left: 10px;" onclick="window.abrirDetalhesAgendamento(${i})">Ver Detalhes</button>
-        </div>`;
+// ... dentro do seu map do renderPainel ...
+return `<div class="painel-item">
+    <div style="flex-grow: 1; font-size: 0.95rem;">
+        <strong>🎟️ #${a.ticket}</strong> | 🏷️ Status: <span style="color: #2F4EA1; font-weight: bold;">${a.status || 'SOLICITADO'}</span><br>
+        <div style="margin-top:5px; font-size: 0.85rem;">
+             📅 ${a.data} | ⏰ ${Array.isArray(a.slots) ? a.slots.join(', ') : (a.slots || 'N/A')}<br>
+             🛠️ Prestador: ${a.prestador} | Solicitante: ${a.solicitante}
+        </div>
+    </div>
+    <div style="display:flex; gap:5px;">
+        <button title="Sincronizar Status" style="background:#10b981; padding: 8px;" onclick="window.sincronizarStatusIndividual('${a.ticket}', this)">🔄</button>
+        <button style="background:var(--primary); padding: 8px 12px; font-size: 0.85rem;" onclick="window.abrirDetalhesAgendamento(${i})">Ver</button>
+    </div>
+</div>`;
     }).join(''); 
 };
 
@@ -987,6 +1084,33 @@ window.renderPainel = function(){
         let sel = document.getElementById("filtroPrestador"); let providersWithAgend = [...new Set(agendamentos.map(a => a.prestador))];
         sel.innerHTML = '<option value="">Todos</option>'; providersWithAgend.forEach(p => sel.innerHTML += `<option value="${p}">${p}</option>`);
     };
+    window.sincronizarStatusIndividual = async function(ticket, btn) {
+    const originalText = btn.innerHTML;
+    btn.innerHTML = "🔄...";
+    btn.disabled = true;
+    try {
+        const response = await fetch(EDGE_URL, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ 
+                acao: 'sincronizar_status', 
+                ticket: ticket 
+            })
+        });
+        const result = await response.json();
+        if (response.ok) {
+            window.showToast(`✅ Ticket ${ticket} atualizado para: ${result.status}`);
+            await carregarDadosDoBanco(); // Recarrega a lista para mostrar o novo status
+        } else {
+            window.showMessage("❌ Erro ao sincronizar: " + result.error);
+        }
+    } catch (err) {
+        window.showMessage("❌ Erro de conexão.");
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+};
 </script>
 </body>
 </html>
