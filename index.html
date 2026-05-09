@@ -735,6 +735,7 @@ if (userRole === 'PRESTADOR') {
         }
         window.trocarAba('painel', document.getElementById('btn-painel'));
     }
+}
 
 window.handleLogout = async function() {
     await supabaseClient.auth.signOut();
