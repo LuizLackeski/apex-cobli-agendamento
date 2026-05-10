@@ -2,10 +2,20 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>APEX - Sistema Completo</title>
+    <title>APEX | Cobli</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="APEX Cobli">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="apple-touch-icon" href="https://fqaqlofndeihmhkopvan.supabase.co/storage/v1/object/public/icones/logo-apex.png">
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    
     <style>
         /* PALETA DE CORES OFICIAL COBLI */
         :root { 
@@ -13,7 +23,6 @@
             --cobli-dark: #07074E;    /* Azul Escuro */
             --cobli-green: #00AE97;   /* Verde */
             --cobli-red: #FF4633;     /* Vermelho */
-            
             --bg: #f0f2f5; 
             --text: #334155; 
         }
@@ -27,11 +36,18 @@
             font-weight: 700; text-align: center; font-size: 1.1rem; letter-spacing: 0.5px;
         }
 
+        /* ANIMAÇÃO DA TELA DE ABERTURA (SPLASH SCREEN) */
+        @keyframes pulse-logo {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 27, 184, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(0, 27, 184, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 27, 184, 0); }
+        }
+
         /* --- NOVAS TELAS DE AUTENTICAÇÃO PADRÃO COBLI --- */
         #auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--cobli-dark); display: flex; align-items: center; justify-content: center; z-index: 50000; }
         .auth-card { background: white; padding: 40px; border-radius: 16px; width: 360px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-        .auth-card .logo-circle { width: 50px; height: 50px; border: 4px solid var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; position: relative; }
-        .auth-card .logo-circle::after { content: ''; width: 15px; height: 15px; background: var(--primary); border-radius: 50%; }
+        /* ESTILO DA NOVA LOGO DA TELA DE LOGIN */
+        .logo-auth { max-width: 220px; /* Largura ideal para não vazar do card */ height: auto; margin: 0 auto 20px auto; display: block; }
         .auth-card h2 { color: var(--cobli-dark); margin: 0 0 5px; font-size: 1.6rem; border:none; }
         .auth-card p { color: #64748b; font-size: 0.85rem; margin-bottom: 25px; line-height: 1.4; }
         .input-group { position: relative; width: 100%; margin-bottom: 15px; text-align: left; }
@@ -92,6 +108,9 @@
         label { font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 2px; display: block;}
         button { cursor: pointer; padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 5px; font-weight: 500; }
         .btn-cancelar { background: var(--cobli-red) !important; }
+
+        /* Nova Classe para Agrupar os Botões de Ação de Forma Responsiva */
+        .botoes-acao { display: flex; gap: 10px; flex-wrap: wrap; }
         
         .agenda-day-card { background: #fafafa; padding: 10px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #e5e7eb; }
         .agenda-day-title { font-weight: 600; color: var(--primary); margin-bottom: 6px; font-size: 0.85rem; }
@@ -147,9 +166,42 @@
         .timeline-step.completed .step-circle { background: var(--cobli-green); border-color: var(--cobli-green); color: white; }
         .timeline-step.completed .step-label { color: var(--cobli-green); }
 
+        /* Ajustes Mobile (PWA) */
+        @media (max-width: 600px) {
+            .menu { 
+                position: fixed; bottom: 0; left: 0; right: 0; z-index: 10000; 
+                margin: 0; border-radius: 15px 15px 0 0; padding: 5px 10px;
+                height: 65px; align-items: center;
+            }
+            .topo { padding: 10px 15px; }
+            .conteudo { padding-bottom: 80px; } 
+            button, input { min-height: 48px; font-size: 15px !important; } 
+            select { min-height: 48px; font-size: 13px !important; } 
+            .auth-card { width: 90%; padding: 20px; }
+
+            .botoes-acao { flex-direction: column; }
+            .botoes-acao button { width: 100%; margin-bottom: 5px; flex: none !important; }
+
+            /* Redução do texto na lista de produtos para não espremer no celular */
+            .item-lista { font-size: 0.75rem !important; line-height: 1.3; }
+            .item-lista small { font-size: 0.65rem !important; }
+            .item-lista button { width: auto; min-height: 36px; padding: 4px 12px !important; margin-left: 5px; }
+        }
     </style>
 </head>
 <body>
+
+<div id="splash-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--cobli-dark); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 99999; color: white; transition: opacity 0.5s ease;">
+    <div style="width: 80px; height: 80px; border: 5px solid var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; animation: pulse-logo 2s infinite;">
+        <div style="width: 25px; height: 25px; background: var(--primary); border-radius: 50%;"></div>
+    </div>
+    <div style="font-size: 2.2rem; font-weight: bold; display: flex; align-items: center; gap: 8px;">
+        APEX <span style="font-weight: 300;">| Cobli</span>
+    </div>
+    <div style="font-size: 0.8rem; opacity: 0.5; margin-top: 5px; text-transform: uppercase; letter-spacing: 4px;">
+        agenda exclusiva
+    </div>
+</div>
 
 <div id="modalAviso" class="modal-overlay" onclick="window.fecharModal()">
     <div class="modal-card" onclick="event.stopPropagation()">
@@ -163,9 +215,9 @@
 
 <div id="auth-overlay">
     <div class="auth-card" id="card-login">
-        <div class="logo-circle"></div>
-        <h2>APEX Cobli</h2>
-        <p>Gestão de Prestadores e Serviços<br><small style="color:var(--primary); font-weight:bold;">Acesso exclusivo @cobli.co e @apex.co</small></p>
+        <img src="https://fqaqlofndeihmhkopvan.supabase.co/storage/v1/object/public/icones/cobli.png" class="logo-auth" alt="Logo">
+        <h2>APEX</h2>
+        <p>Gestão de Prestadores e Serviços<br><small style="color:var(--primary); font-weight:bold; text-transform:uppercase;">Agenda Exclusiva</small></p>
         <div class="input-group"><label>E-mail</label><input type="email" id="login-email" placeholder="seu.nome@cobli.co" onblur="this.value = this.value.toLowerCase().trim()"></div>
         <div class="input-group">
             <label>Senha</label><input type="password" id="login-password" placeholder="••••••••">
@@ -179,8 +231,8 @@
         </div>
     </div>
 
-<div class="auth-card" id="card-signup" style="display:none;">
-        <div class="logo-circle"></div>
+    <div class="auth-card" id="card-signup" style="display:none;">
+        <img src="https://fqaqlofndeihmhkopvan.supabase.co/storage/v1/object/public/icones/cobli.png" class="logo-auth" alt="Logo">
         <h2>Criar Conta</h2>
         <p>Selecione seu tipo de perfil</p>     
         <div style="display: flex; gap: 10px; margin-bottom: 20px;">
@@ -203,7 +255,7 @@
     </div>
 
     <div class="auth-card" id="card-forgot" style="display:none;">
-        <div class="logo-circle"></div>
+        <img src="https://fqaqlofndeihmhkopvan.supabase.co/storage/v1/object/public/icones/cobli.png" class="logo-auth" alt="Logo">
         <h2>Recuperar Senha</h2>
         <p>Enviaremos um link para o seu e-mail.<br><small>Atenção: E-mails @apex.co devem solicitar ao suporte.</small></p>
         <div class="input-group"><label>E-mail Cadastrado</label><input type="email" id="reset-email" placeholder="seu@email.co"></div>
@@ -212,7 +264,7 @@
     </div>
 
     <div class="auth-card" id="card-reset-password" style="display:none;">
-        <div class="logo-circle"></div>
+        <img src="https://fqaqlofndeihmhkopvan.supabase.co/storage/v1/object/public/icones/cobli.png" class="logo-auth" alt="Logo">
         <h2>Nova Senha</h2>
         <p>Digite sua nova senha de acesso</p>
         <div class="input-group">
@@ -233,7 +285,11 @@
 <div id="app-content">
     <div class="topo">
         <div style="display:flex; align-items:center; gap: 20px;">
-            <div><strong style="font-size: 1.2rem;">APEX</strong> <span style="font-size: 0.9rem; opacity: 0.8;">Agenda Prestadores</span></div>
+            <div style="display: flex; align-items: baseline;">
+                <strong style="font-size: 1.25rem;">APEX</strong> 
+                <span style="font-size: 1.15rem; font-weight: 500; margin: 0 4px;">| Cobli</span> 
+                <span style="font-size: 0.7rem; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; margin-left: 5px;">agenda exclusiva</span>
+            </div>
         </div>
         
         <div style="display:flex; align-items:center; gap: 20px;">
@@ -306,7 +362,7 @@
             <div id="step-2" class="card" style="display:none; padding-bottom: 30px;">
                 <h2>Selecione o Prestador</h2>
                 <div id="lista-prestadores-selecao" style="margin-bottom: 20px;"></div>
-                <div style="display: flex; gap: 10px;">
+                <div class="botoes-acao">
                     <button onclick="window.proximoPasso(1)" style="background:gray; flex:1;">⬅️ Voltar e Alterar CEP</button>
                     <button onclick="window.cancelarAgendamento()" class="btn-cancelar" style="flex:1;">❌ Cancelar Tudo</button>
                 </div>
@@ -342,10 +398,10 @@
                 <p>Horas Necessárias: <strong><span id="horasNecessarias">0</span></strong></p>
                 <div id="agenda-agendamento"></div>
                 
-                <div style="margin-top:15px; border-top: 1px solid #e2e8f0; padding-top: 15px; display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button onclick="window.proximoPasso(2)" style="background:gray;">⬅️ Voltar Prestadores</button>
+                <div class="botoes-acao" style="margin-top:15px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+                    <button onclick="window.proximoPasso(2)" style="background:gray; flex: 1;">⬅️ Voltar Prestadores</button>
                     <button onclick="window.validarEAvancar()" style="background:var(--cobli-green); flex: 1;">Próximo Passo ➡️</button>
-                    <button onclick="window.cancelarAgendamento()" class="btn-cancelar">Cancelar</button>
+                    <button onclick="window.cancelarAgendamento()" class="btn-cancelar" style="flex: 1;">Cancelar</button>
                 </div>
             </div>
             
@@ -362,10 +418,10 @@
                 <label class="req">Responsável pelo acompanhamento (Local)</label><input id="respAcompanhamento" onblur="this.value = window.formatarCapitalize(this.value)" required>
                 <label class="req">Telefone do responsável</label><input id="telResponsavel" placeholder="(00) 00000-0000" oninput="window.maskPhone(this)" maxlength="15" required>
                 
-                <div style="margin-top:15px; display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button onclick="window.proximoPasso(3)" style="background:gray;">⬅️ Voltar Agenda</button>
+                <div class="botoes-acao" style="margin-top:15px;">
+                    <button onclick="window.proximoPasso(3)" style="background:gray; flex: 1;">⬅️ Voltar Agenda</button>
                     <button id="btnConfirmar" onclick="window.revisarAgendamento()" style="background:var(--cobli-green); flex: 1;">Revisar e Confirmar ✅</button>
-                    <button onclick="window.cancelarAgendamento()" class="btn-cancelar">Cancelar</button>
+                    <button onclick="window.cancelarAgendamento()" class="btn-cancelar" style="flex: 1;">Cancelar</button>
                 </div>
             </div>
         </div>
@@ -441,7 +497,7 @@
                         <div id="lista-datas-bloqueadas" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;"></div>
                     </div>
                 </div>
-                <div style="margin-top:20px; display: flex; gap: 8px; flex-wrap: wrap;">
+                <div class="botoes-acao" style="margin-top:20px;">
                     <button id="btn-voltar" onclick="window.mudarEtapa(-1)">Voltar</button>
                     <button id="btn-proximo" onclick="window.mudarEtapa(1)">Próximo</button>
                     <button id="btn-concluir" onclick="window.salvarPrestador(this)" style="background: var(--cobli-green);">Concluir Cadastro</button>
@@ -586,6 +642,19 @@
 </div>
 
 <script>
+// ==========================================
+// 10. INICIALIZA O SISTEMA E SPLASH SCREEN
+// ==========================================
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        if(splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => splash.style.display = 'none', 500);
+        }
+    }, 1000); // Exibe o splash por 2.5 segundos
+});
+
 // ==========================================
 // FORMATADOR DE TEXTO (Title Case / Capitalize)
 // ==========================================
@@ -906,9 +975,6 @@ window.carregarListaUsuarios = async function() {
 // ----------------------------------------------------
 // BLOCO ATUALIZADO 2: MUDAR NÍVEL COM TRAVAS
 // ----------------------------------------------------
-// ----------------------------------------------------
-// BLOCO ATUALIZADO 2: MUDAR NÍVEL COM TRAVAS
-// ----------------------------------------------------
 window.mudarNivelUsuario = async function(id, novoNivel, nivelAtual) {
     if (userRole !== 'GESTOR' && userRole !== 'ADMIN') return window.showMessage("Acesso negado.");
     
@@ -975,12 +1041,32 @@ window.carregarDadosDoBanco = async function() {
     } catch(e) { console.error("Erro bd:", e); } 
 };
 
-    // NOTIFICAÇÃO SLACK PERSONALIZADA
+// NOTIFICAÇÃO SLACK PERSONALIZADA
 window.enviarNotificacaoSlack = async function(msg) {
-    const msgSlack = `> ✅ *Novo Agendamento - Ticket: ${result.ticket}*\n> *Cliente:* ${agendamento.cliente}\n> *Prestador:* ${agendamento.prestador}\n> *Data:* ${agendamento.data} | ${agendamento.slots[0]}\n> *Produtos:* ${produtosFormatados}\n> *Solicitante:* ${agendamento.solicitante}`;
-    try { await fetch(URL, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ text: msg }) }); } catch (e) { console.error("Erro Slack:", e); }
+    const URL = "https://fqaqlofndeihmhkopvan.supabase.co/functions/v1/notificar-slack";
+    
+    // Formato de "Attachment" do Slack cria a barra colorida lateral
+    const payload = {
+        attachments: [
+            {
+                color: "#00AE97", // A cor da barra (Verde Cobli)
+                text: msg
+            }
+        ]
+    };
+
+    try { 
+        await fetch(URL, { 
+            method: 'POST', 
+            headers: getHeaders(), 
+            body: JSON.stringify(payload) 
+        }); 
+    } catch (e) { 
+        console.error("Erro Slack:", e); 
+    }
 };
 
+// ==========================================
 // 5. MOTOR DE AGENDA E DISTÂNCIA
 // ==========================================
 window.buscarEnderecoPorCep = async function() {
@@ -1478,7 +1564,6 @@ window.revisarAgendamento = function() {
     let endereco = `${rua}, ${numero} - ${bairro}, ${cidade}/${uf} - CEP: ${cep}`;
     if (obsLocal) endereco += `<br><small style="color:#64748b;"><strong>obs:</strong> ${obsLocal}</small>`;
 
-    // 👇 O ERRO ESTAVA NESSA LINHA AQUI! AGORA TÁ CORRIGIDO 👇
     let prodHtml = itensSelecionados.map(i => `<div style="margin-bottom:5px;">• [${i.nomeManutencao.toUpperCase()}] ${i.desc} <strong>(Placa: ${i.placa} | Qtd: ${i.qtd} | Tempo: ${formatarTempo(i.tempo * i.qtd)})</strong></div>`).join('');
     
     let html = `
@@ -1500,7 +1585,7 @@ window.revisarAgendamento = function() {
         <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 20px; font-size: 0.85rem; text-align: left;">
             ${prodHtml}
         </div>
-        <div style="display: flex; gap: 10px;">
+        <div class="botoes-acao">
             <button onclick="window.fecharModal()" style="background:gray; flex:1;">⬅️ Editar Dados</button>
             <button onclick="window.confirmarEnvioReal()" style="background:var(--cobli-green); flex:1;">✅ Confirmar e Salvar</button>
         </div>
@@ -1538,7 +1623,7 @@ window.concluirAgendamentoFinal = async function(btn) {
         return;
     }
 
-let itensOrdenados = [...itensSelecionados].sort((a, b) => b.tempo - a.tempo);
+    let itensOrdenados = [...itensSelecionados].sort((a, b) => b.tempo - a.tempo);
     
     let placasArr = [...new Set(itensOrdenados.map(i => i.placa))];
     let placasConcatenadas = placasArr.join(', ');
@@ -1605,16 +1690,16 @@ let itensOrdenados = [...itensSelecionados].sort((a, b) => b.tempo - a.tempo);
             window.showMessage(statusMsg, "success");
             await window.carregarDadosDoBanco();
             setTimeout(() => window.location.reload(), 3000); 
-     } else {
+        } else {
             window.showMessage("❌ Erro: " + (result.error || "Erro na integração"), "error");
         }
-    } catch(e) {
-        window.showMessage("❌ Erro ao processar: " + e.message);
+    } catch (error) {
+        console.error("Erro na chamada:", error);
+        window.showMessage("Erro de conexão com a Edge Function.");
     } finally {
-        btn.innerText = originalText;
-        btn.disabled = false;
+        btn.innerText = originalText; btn.disabled = false;
     }
-};  // fecha concluirAgendamentoFinal
+};
 
 window.limparFormulario = function() { 
     itensSelecionados = []; 
@@ -2340,7 +2425,7 @@ window.abrirDetalhesAgendamento = function(index) {
         </div>
         <div style="font-weight:600; margin-bottom:5px;">📦 Serviços Solicitados:</div>
         <div style="background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 15px; font-size: 0.9rem;">${prodHtml}</div>
-        <div style="display:flex; gap:10px; flex-wrap: wrap;">
+        <div class="botoes-acao">
             <button onclick="window.fecharModal()" style="background:gray; flex:1; padding:10px; color:white; border:none; border-radius:5px; cursor:pointer;">Fechar</button>
             ${btnSincronizarHtml}
             ${btnExcluirHtml}
@@ -2692,10 +2777,6 @@ window.renderDashboard = function() {
         });
     }
 };
-    
-// ==========================================
-// 10. INICIALIZA O SISTEMA
-// ==========================================
 
 const hashParams = new URLSearchParams(window.location.hash.replace('#', '?'));
 const accessToken = hashParams.get('access_token');
