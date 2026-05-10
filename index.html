@@ -696,6 +696,22 @@ async function checkSession() {
         
         window.carregarProdutos();
         window.carregarDadosDoBanco();
+        
+        // MAGIA DO TEMPO REAL (REALTIME)
+        // ==========================================
+        supabaseClient
+          .channel('mudancas-agendamentos')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'agendamentos' },
+            (payload) => {
+              console.log('Robô atualizou o banco! Recarregando a tela...');
+              // Se houver mudança, recarrega os dados silenciosamente sem precisar de F5
+              window.carregarDadosDoBanco(); 
+            }
+          )
+          .subscribe();
+        // 👆 FIM DO BLOCO 👇
     } else {
         document.getElementById('auth-overlay').style.display = 'flex';
         document.body.style.display = 'block'; 
