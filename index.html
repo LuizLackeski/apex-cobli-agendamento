@@ -714,6 +714,7 @@ async function checkSession() {
           .subscribe((status) => {
             console.log("🔌 Status da conexão Realtime:", status);
           });
+    }
 
 async function definirPermissoes(email, uid) {
     const { data, error } = await supabaseClient.from('perfis_usuarios').select('nivel').eq('id', uid).maybeSingle();
