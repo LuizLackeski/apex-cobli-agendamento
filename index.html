@@ -137,6 +137,14 @@
 </head>
 <body>
 
+        <div id="modalAviso" class="modal-overlay" onclick="window.fecharModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div id="modalHeader" class="modal-header"></div>
+            <div id="modalBody" class="modal-body" style="margin-bottom: 15px;"></div>
+            <div id="modalFooter" class="modal-footer"></div>
+        </div>
+    </div>
+    
 <div id="toast"></div>
 
 <div id="auth-overlay">
@@ -222,14 +230,6 @@
         </div>
         <div class="menu-right">
             <button class="btn-sair" onclick="handleLogout()" style="color:var(--cobli-red); font-weight:bold; background:none; border:none; cursor:pointer;">Sair</button>
-        </div>
-    </div>
-
-    <div id="modalAviso" class="modal-overlay" onclick="window.fecharModal()">
-        <div class="modal-card" onclick="event.stopPropagation()">
-            <div id="modalHeader" class="modal-header"></div>
-            <div id="modalBody" class="modal-body" style="margin-bottom: 15px;"></div>
-            <div id="modalFooter" class="modal-footer"></div>
         </div>
     </div>
 
