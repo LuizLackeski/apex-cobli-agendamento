@@ -698,7 +698,6 @@ async function checkSession() {
         window.carregarDadosDoBanco();
 
         // MAGIA DO TEMPO REAL (REALTIME)
-        // ==========================================
         console.log("📡 Conectando ao canal de Tempo Real do Supabase...");
         
         supabaseClient
@@ -714,7 +713,12 @@ async function checkSession() {
           .subscribe((status) => {
             console.log("🔌 Status da conexão Realtime:", status);
           });
+
+    } else {
+        document.getElementById('auth-overlay').style.display = 'flex';
+        document.body.style.display = 'block'; 
     }
+}
 
 async function definirPermissoes(email, uid) {
     const { data, error } = await supabaseClient.from('perfis_usuarios').select('nivel').eq('id', uid).maybeSingle();
