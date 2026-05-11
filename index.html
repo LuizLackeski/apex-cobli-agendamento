@@ -187,7 +187,7 @@
         /* Ajustes Mobile (PWA) */
 /* Ajustes Mobile (PWA) */
         @media (max-width: 600px) {
-            /* 📱 1. CABEÇALHO COMPACTO E ORGANIZADO 📱 */
+/* 📱 1. CABEÇALHO COMPACTO E ORGANIZADO 📱 */
             .topo { 
                 flex-direction: column; 
                 align-items: stretch;
@@ -201,19 +201,24 @@
                 font-size: 0.70rem !important;
             }
             .integracoes-topo { 
-                margin-top: 15px;
+                margin-top: 10px; /* Reduzido o espaço em cima */
                 width: 100%; 
                 justify-content: space-between; 
-                padding: 10px 15px; 
+                padding: 5px 15px; /* Reduzido a altura da caixa aqui */
             }
-            .integracoes-topo > span { display: none; } /* Oculta a palavra INTEGRAÇÕES */
+            .integracoes-topo > span { display: none; } 
             .integracoes-topo label { 
-                flex-direction: column; /* Texto em cima, chavinha embaixo */
-                gap: 5px; 
+                flex-direction: column; 
+                gap: 2px; /* Deixa o texto mais perto da chavinha */
                 font-size: 0.65rem;
             }
-            /* Diminui levemente as chavinhas no celular */
-            .toggle-switch { width: 32px; height: 16px; margin: 0 auto !important;}
+            /* Travando a altura para a chavinha não esticar igual chiclete */
+            .toggle-switch { 
+                width: 32px !important; 
+                height: 16px !important; 
+                min-height: 16px !important; 
+                margin: 0 auto !important;
+            }
             .toggle-switch::after { width: 12px; height: 12px; }
             .toggle-switch:checked::after { transform: translateX(16px); }
 
@@ -222,26 +227,28 @@
                 position: fixed; bottom: 0; left: 0; right: 0; z-index: 10000; 
                 margin: 0; border-radius: 15px 15px 0 0; padding: 5px 0;
                 height: 65px; align-items: center;
-                justify-content: flex-start; /* Alinha tudo à esquerda para rolar */
+                justify-content: space-between; /* Garante que os itens vão até as pontas */
+                width: 100%; /* Força o azul ir até o final da tela */
             }
             .menu-left {
-                overflow-x: auto; /* Permite arrastar os botões para o lado */
-                white-space: nowrap; /* Impede os botões de quebrarem linha */
+                flex-grow: 1; /* O segredo para empurrar o Sair para o canto direito */
+                overflow-x: auto; 
+                white-space: nowrap; 
                 padding-left: 10px;
                 padding-right: 15px;
                 flex-wrap: nowrap;
                 -webkit-overflow-scrolling: touch;
-                scrollbar-width: none; /* Firefox */
+                scrollbar-width: none; 
             }
-            .menu-left::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
+            .menu-left::-webkit-scrollbar { display: none; }
             
             .menu-right {
-                background: var(--primary); /* Esconde os botões que passam por baixo ao rolar */
+                background: var(--primary); 
                 padding: 0 15px;
-                box-shadow: -8px 0 10px var(--primary); /* Efeito de sombra lateral */
+                box-shadow: -8px 0 10px var(--primary); 
                 z-index: 5;
             }
-            .menu button { font-size: 0.8rem; padding: 8px 12px; } 
+            .menu button { font-size: 0.8rem; padding: 8px 12px; margin-bottom: 0; }
 
             /* 📱 3. O RESTO DOS AJUSTES MOBILE 📱 */
             .conteudo { padding-bottom: 80px; } 
