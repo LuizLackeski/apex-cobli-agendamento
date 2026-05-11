@@ -312,6 +312,24 @@
             .header-logo-text { flex-direction: column; align-items: flex-start; line-height: 1.1; }
             .txt-cobli { font-size: 1.3rem !important; font-weight: 800 !important; margin: 0 !important; }
             .txt-agenda { margin-left: 0 !important; font-size: 0.65rem !important; letter-spacing: 0 !important; margin-top: 2px; }
+          
+            /* 📱 TABELAS DESLIZÁVEIS (USUÁRIOS E PRESTADORES) 📱 */
+            .auth-card {
+                padding: 15px 10px !important; /* Dá um pouquinho mais de espaço pro card */
+            }
+
+            table {
+                display: block !important; /* Transforma a tabela num bloco rolável */
+                width: 100% !important;
+                overflow-x: auto !important; /* Cria a barra de rolagem horizontal! */
+                -webkit-overflow-scrolling: touch !important; /* Deixa o deslize macio no dedo */
+                white-space: nowrap !important; /* Proíbe o texto de amassar e quebrar pra baixo */
+            }
+
+            table th, table td {
+                padding: 10px 15px !important; /* Dá um respiro entre as colunas */
+                font-size: 0.8rem !important; 
+            }
         }
     </style>
 </head>
