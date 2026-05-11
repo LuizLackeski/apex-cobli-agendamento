@@ -231,21 +231,23 @@
                 width: 100%; /* Força o azul ir até o final da tela */
             }
             .menu-left {
-                flex-grow: 1; /* O segredo para empurrar o Sair para o canto direito */
+                width: calc(100% - 70px); /* 👈 Estica a área de rolagem até quase encostar no Sair */
                 overflow-x: auto; 
                 white-space: nowrap; 
                 padding-left: 10px;
-                padding-right: 15px;
-                flex-wrap: nowrap;
+                padding-right: 5px;
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: none; 
             }
             .menu-left::-webkit-scrollbar { display: none; }
             
             .menu-right {
+                width: 70px; /* 👈 Trava a caixa do Sair no tamanho mínimo */
+                display: flex;
+                justify-content: flex-end; /* Joga o Sair bem pro cantinho da tela */
+                padding-right: 15px;
                 background: var(--primary); 
-                padding: 0 15px;
-                box-shadow: -8px 0 10px var(--primary); 
+                box-shadow: -4px 0 6px var(--primary); /* Sombra menor e mais suave */
                 z-index: 5;
             }
             .menu button { font-size: 0.8rem; padding: 8px 12px; margin-bottom: 0; }
