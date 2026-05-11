@@ -281,24 +281,32 @@
             select { min-height: 48px; font-size: 13px !important; } 
             .botoes-acao { flex-direction: column; }
             .botoes-acao button { width: 100%; margin-bottom: 5px; flex: none !important; }
-/* 📱 AJUSTE DA LISTA DE USUÁRIOS (CARDS MOBILE) 📱 */
-            .item-lista { 
-                flex-direction: column !important; /* Empilha os dados em cima e botão embaixo */
+/* 📱 FORÇA BRUTA: CARDS DE USUÁRIOS 📱 */
+            .item-lista, 
+            .auth-card div[style*="flex"] { 
+                display: flex !important;
+                flex-direction: column !important; /* Empilha: Texto em cima, botão embaixo */
                 align-items: flex-start !important;
-                gap: 8px;
-                word-wrap: break-word; /* Quebra e-mails grandes para não vazarem */
-                width: 100%;
-                box-sizing: border-box; /* Garante que as margens respeitem a tela */
-                font-size: 0.8rem !important; 
-                line-height: 1.4; 
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                padding: 10px 0 !important;
+            }      
+            /* Obriga o e-mail e a data a quebrarem linha, proibindo de vazar */
+            .item-lista > div, 
+            .auth-card div[style*="flex"] > div {
+                width: 100% !important;
+                white-space: normal !important;
+                word-break: break-word !important; /* Corta o texto na marra se for grande */
+                margin-bottom: 10px !important;
             }
-            .item-lista small { font-size: 0.7rem !important; display: block; }
-            .item-lista button { 
-                width: 100% !important; /* Botão Excluir grandão embaixo */
-                min-height: 40px; 
-                padding: 8px !important; 
+            /* Estica o botão Excluir para ficar grandão embaixo */
+            .item-lista button, 
+            .auth-card div[style*="flex"] button { 
+                width: 100% !important; 
                 margin-left: 0 !important; 
-                margin-top: 5px;
+                margin-top: 5px !important;
+                padding: 12px !important; /* Mais gordinho para o dedo clicar fácil */
             }
             .txt-apex { display: none !important; } 
             .header-logo-text { flex-direction: column; align-items: flex-start; line-height: 1.1; }
