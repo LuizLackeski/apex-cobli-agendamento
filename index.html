@@ -1430,6 +1430,15 @@
             
             <div id="indicador-filtro" style="display: none; text-align: center; color: var(--cobli-red); font-size: 0.72rem; font-weight: 700; margin-top: -8px; margin-bottom: 14px; letter-spacing: 1px;">⚠️ FILTROS ATIVOS — CLIQUE EM LIMPAR PARA VER TODOS</div>
             <div id="painel-detalhe-tecnicos" style="display:none;"></div>
+            
+            <div id="barra-ordenacao" style="display:flex; align-items:center; gap:15px; margin-bottom:10px; font-size:0.7rem; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
+                <span style="opacity:0.6;">↕ Ordenar:</span>
+                <span style="cursor:pointer; user-select:none; color:var(--primary); transition:0.2s;" onclick="window.mudarOrdenacao('criacao')" id="sort-criacao">Registro ▼</span>
+                <span style="cursor:pointer; user-select:none; transition:0.2s;" onclick="window.mudarOrdenacao('data')" id="sort-data" onmouseover="this.style.color='var(--primary)'" onmouseout="if(window.ordenacaoAtual.campo!=='data')this.style.color='var(--muted)'">Agendamento</span>
+                <span style="cursor:pointer; user-select:none; transition:0.2s;" onclick="window.mudarOrdenacao('prestador')" id="sort-prestador" onmouseover="this.style.color='var(--primary)'" onmouseout="if(window.ordenacaoAtual.campo!=='prestador')this.style.color='var(--muted)'">Prestador</span>
+                <span style="cursor:pointer; user-select:none; transition:0.2s;" onclick="window.mudarOrdenacao('tecnico')" id="sort-tecnico" onmouseover="this.style.color='var(--primary)'" onmouseout="if(window.ordenacaoAtual.campo!=='tecnico')this.style.color='var(--muted)'">Técnico</span>
+            </div>
+            
             <div id="painel-conteudo" style="max-height: 520px; overflow-y: auto;"></div>
         </div>
 
@@ -2006,18 +2015,74 @@ window.enviarNotificacaoSlack = async function(msg) {
     }
 };
 // ==========================================
+// ==========================================
 // MOTOR DE AGENDA E DISTÂNCIA
 // ==========================================
 window.buscarEnderecoPorCep = async function() {
     const cep = document.getElementById('inputCep').value.replace(/\D/g, ''); 
     if (cep.length !== 8) return window.showMessage("CEP inválido.");
-    const btn = document.getElementById('btnValidarCep'); const orig = btn.innerText; btn.innerText = "Buscando..."; btn.disabled = true;
+    const btn = document.getElementById('btnValidarCep'); 
+    const orig = btn.innerText; 
+    btn.innerText = "Buscando..."; 
+    btn.disabled = true;
+    
     try {
-        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`); const data = await response.json();
-        if (data.erro) { window.showMessage("CEP não encontrado."); document.getElementById('camposEndereco').style.display = 'block'; } 
-        else { document.getElementById('inputRua').value = data.logradouro || ""; document.getElementById('inputBairro').value = data.bairro || ""; document.getElementById('inputCidade').value = data.localidade || ""; document.getElementById('inputUf').value = data.uf || ""; document.getElementById('camposEndereco').style.display = 'block'; document.getElementById('inputNumero').focus(); window.showToast("Endereço localizado!"); }
-    } catch (error) { window.showMessage("Erro ao consultar o CEP."); document.getElementById('camposEndereco').style.display = 'block'; } 
-    finally { btn.innerText = orig; btn.disabled = false; }
+        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`); 
+        const data = await response.json();
+        
+        if (data.erro) { 
+            window.showMessage("CEP não encontrado."); 
+            document.getElementById('camposEndereco').style.display = 'block'; 
+        } 
+        else { 
+            // =======================================================
+            // CHECAGEM OCULTA DE COBERTURA
+            // =======================================================
+            btn.innerText = "Validando Raio...";
+            // Monta um endereço base só com rua e cidade para testar a distância
+            let enderecoBase = `${data.logradouro || ""}, ${data.localidade || ""} - ${data.uf || ""} - CEP: ${cep}`;
+            let temPrestadorNoRaio = false;
+            
+            for(let p of prestadores) { 
+                if (!p.endereco) continue; 
+                if (p.status_prestador === 'TESTE' && userRole === 'SMARTOPS') continue;
+                
+                // Checa a distância
+                const dist = await consultarDistancia(enderecoBase, p.endereco); 
+                if(dist !== null && dist <= parseFloat(p.range)) { 
+                    // Checa se tem alguma data futura
+                    let available = window.getNextDates(p); 
+                    if(available.length > 0) { 
+                        temPrestadorNoRaio = true; 
+                        break; // Achou o 1º! Pode parar o loop pra não gastar tempo/API
+                    } 
+                } 
+            }
+
+            // Se não encontrou ninguém, dá o aviso e não mostra a div do número
+            if (!temPrestadorNoRaio) {
+                document.getElementById('camposEndereco').style.display = 'none';
+                return window.showMessage("⚠️ <strong>Região sem cobertura!</strong><br><br>Não há prestadores no raio de distância deste CEP ou com agenda disponível no momento.");
+            }
+            // =======================================================
+
+            // Se encontrou, preenche e mostra os campos normalmente
+            document.getElementById('inputRua').value = data.logradouro || ""; 
+            document.getElementById('inputBairro').value = data.bairro || ""; 
+            document.getElementById('inputCidade').value = data.localidade || ""; 
+            document.getElementById('inputUf').value = data.uf || ""; 
+            document.getElementById('camposEndereco').style.display = 'block'; 
+            document.getElementById('inputNumero').focus(); 
+            window.showToast("Endereço e cobertura validados!"); 
+        }
+    } catch (error) { 
+        window.showMessage("Erro ao consultar o CEP."); 
+        document.getElementById('camposEndereco').style.display = 'block'; 
+    } 
+    finally { 
+        btn.innerText = orig; 
+        btn.disabled = false; 
+    }
 };
 
 async function consultarDistancia(cepOrigem, enderecoPrestador) { try { const response = await fetch(`${API_URL}/distancia`, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ origin: cepOrigem, destination: enderecoPrestador }) }); const data = await response.json(); return (data.status === 'OK') ? parseFloat(data.rows[0].elements[0].distance.value) / 1000 : null; } catch (e) { return null; } }
@@ -2497,7 +2562,7 @@ window.concluirAgendamentoFinal = async function(btn) {
         executar_field: dispararField, executar_banco: dispararBanco
     };
     const originalText = btn.innerText; btn.innerText = "Processando..."; btn.disabled = true;
-    try {
+   try {
         const response = await fetch(EDGE_URL, { method: 'POST', headers: getHeaders(), body: JSON.stringify(agendamento) });
         const result = await response.json(); 
         if (response.ok) {
@@ -3324,6 +3389,49 @@ window.limparFiltros = function(){
     window.atualizarLabelPrestadorFiltro(); 
 };
 
+// ==========================================
+// SISTEMA DE ORDENAÇÃO
+// ==========================================
+window.ordenacaoAtual = { campo: 'criacao', direcao: 'desc' };
+
+window.mudarOrdenacao = function(campo) {
+    if (window.ordenacaoAtual.campo === campo) {
+        window.ordenacaoAtual.direcao = window.ordenacaoAtual.direcao === 'asc' ? 'desc' : 'asc';
+    } else {
+        window.ordenacaoAtual.campo = campo;
+        window.ordenacaoAtual.direcao = campo === 'criacao' ? 'desc' : 'asc';
+    }
+    
+    // Atualiza o visual da barrinha
+    ['criacao', 'data', 'prestador', 'tecnico'].forEach(c => {
+        let el = document.getElementById('sort-' + c);
+        if (el) {
+            let textoBase = el.innerText.replace(/[▼▲]/g, '').trim();
+            if (c === window.ordenacaoAtual.campo) {
+                el.style.color = 'var(--primary)';
+                el.innerText = textoBase + (window.ordenacaoAtual.direcao === 'asc' ? ' ▲' : ' ▼');
+            } else {
+                el.style.color = 'var(--muted)';
+                el.innerText = textoBase;
+            }
+        }
+    });
+    
+    window.renderPainel(); // Recarrega o painel ordenado
+};
+
+window.getNomeTecnicoParaSort = function(a) {
+    let nome = a.tecnico_alocado || "Não Alocado";
+    if (/^\d+$/.test(nome)) {
+        let pObj = prestadores.find(p => p.nome === a.prestador);
+        if (pObj) nome = window.getNomeTecnico(pObj, nome).trim();
+    }
+    return nome;
+};
+
+// ==========================================
+// RENDERIZAÇÃO DO PAINEL
+// ==========================================
 window.renderPainel = function() {
     if (!Array.isArray(agendamentos)) { document.getElementById("painel-conteudo").innerHTML = "Nenhum dado."; return; }
     
@@ -3336,13 +3444,12 @@ window.renderPainel = function() {
     let prestadoresMarcados = Array.from(document.querySelectorAll('.cb-prestador:checked')).map(cb => cb.value);
     let tecnicosMarcados = Array.from(document.querySelectorAll('.cb-tecnico:checked')).map(cb => cb.value);
 
-    // 👇 AQUI ESTÁ A CORREÇÃO: MOSTRA OU ESCONDE A BARRA DE AVISO DE FILTRO ATIVO
+    // 👇 MOSTRA OU ESCONDE A BARRA DE AVISO DE FILTRO ATIVO
     let indicador = document.getElementById("indicador-filtro");
     if (indicador) {
         let temFiltro = fInicio || fFim || fTicket || fSol || statusMarcados.length > 0 || prestadoresMarcados.length > 0 || tecnicosMarcados.length > 0;
         indicador.style.display = temFiltro ? "block" : "none";
     }
-    // 👆 =========================================================================
 
     filtradosPainel = agendamentos.filter(a => { 
         if(!a.data || !a.ticket) return false;
@@ -3380,7 +3487,31 @@ window.renderPainel = function() {
         let matchStatus = statusMarcados.length === 0 || statusMarcados.includes(statusMapeado);
         
         return matchDate && matchTicket && matchSol && matchPrest && matchTecnico && matchStatus; 
-    }).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    });
+
+    // SISTEMA DE ORDENAÇÃO DINÂMICA
+    filtradosPainel.sort((a, b) => {
+        let valA, valB;
+        
+        if (window.ordenacaoAtual.campo === 'criacao') {
+            valA = new Date(a.created_at || 0).getTime();
+            valB = new Date(b.created_at || 0).getTime();
+        } else if (window.ordenacaoAtual.campo === 'data') {
+            let pA = (a.data || '').split('/'); let pB = (b.data || '').split('/');
+            valA = pA.length === 3 ? new Date(pA[2], pA[1]-1, pA[0]).getTime() : 0;
+            valB = pB.length === 3 ? new Date(pB[2], pB[1]-1, pB[0]).getTime() : 0;
+        } else if (window.ordenacaoAtual.campo === 'tecnico') {
+            valA = window.getNomeTecnicoParaSort(a).toLowerCase();
+            valB = window.getNomeTecnicoParaSort(b).toLowerCase();
+        } else if (window.ordenacaoAtual.campo === 'prestador') {
+            valA = String(a.prestador || '').toLowerCase();
+            valB = String(b.prestador || '').toLowerCase();
+        }
+        
+        if (valA < valB) return window.ordenacaoAtual.direcao === 'asc' ? -1 : 1;
+        if (valA > valB) return window.ordenacaoAtual.direcao === 'asc' ? 1 : -1;
+        return 0;
+    });
 
     let counts = { solicitado: 0, negociacao: 0, agendado: 0, andamento: 0, impedido: 0, concluido: 0, cancelado: 0 };
     filtradosPainel.forEach(a => {
