@@ -3010,6 +3010,7 @@ window.getOcupacaoReal = function(prestador, dataStr, dNome) {
         return nomeAgend === nomeMeu && (aData === dataStrPad || aRaw === dataStrPad) && !String(a.status).toLowerCase().includes('cancelado');
     }).forEach(a => {
         let slotsArr = Array.isArray(a.slots) ? a.slots : (typeof a.slots === 'string' ? a.slots.split(', ') : []);
+        let slotsCount = 1; 
         let start = 8;
         let end = 8;
         
@@ -3018,11 +3019,12 @@ window.getOcupacaoReal = function(prestador, dataStr, dNome) {
             if (ints.length > 0) {
                 start = ints[0];
                 end = ints[ints.length - 1];
+                slotsCount = ints.length;
             }
         }
         
         let tecnicoIdx = resolverTecnico(a.tecnico_alocado, maxT, prestador, dNome);
-        jobsExistentes.push({ start: start, end: end, tecnico: tecnicoIdx });
+        jobsExistentes.push({ start: start, end: end, tecnico: tecnicoIdx, slotsCount: slotsCount });
     });
 
     let techHours = [];
@@ -3052,7 +3054,6 @@ window.getOcupacaoReal = function(prestador, dataStr, dNome) {
     for (let i = 1; i <= maxT; i++) statsPorTecnico[i] = { total: techHours[i-1].size, ocupadas: 0 };
     statsPorTecnico[0] = { total: 0, ocupadas: 0 }; 
 
-    // 👇 AQUI ESTÁ A MÁGICA: Adicionando os slots e as gorduras de forma inteligente
     let techOcupadoSets = Array.from({length: maxT + 1}, () => new Set());
 
     jobsExistentes.forEach(job => {
@@ -3068,20 +3069,32 @@ window.getOcupacaoReal = function(prestador, dataStr, dNome) {
         }
     });
 
-    // Calcula se essas horas ocupadas caem dentro do turno de trabalho do cara
+    // 👇 AQUI A CORREÇÃO: Corta a contagem dos horários bizarros (tipo 7h da manhã)
     for (let t = 1; t <= maxT; t++) {
         let s = statsPorTecnico[t];
         let count = 0;
-        techOcupadoSets[t].forEach(h => {
-            if (techHours[t-1].has(h)) count++; // Só conta ocupado se for no horário de trabalho
-        });
+        
+        if (s.total > 0) {
+            // Se tem agenda base, só conta as horas de gordura que caem dentro do turno dele (ex: 8h as 18h)
+            techOcupadoSets[t].forEach(h => { if (techHours[t-1].has(h)) count++; });
+        } else {
+            // Se o dia foi apagado da agenda base, conta os slots, mas limita ao horário normal (8h às 18h)
+            techOcupadoSets[t].forEach(h => { if (h >= 8 && h <= 18) count++; });
+            s.total = count; 
+            baseTotalEmpresa += count; // Adiciona ao total da empresa pra porcentagem não passar de 100%
+        }
+        
         s.ocupadas = count;
         ocupadasGeral += count;
     }
 
     // Para "Ex-técnicos" ou técnicos não alocados (índice 0)
-    statsPorTecnico[0].ocupadas = techOcupadoSets[0].size;
-    ocupadasGeral += techOcupadoSets[0].size;
+    let countEx = 0;
+    techOcupadoSets[0].forEach(h => { if (h >= 8 && h <= 18) countEx++; });
+    statsPorTecnico[0].ocupadas = countEx;
+    statsPorTecnico[0].total = countEx;
+    ocupadasGeral += countEx;
+    baseTotalEmpresa += countEx;
     // 👆 FIM DA MÁGICA
 
     for (let t in statsPorTecnico) {
@@ -3105,8 +3118,10 @@ function calcularOcupacao(prestadorNome) {
     for (let i = 0; i < 15; i++) {
         let d = new Date(); d.setDate(hoje.getDate() + i); let dStr = d.toLocaleDateString('pt-BR'); let dNome = diasSemana[d.getDay()];
         let stats = window.getOcupacaoReal(p, dStr, dNome);
+        
+        // Se tem OS agendada no banco ou se faz parte da agenda base do cara, tem que mostrar!
         if (stats.geral.total > 0 || stats.geral.ocupadas > 0) { 
-            resultado.push({ data: dStr, dia: dNome, livres: stats.geral.livres, ocupadas: stats.geral.ocupadas, total: stats.geral.total, pct: stats.geral.pct }); 
+            resultado.push({ data: dStr, dia: dNome, livres: stats.geral.livres, ocupadas: stats.geral.ocupadas, total: Math.max(stats.geral.total, stats.geral.ocupadas), pct: stats.geral.pct }); 
         }
     }
     return resultado;
@@ -3192,7 +3207,7 @@ window.renderOcupacaoDiaria = function(prestadorNome, tecnicoId) {
             let stats = window.getOcupacaoReal(pO, dStr, dNome);
             let tStats = stats.tecnicos[tecnicoId];
             if (tStats && (tStats.total > 0 || tStats.ocupadas > 0)) {
-                resultado.push({data:dStr, dia:dNome, livres:tStats.livres, ocupadas:tStats.ocupadas, total:tStats.total, pct:tStats.pct});
+                resultado.push({data:dStr, dia:dNome, livres:tStats.livres, ocupadas:tStats.ocupadas, total:Math.max(tStats.total, tStats.ocupadas), pct:tStats.pct});
             }
         }
         containerLista.innerHTML = resultado.length===0 ? `<div style="font-size:0.82rem;color:var(--muted);padding:10px;">Sem agenda para este técnico.</div>` : resultado.map(linhaOcupacao).join('');
@@ -3249,7 +3264,7 @@ window.renderOcupacaoPorTecnico = function(tecId) {
         let stats = window.getOcupacaoReal(pObj, dStr, dNome);
         let tStats = stats.tecnicos[tecId];
         if (tStats && (tStats.total > 0 || tStats.ocupadas > 0)) {
-            resultado.push({data:dStr, dia:dNome, livres:tStats.livres, ocupadas:tStats.ocupadas, total:tStats.total, pct:tStats.pct});
+            resultado.push({data:dStr, dia:dNome, livres:tStats.livres, ocupadas:tStats.ocupadas, total:Math.max(tStats.total, tStats.ocupadas), pct:tStats.pct});
         }
     }
     
