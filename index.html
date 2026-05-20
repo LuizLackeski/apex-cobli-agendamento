@@ -2038,8 +2038,16 @@ window.plotarAgendamentosNoMapa = async function() {
             
             let iconUrl = isConcluidoOuImpedido ? 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' : 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
 
+            // Extrai a lat/lng lidando com os formatos diferentes do Google
+            let latAtual = typeof latLng.lat === 'function' ? latLng.lat() : latLng.lat;
+            let lngAtual = typeof latLng.lng === 'function' ? latLng.lng() : latLng.lng;
+
+            // Cria um "espalhamento" minúsculo (aprox. 15 metros) para pinos não ficarem 100% sobrepostos
+            let espalhamentoLat = (Math.random() - 0.5) * 0.0003;
+            let espalhamentoLng = (Math.random() - 0.5) * 0.0003;
+
             let marker = new google.maps.Marker({
-                position: latLng,
+                position: { lat: latAtual + espalhamentoLat, lng: lngAtual + espalhamentoLng },
                 map: window.mapaInstancia,
                 icon: iconUrl,
                 title: `#${a.ticket}`
