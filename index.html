@@ -1851,7 +1851,7 @@ window.authAction = async function(type) {
                 showAuthCard('card-login');
             });
         `);
-} else if (type === 'login') {
+    } else if (type === 'login') {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
         const btn = document.getElementById('btnLogin');
@@ -1885,7 +1885,18 @@ window.authAction = async function(type) {
 
             window.location.reload(); 
         }
+    } else if (type === 'reset') {
+        const email = document.getElementById('reset-email').value;
+        const btn = document.getElementById('btnReset');
+        if (!email) return window.showMessage("Digite o e-mail cadastrado.");
+        if (email.toLowerCase().endsWith('@apex.co')) { showAuthCard('card-login'); return window.showMessage(`🔒 Contas <strong>@apex.co</strong> são gerenciadas pela equipe Cobli. Entre em contato com o responsável.`); }
+        btn.innerText = "Enviando..."; btn.disabled = true;
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: 'https://luizlackeski.github.io/apex-cobli-test/index.html' });
+        btn.innerText = "Enviar Link"; btn.disabled = false;
+        if (error) return window.showMessage("Erro: " + error.message);
+        window.showToast("✅ Link enviado!"); showAuthCard('card-login');
     }
+};
 
     // ==========================================
 // MÓDULO VISÃO DE MAPA
