@@ -2050,10 +2050,21 @@ window.plotarAgendamentosNoMapa = async function() {
                 return s.includes('conclu') || s.includes('impedido') || s.includes('finalizado');
             });
             
-            let iconUrl = todosConcluidos ? 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' : 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
+            // NOVO PINO LIMPO (Sem a bolinha preta e com número centralizado)
+            let corPino = todosConcluidos ? "#00AE97" : "#FF4633"; // Verde da Cobli ou Vermelho
+            let iconUrl = {
+                path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z", 
+                fillColor: corPino, 
+                fillOpacity: 1, 
+                strokeWeight: 1.5, 
+                strokeColor: "#ffffff",
+                scale: 1.5, 
+                anchor: new google.maps.Point(12, 22),
+                labelOrigin: new google.maps.Point(12, 9) // Centraliza o número perfeitamente
+            };
 
             // Coloca a label se tiver mais de um!
-            let labelMarker = grupo.length > 1 ? { text: String(grupo.length), color: "white", fontSize: "14px", fontWeight: "bold" } : null;
+            let labelMarker = grupo.length > 1 ? { text: String(grupo.length), color: "white", fontSize: "13px", fontWeight: "bold" } : null;
 
             let marker = new google.maps.Marker({
                 position: latLng,
