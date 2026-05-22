@@ -2137,7 +2137,33 @@ window.plotarAgendamentosNoMapa = async function() {
 
     if(btn) { btn.innerText = "Atualizar Mapa"; btn.disabled = false; }
 };
+            
+// ==========================================
+// RASTREADOR DE INATIVIDADE (AUTO-LOGOUT)
+// ==========================================
+window.inactivityTimer = null;
+const TEMPO_LIMITE_INATIVIDADE = 3 * 60 * 60 * 1000; // 4 horas (em milissegundos)
 
+window.resetInactivityTimer = function() {
+    clearTimeout(window.inactivityTimer);
+    window.inactivityTimer = setTimeout(() => {
+        // Quando o tempo acabar, avisa e desloga
+        window.showToast("Sessão expirada por inatividade. Deslogando...");
+        setTimeout(() => {
+            if (window.handleLogout) window.handleLogout();
+        }, 2000);
+    }, TEMPO_LIMITE_INATIVIDADE);
+};
+
+window.startInactivityTracker = function() {
+    // Escuta qualquer interação do usuário para zerar o cronômetro
+    ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'].forEach(evt => {
+        document.addEventListener(evt, window.resetInactivityTimer, { passive: true });
+    });
+    // Inicia a primeira contagem
+    window.resetInactivityTimer();
+};
+            
 async function checkSession() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) {
@@ -2154,6 +2180,10 @@ async function checkSession() {
         window.carregarDadosDoBanco();
         console.log("📡 Conectando ao Realtime...");
         supabaseClient.channel('mudancas-agendamentos').on('postgres_changes', { event: '*', schema: 'public', table: 'agendamentos' }, (payload) => { console.log('🚨 BD mudou! Atualizando...', payload); window.carregarDadosDoBanco(); }).subscribe((status) => { console.log("🔌 Realtime:", status); });
+        
+        // 👇 INICIA O VIGIA DE INATIVIDADE 👇
+        window.startInactivityTracker();
+        
     } else {
         document.getElementById('auth-overlay').style.display = 'flex';
         document.body.style.display = 'block'; 
