@@ -1748,6 +1748,17 @@ window.atualizarPreviewResumo = function() {
     lista.forEach(a => { if(a.cidade && a.uf) { let k = `${a.cidade}/${a.uf}`; distCidade[k] = (distCidade[k]||0)+1; }});
     let cidadeStr = Object.entries(distCidade).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([n,c]) => `>   • ${n}: ${c}`).join('\n');
     
+    // 👇 ADICIONADO: Contagem de Solicitantes 👇
+    let distSol = {};
+    lista.forEach(a => { 
+        if(a.solicitante) { 
+            let nomeFmt = window.formatarCapitalize(a.solicitante);
+            distSol[nomeFmt] = (distSol[nomeFmt]||0)+1; 
+        }
+    });
+    let solStr = Object.entries(distSol).sort((a,b)=>b[1]-a[1]).map(([n,c]) => `>   • ${n}: ${c}`).join('\n');
+    // 👆 FIM DA ADIÇÃO 👆
+
     let periodoLabel = { 'semana': 'Esta Semana', 'semana_passada': 'Semana Passada', 'mes': 'Este Mês', 'personalizado': 'Período Personalizado' }[window.periodoResumoAtual] || 'Período';
     
     let statusLines = [];
@@ -1759,7 +1770,6 @@ window.atualizarPreviewResumo = function() {
     if (impedidos > 0)   statusLines.push(`>   • 🛑 Impedidos: ${impedidos}`);
     if (cancelados > 0)  statusLines.push(`>   • ❌ Cancelados: ${cancelados}`);
     
-    // 👇 Aplicando o "> " em todas as linhas para forçar a barra cinza no Slack
     let texto = `> 📊 *Resumo APEX | Cobli — ${periodoLabel}*\n` +
         `> 📅 ${fmtDate(ini)} → ${fmtDate(fim)}\n> \n` +
         `> *Visão Geral:*\n` +
@@ -1767,11 +1777,11 @@ window.atualizarPreviewResumo = function() {
         (statusLines.length > 0 ? statusLines.join('\n') + '\n> \n' : '> \n') +
         (prestStr ? `> *Por Prestador:*\n${prestStr}\n> \n` : '') +
         (cidadeStr ? `> *Principais Cidades:*\n${cidadeStr}\n> \n` : '') +
+        (solStr ? `> *Por Solicitante:*\n${solStr}\n> \n` : '') + // 👈 ADICIONADO AQUI NO TEXTO
         `> _Enviado via APEX · Cobli_`;
     
     window._resumoSlackTexto = texto;
     
-    // Tratamento para a visualização na tela do APEX ficar bonitinha
     let linhasHtml = texto.split('\n').map(l => {
         let cleanLine = l.replace(/^>\s?/, ''); 
         if (cleanLine.startsWith('📊') || cleanLine.startsWith('*') ) return `<span class="pv-title">${cleanLine.replace(/\*/g,'')}</span>`;
