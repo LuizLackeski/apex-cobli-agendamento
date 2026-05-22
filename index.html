@@ -2632,8 +2632,9 @@ window.getNextDates = function(prestador) {
     let agendaNormal = (prestador.agenda && Array.isArray(prestador.agenda)) ? prestador.agenda.filter(a => !a.isAbsence) : [];
     let agendaDays = [...new Set(agendaNormal.map(a => a.dia))].map(d => daysMap[d]); 
     
-    // 👇 O GESTOR fura a fila das 48h e começa a ver a partir de hoje (0)
+    // 👇 O GESTOR fura a fila das 48h
     let startDay = (userRole === 'GESTOR') ? 0 : 2; 
+    let horaAtual = today.getHours();
 
     for (let i = startDay; i < 60; i++) { 
         if(dates.length >= 10) break;
@@ -2644,8 +2645,8 @@ window.getNextDates = function(prestador) {
         let temLivre = false;
         
         for(let hInt of uniqueHoras) { 
-            // Se for "hoje", ignora as horas que já passaram no relógio!
-            if (i === 0 && hInt <= today.getHours()) continue;
+            // Se for hoje e a hora já bateu ou passou, pula!
+            if (i === 0 && hInt <= horaAtual) continue;
             
             if (window.podeAgendar(prestador, dStr, [hInt], dNome)) { temLivre = true; break; } 
         }
@@ -2759,7 +2760,7 @@ window.rdaAgendamento = function() {
     if (itensSelecionados.length === 0) { container.innerHTML = `<div style="font-weight:600; color:var(--primary); font-size:0.85rem;">Adicione um serviço para ver a agenda.</div>`; return; }
     window.agendaDiasDisponiveis = [];
     
-    // O GESTOR fura a fila das 48h aqui na renderização dos blocos também
+    // O GESTOR fura a fila das 48h aqui também
     let startDay = (userRole === 'GESTOR') ? 0 : 2;
 
     for(let i=startDay; i<60; i++){ 
@@ -2769,24 +2770,33 @@ window.rdaAgendamento = function() {
         
         let horasAgendaSet = new Set(allSlotsRaw.map(item => parseInt(item.hora.split(':')[0])));
         let horasAgenda = Array.from(horasAgendaSet).sort((a,b)=>a-b);
-        
-        // 👇 Se for "hoje", esconde os blocos de horas que JÁ PASSARAM
-        if (i === 0) {
-            let horaAtual = hoje.getHours();
-            // Filtra deixando só as horas que ainda não chegaram
-            horasAgenda = horasAgenda.filter(h => h > horaAtual);
-            if (horasAgenda.length === 0) continue; // Se o dia já acabou de vez, pula pro próximo
-        }
+        let horaAtual = hoje.getHours();
 
         let validStarts = []; 
         let validStartsTecnico = {}; 
         let invalidStartsMotivo = {}; 
         
         for (let h of horasAgenda) {
+            // 👇 Regra 1: Mantém o botão na tela, mas marca como "Passado" e não deixa clicar
+            if (i === 0 && h <= horaAtual) {
+                invalidStartsMotivo[h] = "Horário já passou";
+                continue;
+            }
+
             let seqOk = true; let testSlots = [];
             for (let k = 0; k < horasNecessarias; k++) { 
-                if (!horasAgenda.includes(h + k)) { seqOk = false; invalidStartsMotivo[h] = `Faltam slots para completar ${horasNecessarias}h`; break; } 
-                testSlots.push(h + k); 
+                let hTeste = h + k;
+                if (!horasAgenda.includes(hTeste)) { 
+                    seqOk = false; 
+                    invalidStartsMotivo[h] = `Faltam slots para completar ${horasNecessarias}h`; 
+                    break; 
+                } 
+                if (i === 0 && hTeste <= horaAtual) { 
+                    seqOk = false; 
+                    invalidStartsMotivo[h] = "Parte do serviço cai no passado"; 
+                    break; 
+                }
+                testSlots.push(hTeste); 
             }
             if (seqOk) { 
                 let info = window.checarDisponibilidadeCore(p, dStr, testSlots, dNome);
@@ -2802,7 +2812,7 @@ window.rdaAgendamento = function() {
         validStarts.forEach(start => { for (let k = 0; k < horasNecessarias; k++) enabledCells.add(start + k); });
         
         if(validStarts.length > 0 || Object.keys(invalidStartsMotivo).length > 0){ 
-            // Monta os botões originais da agenda (ignorando os que o Gestor já cortou no filtro do "hoje")
+            // Agora sim! Monta a linha com TODOS os botões originais da agenda base
             let allSlots = horasAgenda.map(h => ({hora: h + ':00'}));
             window.agendaDiasDisponiveis.push({ dStr, dNome, allSlots, validStarts, validStartsTecnico, enabledCells, horasNecessarias, invalidStartsMotivo });
         } 
