@@ -2405,11 +2405,7 @@ window.buscarEnderecoPorCep = async function() {
             document.getElementById('camposEndereco').style.display = 'block'; 
         } 
         else { 
-            // =======================================================
-            // CHECAGEM OCULTA DE COBERTURA
-            // =======================================================
             btn.innerText = "Validando Raio...";
-            // Monta um endereço base só com rua e cidade para testar a distância
             let enderecoBase = `${data.logradouro || ""}, ${data.localidade || ""} - ${data.uf || ""} - CEP: ${cep}`;
             let temPrestadorNoRaio = false;
             
@@ -2417,26 +2413,22 @@ window.buscarEnderecoPorCep = async function() {
                 if (!p.endereco) continue; 
                 if (p.status_prestador === 'TESTE' && userRole === 'SMARTOPS') continue;
                 
-                // Checa a distância
                 const dist = await consultarDistancia(enderecoBase, p.endereco); 
                 if(dist !== null && dist <= parseFloat(p.range)) { 
-                    // Checa se tem alguma data futura
-                    let available = (p); 
+                    // 👇 A CORREÇÃO ESTÁ AQUI 👇
+                    let available = window.getNextDates(p); 
                     if(available.length > 0) { 
                         temPrestadorNoRaio = true; 
-                        break; // Achou o 1º! Pode parar o loop pra não gastar tempo/API
+                        break; 
                     } 
                 } 
             }
 
-            // Se não encontrou ninguém, dá o aviso e não mostra a div do número
             if (!temPrestadorNoRaio) {
                 document.getElementById('camposEndereco').style.display = 'none';
                 return window.showMessage("⚠️ <strong>Região sem cobertura!</strong><br><br>Não há prestadores no raio de distância deste CEP ou com agenda disponível no momento.");
             }
-            // =======================================================
 
-            // Se encontrou, preenche e mostra os campos normalmente
             document.getElementById('inputRua').value = data.logradouro || ""; 
             document.getElementById('inputBairro').value = data.bairro || ""; 
             document.getElementById('inputCidade').value = data.localidade || ""; 
@@ -2767,7 +2759,7 @@ window.rdaAgendamento = function() {
     if (itensSelecionados.length === 0) { container.innerHTML = `<div style="font-weight:600; color:var(--primary); font-size:0.85rem;">Adicione um serviço para ver a agenda.</div>`; return; }
     window.agendaDiasDisponiveis = [];
     
-    // 👇 O GESTOR fura a fila das 48h aqui na renderização dos blocos também
+    // O GESTOR fura a fila das 48h aqui na renderização dos blocos também
     let startDay = (userRole === 'GESTOR') ? 0 : 2;
 
     for(let i=startDay; i<60; i++){ 
@@ -2778,11 +2770,12 @@ window.rdaAgendamento = function() {
         let horasAgendaSet = new Set(allSlotsRaw.map(item => parseInt(item.hora.split(':')[0])));
         let horasAgenda = Array.from(horasAgendaSet).sort((a,b)=>a-b);
         
-        // Se for "hoje", esconde os blocos de horas passadas
+        // 👇 Se for "hoje", esconde os blocos de horas que JÁ PASSARAM
         if (i === 0) {
             let horaAtual = hoje.getHours();
+            // Filtra deixando só as horas que ainda não chegaram
             horasAgenda = horasAgenda.filter(h => h > horaAtual);
-            if (horasAgenda.length === 0) continue; // Fim do dia? Pula pra amanhã
+            if (horasAgenda.length === 0) continue; // Se o dia já acabou de vez, pula pro próximo
         }
 
         let validStarts = []; 
@@ -2809,7 +2802,8 @@ window.rdaAgendamento = function() {
         validStarts.forEach(start => { for (let k = 0; k < horasNecessarias; k++) enabledCells.add(start + k); });
         
         if(validStarts.length > 0 || Object.keys(invalidStartsMotivo).length > 0){ 
-            let allSlots = Array.from(horasAgendaSet).sort((a,b)=>a-b).map(h => ({hora: h + ':00'}));
+            // Monta os botões originais da agenda (ignorando os que o Gestor já cortou no filtro do "hoje")
+            let allSlots = horasAgenda.map(h => ({hora: h + ':00'}));
             window.agendaDiasDisponiveis.push({ dStr, dNome, allSlots, validStarts, validStartsTecnico, enabledCells, horasNecessarias, invalidStartsMotivo });
         } 
     } 
