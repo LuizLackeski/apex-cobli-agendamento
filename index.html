@@ -2421,7 +2421,7 @@ window.buscarEnderecoPorCep = async function() {
                 const dist = await consultarDistancia(enderecoBase, p.endereco); 
                 if(dist !== null && dist <= parseFloat(p.range)) { 
                     // Checa se tem alguma data futura
-                    let available = window.getNextDates(p); 
+                    let available = (p); 
                     if(available.length > 0) { 
                         temPrestadorNoRaio = true; 
                         break; // Achou o 1º! Pode parar o loop pra não gastar tempo/API
@@ -2639,14 +2639,24 @@ window.getNextDates = function(prestador) {
     let dates = []; let today = new Date(); const daysMap = {"Dom":0, "Seg":1, "Ter":2, "Qua":3, "Qui":4, "Sex":5, "Sab":6}; 
     let agendaNormal = (prestador.agenda && Array.isArray(prestador.agenda)) ? prestador.agenda.filter(a => !a.isAbsence) : [];
     let agendaDays = [...new Set(agendaNormal.map(a => a.dia))].map(d => daysMap[d]); 
-    for (let i = 2; i < 60; i++) { 
+    
+    // 👇 O GESTOR fura a fila das 48h e começa a ver a partir de hoje (0)
+    let startDay = (userRole === 'GESTOR') ? 0 : 2; 
+
+    for (let i = startDay; i < 60; i++) { 
         if(dates.length >= 10) break;
         let d = new Date(); d.setDate(today.getDate() + i); let dStr = d.toLocaleDateString('pt-BR'); let dNome = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"][d.getDay()]; 
         if (!agendaDays.includes(d.getDay())) continue;
         let slotsDoDia = agendaNormal.filter(a => a.dia == dNome); 
         let uniqueHoras = [...new Set(slotsDoDia.map(s => parseInt(s.hora.split(':')[0])))];
         let temLivre = false;
-        for(let hInt of uniqueHoras) { if (window.podeAgendar(prestador, dStr, [hInt], dNome)) { temLivre = true; break; } }
+        
+        for(let hInt of uniqueHoras) { 
+            // Se for "hoje", ignora as horas que já passaram no relógio!
+            if (i === 0 && hInt <= today.getHours()) continue;
+            
+            if (window.podeAgendar(prestador, dStr, [hInt], dNome)) { temLivre = true; break; } 
+        }
         if (temLivre) dates.push(dStr.slice(0,5)); 
     } 
     return dates; 
@@ -2757,13 +2767,24 @@ window.rdaAgendamento = function() {
     if (itensSelecionados.length === 0) { container.innerHTML = `<div style="font-weight:600; color:var(--primary); font-size:0.85rem;">Adicione um serviço para ver a agenda.</div>`; return; }
     window.agendaDiasDisponiveis = [];
     
-    for(let i=2; i<60; i++){ 
+    // 👇 O GESTOR fura a fila das 48h aqui na renderização dos blocos também
+    let startDay = (userRole === 'GESTOR') ? 0 : 2;
+
+    for(let i=startDay; i<60; i++){ 
         let data = new Date(); data.setDate(hoje.getDate() + i); let dStr = data.toLocaleDateString('pt-BR'); let dNome = diasSemana[data.getDay()]; 
         let allSlotsRaw = (p.agenda && Array.isArray(p.agenda)) ? p.agenda.filter(a => !a.isAbsence && a.dia == dNome) : []; 
         if (allSlotsRaw.length === 0) continue;
+        
         let horasAgendaSet = new Set(allSlotsRaw.map(item => parseInt(item.hora.split(':')[0])));
         let horasAgenda = Array.from(horasAgendaSet).sort((a,b)=>a-b);
         
+        // Se for "hoje", esconde os blocos de horas passadas
+        if (i === 0) {
+            let horaAtual = hoje.getHours();
+            horasAgenda = horasAgenda.filter(h => h > horaAtual);
+            if (horasAgenda.length === 0) continue; // Fim do dia? Pula pra amanhã
+        }
+
         let validStarts = []; 
         let validStartsTecnico = {}; 
         let invalidStartsMotivo = {}; 
