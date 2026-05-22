@@ -1484,6 +1484,10 @@
                     <h2>Volume por Localidade (Top 10)</h2>
                     <div style="position: relative; height: 250px; width: 100%;"><canvas id="chartLocais"></canvas></div>
                 </div>
+                <div class="card" style="flex: 1; min-width: 300px; margin-bottom: 20px; max-height: 334px; display: flex; flex-direction: column;">
+                    <h2 style="flex-shrink: 0;">Volume por Solicitante</h2>
+                    <div id="lista-dashboard-solicitantes" style="display: flex; flex-direction: column; gap: 6px; overflow-y: auto; padding-right: 5px; flex-grow: 1;"></div>
+                </div>
             </div>
         </div>
         
@@ -4056,7 +4060,9 @@ window.renderDashboard = function() {
     let isPrestadorDashboard = (userRole === 'PRESTADOR');
     let nomeLogado = currentUser ? extrairNomeDoEmail(currentUser.email).toLowerCase() : '';
     let totalAgend = 0, concluidosCount = 0, programadosCount = 0;
-    let distPrest = {}, distServ = {}, distLocais = {}, totalServicosGeral = 0;
+    
+    // 👇 ADICIONADO A VARIÁVEL distSolicitante AQUI 👇
+    let distPrest = {}, distServ = {}, distLocais = {}, distSolicitante = {}, totalServicosGeral = 0;
 
     // Lemos de filtradosPainel para que o Dashboard seja DINÂMICO de acordo com os filtros!
     filtradosPainel.forEach(a => {
@@ -4076,10 +4082,15 @@ window.renderDashboard = function() {
         let status = a.status ? String(a.status).toLowerCase() : '';
         if (status.includes('conclu') || status.includes('completed') || status.includes('finalizado') || status.includes('impedido')) concluidosCount++;
         if (status.includes('agendado') || status.includes('scheduled')) programadosCount++;
+        
         if(a.prestador) distPrest[a.prestador] = (distPrest[a.prestador] || 0) + 1;
         if(a.cidade && a.uf) { let local = `${a.cidade}/${a.uf}`.toUpperCase(); distLocais[local] = (distLocais[local] || 0) + 1; }
 
-let txtRaw = a.produtos_texto || a.produtos || '';
+        // 👇 CONTAGEM DOS SOLICITANTES AQUI 👇
+        let nomeSol = a.solicitante ? window.formatarCapitalize(a.solicitante) : 'Desconhecido';
+        distSolicitante[nomeSol] = (distSolicitante[nomeSol] || 0) + 1;
+
+        let txtRaw = a.produtos_texto || a.produtos || '';
         let txtServicos = txtRaw;
         
         // Corta tudo que estiver de "Observações:" para baixo
@@ -4091,20 +4102,17 @@ let txtRaw = a.produtos_texto || a.produtos || '';
             let linhas = txtServicos.split('\n');
             linhas.forEach(linha => {
                 let limpo = linha.replace('•', '').trim(); 
-                if (!limpo) return; // Pula linha vazia
+                if (!limpo) return; 
                 
-                // Descobre a quantidade
                 let qtd = 1; 
                 let matchQtd = linha.match(/Qtd:\s*(\d+)/i); 
                 if (matchQtd) qtd = parseInt(matchQtd[1]) || 1;
 
-                // Remove tudo que estiver entre parênteses para limpar o nome do serviço
                 let nomeServico = limpo.replace(/\s*\([^)]*\)/g, '').trim();
                 
-                // Trava de segurança: só conta se for um serviço oficial (tem a tag [TIPO])
                 if (nomeServico && nomeServico.startsWith('[')) {
                     distServ[nomeServico] = (distServ[nomeServico] || 0) + qtd; 
-                    totalServicosGeral += qtd; // Guarda o total para a proporção!
+                    totalServicosGeral += qtd; 
                 }
             });
         }
@@ -4116,13 +4124,11 @@ let txtRaw = a.produtos_texto || a.produtos || '';
     
     let cardProdTec = document.getElementById('card-prod-tecnicos');
     
-    // AQUI O CORTE: A Equipe Técnica só aparece se o usuário for o PRESTADOR
     if (isPrestadorDashboard && window.meuPrestadorLogado) {
         cardProdTec.style.display = 'block';
         let pObj = window.meuPrestadorLogado;
         let contagemProducaoTecnico = {};
         
-        // Inicializa ativos
         let qtdAtivos = parseInt(pObj.qtdtecnicos) || 0;
         let nomesAtivos = [];
         for(let i=1; i <= qtdAtivos; i++) {
@@ -4133,7 +4139,6 @@ let txtRaw = a.produtos_texto || a.produtos || '';
             }
         }
 
-        // Conta
         filtradosPainel.forEach(a => {
             if (a.prestador !== pObj.nome) return;
             let tecAlocado = a.tecnico_alocado || "Não Alocado";
@@ -4142,7 +4147,6 @@ let txtRaw = a.produtos_texto || a.produtos || '';
             contagemProducaoTecnico[tecAlocado].count++;
         });
 
-        // HTML
         let listaTecHtml = '';
         let techsOrdenados = Object.values(contagemProducaoTecnico).sort((a,b) => {
             if (a.isAtivo === b.isAtivo) return b.count - a.count;
@@ -4160,7 +4164,7 @@ let txtRaw = a.produtos_texto || a.produtos || '';
         });
         document.getElementById('lista-prod-tecnicos').innerHTML = listaTecHtml;
     } else {
-        cardProdTec.style.display = 'none'; // Some pro Gestor
+        cardProdTec.style.display = 'none';
     }
     
     if(myChart) myChart.destroy();
@@ -4174,7 +4178,6 @@ let txtRaw = a.produtos_texto || a.produtos || '';
         });
     }
 
-    // AQUI O AJUSTE DAS PROPORÇÕES DOS SERVIÇOS
     let servicosOrdenados = Object.entries(distServ).sort((a,b) => b[1] - a[1]);
     let listaHtml = servicosOrdenados.map(s => {
         let pct = totalServicosGeral > 0 ? Math.round((s[1] / totalServicosGeral) * 100) : 0;
@@ -4184,6 +4187,18 @@ let txtRaw = a.produtos_texto || a.produtos || '';
         </div>`;
     }).join('');
     if (document.getElementById('lista-dashboard-servicos')) document.getElementById('lista-dashboard-servicos').innerHTML = listaHtml || "Sem dados.";
+
+    // 👇 RENDERIZAÇÃO DO NOVO CARD DE SOLICITANTES 👇
+    let solOrdenados = Object.entries(distSolicitante).sort((a,b) => b[1] - a[1]);
+    let listaSolHtml = solOrdenados.map(s => {
+        let pct = totalAgend > 0 ? Math.round((s[1] / totalAgend) * 100) : 0;
+        return `<div style="display:flex; justify-content:space-between; align-items:center; background: linear-gradient(90deg, #e8ecff ${pct}%, var(--bg) ${pct}%); padding:10px 12px; border-radius:var(--radius-sm); border:1px solid var(--border); margin-bottom:4px;">
+            <div style="font-size:0.78rem; font-weight:600; color:var(--cobli-dark); flex:1; text-shadow: 1px 1px 0px rgba(255,255,255,0.7);">${s[0]}</div>
+            <div style="font-size:0.88rem; font-weight:800; color:var(--primary); background:rgba(255,255,255,0.6); padding:2px 8px; border-radius:5px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">${s[1]} <span style="font-size:0.6rem; color:var(--muted); font-weight:700;">(${pct}%)</span></div>
+        </div>`;
+    }).join('');
+    if (document.getElementById('lista-dashboard-solicitantes')) document.getElementById('lista-dashboard-solicitantes').innerHTML = listaSolHtml || `<div style="font-size:0.85rem; color:var(--muted);">Nenhum dado encontrado.</div>`;
+    // 👆 FIM DA RENDERIZAÇÃO DE SOLICITANTES 👆
 
     if(chartLocais) chartLocais.destroy();
     const ctxLocais = document.getElementById('chartLocais');
