@@ -1865,20 +1865,33 @@ window.authAction = async function(type) {
         if (error) { 
             btn.innerText = "Entrar"; 
             errDiv.style.display = 'block'; 
-        } else { 
+} else { 
             // 👇 MÁGICA DO LOG DE ACESSO AQUI 👇
             const userId = data.user.id;
             const agora = new Date().toISOString();
             
-            // Busca qual foi o último login antes deste
+            // Busca qual foi o último login e o penúltimo
             const { data: perfil } = await supabaseClient.from('perfis_usuarios')
-                .select('ultimo_login')
+                .select('ultimo_login, penultimo_login') // 👈 Agora puxamos o penúltimo também
                 .eq('id', userId)
                 .single();
             
-            // Joga o último para penúltimo, e salva o de hoje
+            let novoPenultimo = perfil?.penultimo_login || null;
+            
+            if (perfil?.ultimo_login) {
+                // Pega só a data (DD/MM/YYYY) para comparar, ignorando as horas
+                let dataUltimo = new Date(perfil.ultimo_login).toLocaleDateString('pt-BR');
+                let dataHoje = new Date(agora).toLocaleDateString('pt-BR');
+                
+                // Só joga para o "penúltimo" se o login anterior foi num dia diferente
+                if (dataUltimo !== dataHoje) {
+                    novoPenultimo = perfil.ultimo_login;
+                }
+            }
+            
+            // Salva no banco com a lógica corrigida
             await supabaseClient.from('perfis_usuarios').update({
-                penultimo_login: perfil?.ultimo_login || null,
+                penultimo_login: novoPenultimo,
                 ultimo_login: agora
             }).eq('id', userId);
             // 👆 FIM DA MÁGICA 👆
