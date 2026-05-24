@@ -39,20 +39,346 @@
             --shadow-lg: 0 10px 30px rgba(7,7,78,0.15), 0 4px 8px rgba(7,7,78,0.08);
             --radius: 10px;
             --radius-sm: 6px;
+
+            /* ── Sidebar ── */
+            --sidebar-w: 210px;
         }
         
         *, *::before, *::after { box-sizing: border-box; }
 
+/* ============================================================
+           BACKGROUND & SCROLLBARS CORPORATIVAS
+        ============================================================ */
         body { 
             font-family: var(--font-main); 
-            background: var(--bg); 
+            background-color: #eaecf6;
+            background-image: radial-gradient(circle at 1px 1px, rgba(0,27,184,0.07) 1px, transparent 0);
+            background-size: 28px 28px;
             color: var(--text); 
-            margin: 0; 
-            padding: 0; 
-            display: none;
-            -webkit-font-smoothing: antialiased;
+            margin: 0; padding: 0; display: none; -webkit-font-smoothing: antialiased; 
         }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #eef1f8; border-radius: 6px; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #001BB8, #00AE97); border-radius: 6px; }
         
+        /* ============================================================
+           LAYOUT RAIZ — SIDEBAR
+        ============================================================ */
+        #app-content {
+            display: none;
+            min-height: 100vh;
+            flex-direction: row;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            min-width: var(--sidebar-w);
+            background: var(--cobli-dark);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 2000;
+            overflow: hidden;
+        }
+
+        .sidebar-logo {
+            padding: 20px 18px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo .apex-badge {
+            background: var(--primary);
+            color: white;
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            padding: 5px 11px;
+            border-radius: var(--radius-sm);
+        }
+
+        .sidebar-logo .cobli-brand { color: white; }
+        .sidebar-logo .txt-cobli { font-size: 0.92rem; font-weight: 700; letter-spacing: 1px; line-height: 1; }
+        .sidebar-logo .txt-agenda { font-size: 0.5rem; opacity: 0.35; text-transform: uppercase; letter-spacing: 2px; margin-top: 3px; display: block; }
+
+        /* nav section label */
+        .sidebar-nav-section {
+            font-size: 0.58rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+            color: rgba(255,255,255,0.55); /* 👈 Aqui o cinza fica bem mais claro e legível */
+            padding: 14px 18px 4px;
+        }
+
+        /* nav buttons — mantém IDs iguais para o JS funcionar */
+        .menu {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 8px 0 12px;
+            scrollbar-width: none;
+        }
+        .menu::-webkit-scrollbar { display: none; }
+
+        /* Esconde o antigo menu-left/right wrapper — o JS usa os botões pelos IDs */
+        .menu-left, .menu-right { display: contents; }
+
+        /* ============================================================
+           MENU DE NAVEGAÇÃO REFINADO
+        ============================================================ */
+        .menu button { 
+            display: flex; align-items: center; gap: 10px; width: 100%; 
+            padding: 10px 18px; background: none; border: none; 
+            border-left: 4px solid transparent; border-radius: 0; 
+            color: #00d2b5; /* 👈 Verde mais claro e vibrante */
+            opacity: 0.75;
+            font-size: 0.83rem; font-weight: 600; font-family: var(--font-main); 
+            letter-spacing: 0.2px; cursor: pointer; transition: all 0.2s ease; 
+            text-align: left; white-space: nowrap; 
+        }
+
+        .menu button::before {
+            content: '';
+            width: 16px;
+            height: 16px;
+            background: currentColor;
+            flex-shrink: 0;
+            -webkit-mask-size: contain;
+            mask-size: contain;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-position: center;
+            mask-position: center;
+            opacity: 0.7;
+            transition: opacity 0.18s;
+        }
+
+        /* Ícones via mask */
+        #btn-consulta::before   { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E"); }
+        #btn-painel::before     { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Crect x='3' y='3' width='7' height='9'/%3E%3Crect x='14' y='3' width='7' height='5'/%3E%3Crect x='14' y='12' width='7' height='9'/%3E%3Crect x='3' y='16' width='7' height='5'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Crect x='3' y='3' width='7' height='9'/%3E%3Crect x='14' y='3' width='7' height='5'/%3E%3Crect x='14' y='12' width='7' height='9'/%3E%3Crect x='3' y='16' width='7' height='5'/%3E%3C/svg%3E"); }
+        #btn-dashboard::before  { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cline x1='18' y1='20' x2='18' y2='10'/%3E%3Cline x1='12' y1='20' x2='12' y2='4'/%3E%3Cline x1='6' y1='20' x2='6' y2='14'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cline x1='18' y1='20' x2='18' y2='10'/%3E%3Cline x1='12' y1='20' x2='12' y2='4'/%3E%3Cline x1='6' y1='20' x2='6' y2='14'/%3E%3C/svg%3E"); }
+        #btn-cadastro::before   { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M23 21v-2a4 4 0 0 0-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M23 21v-2a4 4 0 0 0-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E"); }
+        #btn-mapa::before       { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpolygon points='1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6'/%3E%3Cline x1='8' y1='2' x2='8' y2='18'/%3E%3Cline x1='16' y1='6' x2='16' y2='22'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpolygon points='1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6'/%3E%3Cline x1='8' y1='2' x2='8' y2='18'/%3E%3Cline x1='16' y1='6' x2='16' y2='22'/%3E%3C/svg%3E"); }
+        #btn-usuarios::before   { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E"); }
+        #btn-disponibilidade::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E"); }
+        #btn-resumo-slack-sidebar::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E"); background: white; width: 14px; height: 14px; opacity: 1; }
+      
+        .menu button:hover { 
+            background: rgba(0,174,151,0.12); 
+            color: #1affda; 
+            opacity: 1;
+            border-left-color: rgba(0,174,151,0.4); 
+            transform: none; box-shadow: none; 
+        }
+        .menu button:hover::before { opacity: 1; }
+
+        .menu button.ativo { 
+            background: rgba(30, 60, 255, 0.35); /* 👈 Azul mais claro e evidente */
+            color: #00ffda; 
+            font-weight: 700; opacity: 1;
+            text-shadow: 0 0 10px rgba(0, 255, 218, 0.4);
+            border-left: 4px solid #00ffda; 
+        }
+        .menu button.ativo::before { opacity: 1; }
+
+        .menu .btn-sair {
+            color: rgba(255,100,80,0.7) !important;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+        .menu .btn-sair::before {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpolyline points='16 17 21 12 16 7'/%3E%3Cline x1='21' y1='12' x2='9' y2='12'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpolyline points='16 17 21 12 16 7'/%3E%3Cline x1='21' y1='12' x2='9' y2='12'/%3E%3C/svg%3E");
+        }
+        .menu .btn-sair:hover {
+            color: #ff6450 !important;
+            background: rgba(255,70,51,0.15) !important;
+            border-left-color: rgba(255,70,51,0.5);
+        }
+
+        /* Divisor entre seções do menu */
+        .menu-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.06);
+            margin: 8px 18px;
+        }
+
+        /* ── INTEGRATIONS (sidebar footer block) ── */
+        .sidebar-bottom {
+            flex-shrink: 0;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            padding: 10px 0 4px;
+        }
+
+        /* Integrations toggle — reposicionado para sidebar */
+        .integracoes-topo {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .integracoes-topo > .integ-label {
+            font-size: 0.55rem;
+            opacity: 0.4;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--cobli-green);
+            margin-bottom: 2px;
+        }
+        .integracoes-topo label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(0,174,151,0.75);
+            font-size: 0.68rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Botão Resumo Slack — na sidebar */
+        #btn-resumo-slack {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: rgba(74,21,75,0.4);
+            border: 1px solid rgba(74,21,75,0.6);
+            color: rgba(255,255,255,0.75);
+            padding: 8px 18px;
+            border-radius: 0;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: var(--font-main);
+            width: 100%;
+            margin-top: 2px;
+        }
+        #btn-resumo-slack:hover {
+            background: #4A154B;
+            color: white;
+            transform: none;
+            box-shadow: none;
+        }
+        #btn-resumo-slack .slack-icon { font-size: 0.9rem; }
+
+        /* ── USER INFO (sidebar footer) ── */
+        .sidebar-user {
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sidebar-user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+            font-family: var(--font-mono);
+        }
+        #user-role-display {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 140px;
+        }
+
+/* ── MAIN AREA ── */
+        .main-wrapper {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: var(--bg);
+            position: relative;
+        }
+
+        /* ── TOP BAR ── */
+        .topo {
+            background: var(--cobli-dark);
+            color: white;
+            padding: 0 24px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            gap: 14px;
+        }
+
+        /* Esconde o logo no topbar — já está na sidebar */
+        .topo .header-logo-text { display: none; }
+
+        .topo-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-role-mobile { display: none; }
+
+        /* ============================================================
+           TOGGLE SWITCH
+        ============================================================ */
+        .toggle-switch { 
+            position: relative; width: 34px; height: 18px; appearance: none; 
+            background: rgba(255,255,255,0.15); border-radius: 20px; outline: none; 
+            cursor: pointer; transition: 0.3s; margin: 0 !important; padding: 0 !important;
+        }
+        .toggle-switch::after { 
+            content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; 
+            background: white; border-radius: 50%; transition: 0.3s; 
+        }
+        .toggle-switch:checked { background: var(--cobli-green); }
+        .toggle-switch:checked::after { transform: translateX(16px); }
+
+        /* ============================================================
+           CONTEÚDO — deslocado pela sidebar
+        ============================================================ */
+        .conteudo { 
+            padding: 20px 24px; 
+            max-width: 1100px; 
+            margin: 0 auto; 
+            width: 100%;
+            box-sizing: border-box;
+            /* 👇 Adicionado para o conteúdo ficar acima das luzes 👇 */
+            position: relative; 
+            z-index: 1;         
+        }
+        .aba { display: none; } 
+        .aba.ativa { display: block; animation: fadeIn 0.3s ease; }
+
         /* ============================================================
            TOAST
         ============================================================ */
@@ -107,12 +433,13 @@
 
         .auth-card { 
             background: white; 
-            padding: 44px 40px; 
-            border-radius: 18px; 
+            padding: 40px 36px 36px; 
+            border-radius: 20px; 
             width: 380px; 
             text-align: center; 
-            box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08); 
-            animation: fadeIn 0.5s ease;
+            box-shadow: 0 32px 72px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.06); 
+            animation: fadeIn 0.4s ease;
+            border-top: 4px solid var(--cobli-green);
         }
         
         .logo-auth { 
@@ -179,27 +506,7 @@
         .auth-links a:hover { color: var(--cobli-dark); }
         .auth-links a span { color: var(--primary); font-weight: 700; }
         
-        /* ============================================================
-           APP LAYOUT
-        ============================================================ */
-        #app-content { display: none; padding: 20px; }
-
-        /* TOPO */
-        .topo { 
-            background: var(--cobli-dark); 
-            color: white; 
-            padding: 14px 28px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin: -20px -20px 0 -20px;
-            position: sticky;
-            top: -20px;
-            z-index: 1000;
-        }
-
-        .header-logo-text { display: flex; align-items: center; gap: 10px; }
-        
+        /* ── Mantidos para compatibilidade com componentes internos ── */
         .apex-badge {
             background: var(--primary);
             color: white;
@@ -209,202 +516,41 @@
             letter-spacing: 1px;
             padding: 5px 12px;
             border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.15);
         }
-        
-        .cobli-brand {
-            display: flex;
-            flex-direction: column;
-        }
-        .txt-cobli { 
-            font-size: 1rem; 
-            font-weight: 700; 
-            letter-spacing: 1px;
-            line-height: 1;
-        }
-        .txt-agenda { 
-            font-size: 0.58rem; 
-            opacity: 0.5; 
-            text-transform: uppercase; 
-            letter-spacing: 2px; 
-            margin-top: 2px;
-        }
-        
-        .topo-right { display: flex; align-items: center; gap: 12px; }
-        
-        .user-role-mobile { 
-            font-size: 0.8rem; 
-            font-weight: 600; 
-            opacity: 0.9; 
-            text-align: right;
-            line-height: 1.3;
-        }
-
-        /* CONTROLES DE INTEGRAÇÃO */
-        .integracoes-topo { 
-            display: none; 
-            align-items: center; 
-            gap: 12px; 
-            background: rgba(255,255,255,0.08); 
-            padding: 7px 14px; 
-            border-radius: 20px; 
-            border: 1px solid rgba(255,255,255,0.12); 
-        }
-        .integracoes-topo > .integ-label {
-            font-size: 0.6rem; 
-            opacity: 0.6; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            letter-spacing: 1px;
-            color: white;
-        }
-        .integracoes-topo label { 
-            display: flex; 
-            align-items: center; 
-            gap: 6px; 
-            color: white; 
-            font-size: 0.65rem; 
-            font-weight: 700; 
-            cursor: pointer; 
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        /* BOTÃO RESUMO SLACK */
-        #btn-resumo-slack {
-            display: none;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            padding: 7px 13px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-family: var(--font-main);
-        }
-        #btn-resumo-slack:hover {
-            background: var(--cobli-green);
-            border-color: var(--cobli-green);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,174,151,0.3);
-        }
-        #btn-resumo-slack .slack-icon { font-size: 0.9rem; }
-
-        /* TOGGLE SWITCH */
-        .toggle-switch { 
-            position: relative; 
-            width: 34px; 
-            height: 18px; 
-            appearance: none; 
-            background: rgba(255,255,255,0.2); 
-            border-radius: 20px; 
-            outline: none; 
-            cursor: pointer; 
-            transition: 0.3s; 
-            margin: 0 !important; 
-            padding: 0 !important;
-        }
-        .toggle-switch::after { 
-            content: ''; 
-            position: absolute; 
-            top: 2px; 
-            left: 2px; 
-            width: 14px; 
-            height: 14px; 
-            background: white; 
-            border-radius: 50%; 
-            transition: 0.3s; 
-        }
-        .toggle-switch:checked { background: var(--cobli-green); }
-        .toggle-switch:checked::after { transform: translateX(16px); }
-
-        /* ============================================================
-           MENU DE NAVEGAÇÃO
-        ============================================================ */
-        .menu { 
-            background: var(--primary); 
-            padding: 0 28px; 
-            display: flex; 
-            align-items: stretch;
-            justify-content: space-between; 
-            min-height: 44px; 
-            margin: 0 -20px 24px -20px;
-            position: sticky;
-            top: calc(53px - 20px);
-            z-index: 999;
-        }
-        .menu-left, .menu-right { display: flex; align-items: stretch; }
-        .menu-right { justify-content: flex-end; }
-
-        .menu button { 
-            background: none; 
-            border: none; 
-            color: rgba(255,255,255,0.65); 
-            padding: 0 18px;
-            cursor: pointer; 
-            font-size: 0.82rem;
-            font-weight: 600;
-            font-family: var(--font-main);
-            letter-spacing: 0.3px;
-            transition: all 0.2s; 
-            border-bottom: 3px solid transparent;
-            position: relative; 
-        }
-        .menu button:hover { 
-            color: white; 
-            background: rgba(255,255,255,0.08);
-            transform: none;
-            box-shadow: none;
-        }
-        .menu button.ativo { 
-            color: white; 
-            font-weight: 700; 
-            border-bottom: 3px solid var(--cobli-green);
-            background: rgba(255,255,255,0.1);
-        }
-        .menu .btn-sair { 
-            color: #ff9999 !important; 
-            font-weight: 700;
-            font-size: 0.78rem;
-        }
-        .menu .btn-sair:hover { 
-            color: white !important; 
-            background: rgba(255,70,51,0.25) !important;
-        }
-
-        /* ============================================================
-           CONTEÚDO
-        ============================================================ */
-        .conteudo { padding: 0; max-width: 1050px; margin: 0 auto; }
-        .aba { display: none; } 
-        .aba.ativa { display: block; animation: fadeIn 0.3s ease; }
+        .header-logo-text { display: flex; align-items: center; gap: 10px; }
+        .cobli-brand { display: flex; flex-direction: column; }
+        .txt-cobli { font-size: 1rem; font-weight: 700; letter-spacing: 1px; line-height: 1; }
+        .txt-agenda { font-size: 0.58rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 2px; margin-top: 2px; }
         
         /* ============================================================
            CARDS
         ============================================================ */
-        .card { 
-            background: var(--card-bg); 
-            padding: 22px 24px; 
-            border-radius: var(--radius); 
-            margin-bottom: 20px; 
-            border: 1px solid var(--border); 
-            box-shadow: var(--shadow-sm);
-            display: flex; 
-            flex-direction: column; 
-            justify-content: space-between; 
-            transition: border-color 0.2s, box-shadow 0.2s;
+/* nav section label */
+        .sidebar-nav-section {
+            font-size: 0.62rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+            color: rgba(255,255,255,0.85); /* 👈 Cinza bem mais claro e brilhante! */
+            padding: 14px 18px 4px;
         }
-        .card:hover { 
-            border-color: rgba(0,27,184,0.2); 
-            box-shadow: var(--shadow-md);
+
+        /* ============================================================
+           CARDS
+        ============================================================ */
+        .card { /* 👈 O PONTO VITAL AQUI! */
+            background: var(--card-bg); padding: 22px 24px; border-radius: var(--radius); 
+            margin-bottom: 20px; border: 1px solid rgba(205,212,232,0.9); box-shadow: var(--shadow-sm); 
+            display: flex; flex-direction: column; justify-content: space-between; 
+            transition: border-color 0.25s, box-shadow 0.25s, transform 0.22s cubic-bezier(0.34,1.4,0.64,1);
+            position: relative; overflow: hidden;
         }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 100%; height: 2px;
+            background: linear-gradient(90deg, #001BB8, #00AE97); transition: right 0.38s ease; z-index: 1;
+        }
+        .card:hover::before { right: 0; }
+        .card:hover { border-color: rgba(0,27,184,0.18); box-shadow: var(--shadow-md); transform: translateY(-2px); }
         
         h2 { 
             font-size: 0.95rem; 
@@ -553,62 +699,118 @@
         /* ============================================================
            PAINEL ITEMS
         ============================================================ */
-        .painel-item { 
-            background: var(--card-bg); 
-            margin-bottom: 8px; 
-            padding: 14px 16px; 
-            border-radius: var(--radius); 
-            border: 1px solid var(--border); 
-            border-left: 4px solid var(--primary); 
-            box-shadow: var(--shadow-sm); 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            cursor: pointer; 
-            transition: all 0.2s ease;
+.painel-item { 
+            background: var(--card-bg); margin-bottom: 8px; padding: 14px 16px; 
+            border-radius: var(--radius); border: 1px solid var(--border); 
+            border-left-width: 5px; border-left-style: solid; border-left-color: var(--primary);
+            box-shadow: var(--shadow-sm); display: flex; align-items: center; 
+            justify-content: space-between; cursor: pointer; transition: all 0.22s ease; 
         }
-        .painel-item:hover { 
-            transform: translateY(-2px); 
-            box-shadow: var(--shadow-md); 
-            background-color: #f0faf9; 
-            border-left-color: var(--cobli-green); 
-        }
+        .painel-item:hover { transform: translateX(5px) translateY(-2px); box-shadow: var(--shadow-md); }
+
+        /* Color Coding Automático via JS para a Aba do Painel */
+        .painel-item[data-status="concluido"]  { border-left-color: #00AE97; background: #f7fffd; }
+        .painel-item[data-status="agendado"]   { border-left-color: #001BB8; background: #f7f9ff; }
+        .painel-item[data-status="andamento"]  { border-left-color: #f59e0b; background: #fffdf0; }
+        .painel-item[data-status="impedido"]   { border-left-color: #FF4633; background: #fff7f6; }
+        .painel-item[data-status="cancelado"]  { border-left-color: #94a3b8; background: #f8f9fb; opacity: 0.7; }
+        .painel-item[data-status="negociacao"] { border-left-color: #8b5cf6; background: #faf7ff; }
+        .painel-item[data-status="solicitado"] { border-left-color: var(--muted); }
 
         /* ============================================================
-           MODAIS
+           MODAIS — redesign
         ============================================================ */
         .modal-overlay { 
             display: none; 
             position: fixed; 
             top: 0; left: 0; 
             width: 100%; height: 100%; 
-            background: rgba(7,7,78,0.65); 
-            backdrop-filter: blur(4px);
+            background: rgba(7,7,78,0.72); 
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             justify-content: center; 
             align-items: center; 
             z-index: 60000; 
         }
         .modal-card { 
-            background: #f8f9fb; 
+            background: #ffffff; 
             color: var(--text); 
-            padding: 28px; 
-            border-radius: 14px; 
-            width: 620px; 
-            max-width: 92%; 
-            max-height: 88vh; 
-            overflow-y: auto; 
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--border);
-            animation: fadeIn 0.25s ease;
+            padding: 0;
+            border-radius: 16px; 
+            width: 640px; 
+            max-width: 94%; 
+            max-height: 90vh; 
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 60px rgba(7,7,78,0.35), 0 0 0 1px rgba(7,7,78,0.08);
+            animation: fadeIn 0.22s ease;
         }
+        /* Faixa de topo colorida do modal */
+        .modal-card::before {
+            content: '';
+            display: block;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--cobli-green));
+            border-radius: 16px 16px 0 0;
+            flex-shrink: 0;
+        }
+        /* Área scrollável interna */
+        .modal-inner {
+            padding: 26px 28px 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        /* Retrocompatibilidade: modal-body e modal-footer dentro do modal-card existente
+           ficam dentro do .modal-inner que criamos via JS — mas o modalAviso usa divs diretos,
+           então aplicamos padding direto nos filhos conhecidos */
+        #modalAviso .modal-card {
+            padding: 0;
+        }
+        #modalAviso .modal-header,
+        #modalAviso .modal-body,
+        #modalAviso .modal-footer {
+            padding-left: 28px;
+            padding-right: 28px;
+        }
+        #modalAviso .modal-header { padding-top: 24px; padding-bottom: 0; }
+        #modalAviso .modal-body   { padding-top: 12px; }
+        #modalAviso .modal-footer { padding-bottom: 22px; padding-top: 16px; }
+
         .modal-header { 
-            font-size: 1.1rem; 
+            font-size: 1.05rem; 
             font-weight: 800; 
-            color: var(--primary); 
-            margin-bottom: 18px;
+            color: var(--cobli-dark); 
+            margin-bottom: 0;
             letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .modal-footer { margin-top: 20px; text-align: right; }
+        .modal-header::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: var(--cobli-green);
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+        .modal-body {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+        .modal-body p { margin: 0; }
+        .modal-body strong { color: var(--text); }
+        .modal-footer { 
+            margin-top: 0; 
+            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid var(--bg);
+        }
 
         /* ============================================================
            DATE PILLS E BLOCOS
@@ -802,37 +1004,53 @@
         /* ============================================================
            MODAL RESUMO SLACK
         ============================================================ */
+        /* Padding interno para o modal do Slack (conteúdo direto no modal-card) */
+        #modalResumoSlack .modal-card {
+            padding: 0;
+        }
+        #modalResumoSlack .modal-card > * {
+            padding-left: 28px;
+            padding-right: 28px;
+        }
+        #modalResumoSlack .modal-card > .slack-modal-header { padding-top: 22px; }
+        #modalResumoSlack .modal-card > .botoes-acao { padding-bottom: 22px; }
+        #modalResumoSlack .modal-card > .periodo-opcoes,
+        #modalResumoSlack .modal-card > label { padding-left: 28px; padding-right: 28px; }
+
         .slack-modal-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 14px;
+            margin-bottom: 18px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--bg);
         }
         .slack-logo {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
             background: #4A154B;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.3rem;
             flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(74,21,75,0.3);
         }
-        .slack-modal-title { font-size: 1.15rem; font-weight: 800; color: var(--cobli-dark); letter-spacing: -0.3px; }
-        .slack-modal-sub { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+        .slack-modal-title { font-size: 1rem; font-weight: 800; color: var(--cobli-dark); letter-spacing: -0.3px; }
+        .slack-modal-sub { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
         
-        .periodo-opcoes { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .periodo-opcoes { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 16px; }
         .periodo-btn {
-            padding: 8px 14px;
+            padding: 6px 14px;
             border-radius: 20px;
             border: 1.5px solid var(--border);
             background: white;
             color: var(--muted);
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.18s;
             font-family: var(--font-main);
             letter-spacing: 0.3px;
         }
@@ -840,165 +1058,1095 @@
             background: var(--primary);
             border-color: var(--primary);
             color: white;
-            box-shadow: 0 2px 8px rgba(0,27,184,0.25);
         }
         .periodo-btn:hover:not(.ativo-periodo) {
             border-color: var(--primary);
             color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: none;
         }
         
         .preview-resumo {
-            background: #1a1a2e;
+            background: #0f1124;
             border-radius: var(--radius);
             padding: 16px 18px;
-            margin: 16px 0;
+            margin: 14px 0;
             font-family: var(--font-mono);
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             color: #c8d3f5;
-            line-height: 1.7;
-            max-height: 240px;
+            line-height: 1.75;
+            max-height: 220px;
             overflow-y: auto;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(0,174,151,0.15);
         }
         .preview-resumo .pv-title { color: var(--cobli-green); font-weight: 700; margin-bottom: 8px; display: block; }
         .preview-resumo .pv-row { margin-bottom: 4px; }
         .preview-resumo .pv-row span { color: white; }
 
-        /* ============================================================
-           MOBILE
+/* ============================================================
+           MOBILE — MODO APP (Menu Inferior + Correções de Vazamento)
         ============================================================ */
-        @media (max-width: 600px) {
-            .topo { 
-                flex-direction: column; 
-                align-items: stretch;
-                padding: 10px 15px;
-                top: -20px;
-            }
-            .user-role-mobile { 
-                position: absolute; 
-                top: 14px; 
-                right: 15px; 
-                font-size: 0.68rem !important;
-            }
-            .integracoes-topo { 
-                margin-top: 8px; 
-                width: 100%; 
-                justify-content: space-between; 
-                padding: 5px 12px; 
-            }
-            .integracoes-topo .integ-label { display: none; } 
-            .integracoes-topo label { 
-                flex-direction: column; 
-                gap: 2px; 
-                font-size: 0.6rem;
-            }
-            #btn-resumo-slack { margin-top: 6px; width: 100%; justify-content: center; border-radius: 8px; padding: 8px; }
-            .toggle-switch { 
-                width: 32px !important; 
-                height: 16px !important; 
-                min-height: 16px !important; 
-                margin: 0 auto !important;
-            }
-            .toggle-switch::after { width: 12px; height: 12px; }
-            .toggle-switch:checked::after { transform: translateX(16px); }
+        @media (max-width: 700px) {
+            :root { --sidebar-w: 0px; }
 
-            .menu { 
-                position: fixed; bottom: 0; left: 0; right: 0; z-index: 10000; 
-                margin: 0; border-radius: 14px 14px 0 0; padding: 0;
-                height: 60px; align-items: stretch;
-                justify-content: space-between;
-                width: 100%;
-                top: auto;
-                box-shadow: 0 -4px 20px rgba(7,7,78,0.2);
-            }
-            .menu-left {
-                flex: 1;
-                min-width: 0;
-                overflow-x: auto; 
-                white-space: nowrap; 
-                padding-left: 8px;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: none; 
-            }
-            .menu-left::-webkit-scrollbar { display: none; }
-            .menu-right {
-                flex: 0 0 auto;
-                padding-left: 5px; 
-                padding-right: 12px;
-                background: var(--primary); 
-                box-shadow: -8px 0 10px var(--primary); 
-                z-index: 5;
-                align-items: center;
-            }
-            .menu button { font-size: 0.75rem; padding: 0 10px; }
-
-            html, body { overflow-x: hidden; width: 100%; }      
-            .conteudo { 
-                padding-bottom: 85px;
-                overflow-y: auto;
-                overflow-x: hidden;
-                width: 100%;
-                -webkit-overflow-scrolling: touch;
-            }       
-            .auth-card { 
-                width: 95%; 
-                padding: 20px 18px; 
-                max-height: 80vh;
-                overflow-y: auto;
-                overflow-x: hidden;
-            }      
-            table, .table-container { 
-                max-width: 100%; 
-                overflow-x: auto;
-            }
-            button, input { min-height: 46px; font-size: 14px !important; } 
-            select { min-height: 46px; font-size: 13px !important; } 
-            .botoes-acao { flex-direction: column; }
-            .botoes-acao button { width: 100%; margin-bottom: 5px; flex: none !important; }
-            .item-lista, 
-            .auth-card div[style*="flex"] { 
-                display: flex !important;
-                flex-direction: column !important;
-                align-items: flex-start !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                box-sizing: border-box !important;
-                padding: 10px 0 !important;
-            }      
-            .item-lista > div, 
-            .auth-card div[style*="flex"] > div {
-                width: 100% !important;
-                white-space: normal !important;
-                word-break: break-word !important;
-                margin-bottom: 10px !important;
-            }
-            .item-lista button, 
-            .auth-card div[style*="flex"] button { 
-                width: 100% !important; 
-                margin-left: 0 !important; 
-                margin-top: 5px !important;
-                padding: 12px !important;
-            }
-            .apex-badge { font-size: 0.9rem; padding: 4px 9px; }
-            .header-logo-text { flex-direction: row; align-items: center; }
-            .txt-cobli { font-size: 1.1rem !important; font-weight: 800 !important; margin: 0 !important; }
+            /* 1. Trava total de rolagem horizontal na raiz */
+            html, body { overflow-x: hidden !important; width: 100vw !important; max-width: 100vw !important; margin: 0; padding: 0; }
+            .main-wrapper { max-width: 100vw; overflow-x: hidden; margin-left: 0 !important; padding-bottom: 120px !important; }
             
-            table {
-                display: block !important;
-                width: 100% !important;
-                overflow-x: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-                white-space: nowrap !important;
+            /* 2. Ajuste de margens do conteúdo */
+            .conteudo { width: 100% !important; max-width: 100vw !important; box-sizing: border-box; padding: 12px 10px !important; overflow-x: hidden; }
+
+            /* 3. Evita que os cartões e textos largos quebrem a tela */
+            .card { width: 100% !important; max-width: 100% !important; box-sizing: border-box; padding: 16px 14px !important; overflow-x: auto; }
+            .home-recente-cliente { min-width: 0; overflow: hidden; text-overflow: ellipsis; } /* 👈 Essa é a mágica que evita o texto empurrar a tela */
+
+            /* 4. Tabela de Usuários com rolagem interna */
+            .card > div[style*="overflow-y:auto"] { overflow-x: auto !important; max-width: 100%; }
+            table { min-width: 600px; display: table !important; } 
+
+            /* 5. Menu Lateral vira Bottom Nav */
+            .sidebar {
+                width: 100% !important; min-width: 100% !important; height: 65px !important;
+                top: auto !important; bottom: 0 !important; left: 0 !important; right: 0 !important;
+                flex-direction: row !important; align-items: stretch !important;
+                border-radius: 18px 18px 0 0 !important; box-shadow: 0 -4px 24px rgba(7,7,78,0.3) !important;
+                z-index: 9999 !important; border: none !important;
             }
-            table th, table td {
-                padding: 10px 12px !important;
-                font-size: 0.78rem !important; 
+
+            .sidebar-logo, .sidebar-nav-section, .menu-divider, .sidebar-bottom { display: none !important; }
+
+            .menu {
+                flex-direction: row !important; flex: 1 !important; padding: 0 10px !important;
+                overflow-x: auto !important; overflow-y: hidden !important;
+                align-items: center !important; justify-content: space-between !important; margin: 0 !important;
             }
-            .flex-cards { flex-direction: column; }
-            .status-bar { min-width: 650px; }
-            .status-bar-wrapper { overflow-x: auto; }
+
+            .menu button {
+                flex-direction: column !important; gap: 4px !important; padding: 6px !important;
+                font-size: 0.6rem !important; border-left: none !important; border-top: 3px solid transparent !important;
+                align-items: center !important; justify-content: center !important;
+                min-width: 60px !important; border-radius: 0 !important; flex: 1; white-space: nowrap !important;
+            }
+            .menu button::before { width: 22px !important; height: 22px !important; margin: 0 !important; }
+            .menu button.ativo { border-top: 3px solid var(--cobli-green) !important; background: rgba(0,27,184,0.15) !important; color: #00ffda !important; }
+
+            .topo { height: 55px !important; padding: 0 16px !important; justify-content: space-between !important; }
+            .topo .header-logo-text { display: flex !important; }
+
+            .auth-card { width: 95% !important; padding: 20px 18px !important; }
+            .flex-cards { flex-direction: column !important; }
+            .home-kpis { grid-template-columns: repeat(2, 1fr); }
+            .home-actions-grid { grid-template-columns: 1fr; }
+            .home-kpi-value { font-size: 1.8rem; }
+
+            /* 👇 INTEGRAÇÕES NO MOBILE - BARRA FLUTUANTE ACIMA DO MENU 👇 */
+            #integrations-control-wrapper {
+                display: flex !important;
+                position: fixed;
+                bottom: 65px; /* Altura exata do menu inferior */
+                left: 0; right: 0; width: 100vw;
+                background: #090954; /* Fundo escuro destacado */
+                border-top: 1px solid rgba(255,255,255,0.1);
+                z-index: 9998 !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                padding: 8px 14px !important;
+                box-sizing: border-box;
+                box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
+            }
+            #integrations-control-wrapper .sidebar-nav-section { display: none !important; }
+            #integrations-control-wrapper .integracoes-topo { 
+                display: flex !important; flex-direction: row !important; gap: 10px !important; padding: 0 !important; border: none !important; margin: 0 !important; 
+            }
+            #integrations-control-wrapper .integracoes-topo label { 
+                flex-direction: column !important; font-size: 0.5rem !important; gap: 3px !important; 
+            }
+            #integrations-control-wrapper .toggle-switch { width: 28px !important; height: 14px !important; }
+            #integrations-control-wrapper .toggle-switch::after { width: 10px; height: 10px; }
+            #integrations-control-wrapper .toggle-switch:checked::after { transform: translateX(14px); }
+            
+            #btn-resumo-slack-sidebar { 
+                margin: 0 !important; width: auto !important; padding: 6px 12px !important; border-radius: 6px !important; 
+            }
         }
+/* ============================================================
+           AJUSTES FINAIS: LOGO EM LINHA (SÓ DESKTOP) E DOTS MAIORES
+        ============================================================ */
+        :root {
+            --sidebar-w: 245px; /* 👈 Aumentamos a barra para a frase caber inteira */
+        }
+
+        @media (min-width: 701px) {
+            .sidebar-logo .cobli-brand { 
+                flex-direction: row !important; 
+                align-items: baseline !important; /* 👈 Alinha a base das letras por baixo */
+                gap: 6px !important; 
+            }
+            .sidebar-logo .txt-agenda { 
+                margin-top: 0 !important; 
+                display: inline-block !important; 
+                font-size: 0.55rem !important; 
+                letter-spacing: 1px !important; 
+                white-space: nowrap !important; 
+            }
+        }
+        
+        .topo-integrations { gap: 16px !important; }
+        .topo-integration-dot { width: 10px !important; height: 10px !important; }
+        .topo-integration-label { font-size: 0.65rem !important; margin-top: 4px !important; }
+        
     </style>
+
+    <!-- 
+  APEX COBLI — LAYOUT PATCH
+  Aplique este bloco ANTES do </head> do arquivo original
+  Contém apenas mudanças de layout/CSS/JS visual — zero alterações de lógica de negócio
+-->
+
+<!-- ============================================================
+     PATCH 1 — TOPBAR: remove a linha azul estranha, adiciona
+     indicador de status de integrações no topo
+============================================================ -->
+<style>
+/* Remove a linha/borda estranha que aparecia no topo */
+.topo {
+    border-bottom: none !important;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.06) !important;
+}
+
+/* Indicador de integração no topo (dots de status) */
+.topo-integrations {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 16px;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    margin-right: 4px;
+}
+.topo-integration-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    position: relative;
+    transition: background 0.3s;
+}
+.topo-integration-dot.ativo {
+    background: var(--cobli-green);
+    box-shadow: 0 0 6px rgba(0,174,151,0.6);
+}
+.topo-integration-dot.inativo {
+    background: rgba(255,70,51,0.5);
+}
+.topo-integration-label {
+    font-size: 0.52rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 2px;
+    text-align: center;
+    line-height: 1;
+}
+.topo-integ-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: default;
+}
+
+/* ============================================================
+   PATCH 2 — HOME SCREEN: nova aba "Início" com resumo visual
+============================================================ */
+#home-screen {
+    padding-top: 4px;
+}
+
+.home-welcome-bar {
+    background: linear-gradient(135deg, var(--cobli-dark) 0%, #0d1660 100%);
+    border-radius: var(--radius);
+    padding: 22px 28px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(0,27,184,0.3);
+}
+.home-welcome-bar::after {
+    content: 'APEX';
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--font-mono);
+    font-size: 5rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.04);
+    letter-spacing: 8px;
+    pointer-events: none;
+    user-select: none;
+}
+.home-welcome-bar h1 {
+    margin: 0 0 4px;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.5px;
+}
+.home-welcome-bar p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.5);
+    font-weight: 500;
+}
+.home-welcome-bar .welcome-date {
+    margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,174,151,0.15);
+    border: 1px solid rgba(0,174,151,0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--cobli-green);
+    letter-spacing: 0.3px;
+    font-family: var(--font-mono);
+}
+
+/* KPI cards da home */
+.home-kpis {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.home-kpi-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+.home-kpi-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+.home-kpi-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 0 2px 2px 0;
+}
+.home-kpi-card.kpi-total::before { background: var(--primary); }
+.home-kpi-card.kpi-green::before { background: var(--cobli-green); }
+.home-kpi-card.kpi-amber::before { background: #f59e0b; }
+.home-kpi-card.kpi-red::before { background: var(--cobli-red); }
+
+.home-kpi-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    margin-bottom: 8px;
+}
+.home-kpi-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    letter-spacing: -1px;
+    line-height: 1;
+    color: var(--cobli-dark);
+}
+.home-kpi-card.kpi-total .home-kpi-value { color: var(--primary); }
+.home-kpi-card.kpi-green .home-kpi-value { color: var(--cobli-green); }
+.home-kpi-card.kpi-amber .home-kpi-value { color: #f59e0b; }
+.home-kpi-card.kpi-red .home-kpi-value { color: var(--cobli-red); }
+
+.home-kpi-sub {
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 6px;
+    font-weight: 600;
+}
+
+/* Quick actions na home */
+.home-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.home-action-btn {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.22s cubic-bezier(0.34,1.4,0.64,1);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-sm);
+}
+.home-action-btn:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+.home-action-btn.primary-action {
+    background: var(--primary);
+    border-color: var(--primary);
+    grid-column: 1 / -1;
+}
+.home-action-btn.primary-action:hover {
+    background: #0017a0;
+    border-color: #0017a0;
+}
+.home-action-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    background: rgba(0,27,184,0.08);
+}
+.primary-action .home-action-icon {
+    background: rgba(255,255,255,0.15);
+    font-size: 1.5rem;
+}
+.home-action-title {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--cobli-dark);
+    letter-spacing: -0.2px;
+}
+.primary-action .home-action-title {
+    color: white;
+    font-size: 1rem;
+}
+.home-action-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 3px;
+    font-weight: 500;
+}
+.primary-action .home-action-sub {
+    color: rgba(255,255,255,0.65);
+}
+
+/* Últimos agendamentos na home (mini lista) */
+.home-recentes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.home-recentes-titulo {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+}
+.home-recente-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--bg);
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: var(--radius-sm);
+    gap: 10px;
+}
+.home-recente-item:hover { background: var(--bg); }
+.home-recente-ticket {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--primary);
+    min-width: 80px;
+}
+.home-recente-cliente {
+    flex: 1;
+    font-weight: 600;
+    color: var(--cobli-dark);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.home-recente-status {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+/* ============================================================
+   PATCH 3 — MODAL PRESTADOR: redesign com brand Cobli
+============================================================ */
+.modal-prestador-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid var(--bg);
+}
+.modal-prestador-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), #3a5af0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0,27,184,0.3);
+}
+.modal-prestador-nome {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--cobli-dark);
+    letter-spacing: -0.3px;
+}
+.modal-prestador-meta {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 2px;
+    font-weight: 600;
+}
+
+.modal-prestador-acoes {
+    padding: 12px 20px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.modal-acao-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-family: var(--font-main);
+    font-weight: 700;
+    font-size: 0.88rem;
+    transition: all 0.2s;
+    text-align: left;
+}
+.modal-acao-btn:hover {
+    transform: translateX(4px);
+    box-shadow: var(--shadow-sm);
+}
+.modal-acao-btn.acao-ver {
+    color: var(--primary);
+    border-color: rgba(0,27,184,0.2);
+    background: rgba(0,27,184,0.03);
+}
+.modal-acao-btn.acao-ver:hover {
+    background: rgba(0,27,184,0.07);
+    border-color: rgba(0,27,184,0.35);
+}
+.modal-acao-btn.acao-editar {
+    color: #0d7058;
+    border-color: rgba(0,174,151,0.25);
+    background: rgba(0,174,151,0.04);
+}
+.modal-acao-btn.acao-editar:hover {
+    background: rgba(0,174,151,0.1);
+    border-color: rgba(0,174,151,0.4);
+}
+.modal-acao-btn.acao-excluir {
+    color: var(--cobli-red);
+    border-color: rgba(255,70,51,0.2);
+    background: rgba(255,70,51,0.03);
+}
+.modal-acao-btn.acao-excluir:hover {
+    background: rgba(255,70,51,0.08);
+    border-color: rgba(255,70,51,0.35);
+}
+.modal-acao-icone {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.acao-ver .modal-acao-icone { background: rgba(0,27,184,0.1); }
+.acao-editar .modal-acao-icone { background: rgba(0,174,151,0.12); }
+.acao-excluir .modal-acao-icone { background: rgba(255,70,51,0.1); }
+.modal-acao-texto strong {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 800;
+}
+.modal-acao-texto span {
+    font-size: 0.68rem;
+    font-weight: 500;
+    opacity: 0.6;
+    display: block;
+    margin-top: 1px;
+}
+.modal-prestador-footer {
+    padding: 12px 20px 18px;
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid var(--bg);
+}
+.modal-btn-cancelar {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    padding: 8px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font-main);
+    transition: all 0.18s;
+    min-height: auto;
+}
+.modal-btn-cancelar:hover {
+    border-color: var(--cobli-dark);
+    color: var(--cobli-dark);
+    background: var(--bg);
+    transform: none;
+    box-shadow: none;
+}
+
+/* ============================================================
+   PATCH 4 — DASHBOARD: visual mais refinado
+============================================================ */
+
+/* Stat cards do dashboard — mais impactantes */
+.stats-card {
+    background: var(--card-bg) !important;
+    padding: 20px 18px !important;
+    border-radius: var(--radius) !important;
+    flex: 1;
+    border: 1px solid var(--border) !important;
+    box-shadow: var(--shadow-sm) !important;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+.stats-card:hover {
+    box-shadow: var(--shadow-md) !important;
+    transform: translateY(-2px);
+}
+.stats-card::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 60px; height: 60px;
+    border-radius: 0 var(--radius) 0 60px;
+    opacity: 0.06;
+}
+.stats-card:nth-child(1)::after { background: var(--primary); }
+.stats-card:nth-child(2)::after { background: var(--cobli-green); }
+.stats-card:nth-child(3)::after { background: #f59e0b; }
+.stats-card .stats-label {
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 10px;
+}
+.stats-card strong {
+    font-size: 2.6rem !important;
+    margin-top: 2px !important;
+    line-height: 1 !important;
+}
+
+/* linha de ocupação da agenda — mais visual */
+#ocupacao-lista > div,
+#ocupacao-tecnicos-lista > div {
+    transition: all 0.2s;
+}
+#ocupacao-lista > div:hover,
+#ocupacao-tecnicos-lista > div:hover {
+    transform: translateX(3px);
+}
+
+/* serviços lista — mais clean */
+#lista-dashboard-servicos > div,
+#lista-dashboard-solicitantes > div {
+    transition: all 0.2s;
+}
+#lista-dashboard-servicos > div:hover,
+#lista-dashboard-solicitantes > div:hover {
+    transform: translateX(3px);
+}
+
+/* ============================================================
+   MOBILE patches
+============================================================ */
+@media (max-width: 700px) {
+    .home-kpis { grid-template-columns: repeat(2, 1fr); }
+    .home-actions-grid { grid-template-columns: 1fr; }
+    .home-welcome-bar { padding: 16px 18px; }
+    .home-kpi-value { font-size: 1.8rem; }
+}
+</style>
+
+<script>
+// ============================================================
+// PATCH JS — Ajustes visuais sem alterar lógica de negócio
+// Injete este script ANTES do script principal do APEX
+// ============================================================
+
+// ── PATCH 2: Substituir abrirOpcoesPrestador por versão com novo visual ──
+(function() {
+    // Sobrescreve após o DOMContentLoaded para garantir que o original já foi definido
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // ── PATCH: nova função de modal do prestador com brand Cobli ──
+        window.abrirOpcoesPrestador = function(i) {
+            if (typeof userRole !== 'undefined' && userRole !== 'GESTOR') {
+                return window.abrirDetalhesPrestador(i);
+            }
+            const p = (typeof prestadores !== 'undefined') ? prestadores[i] : { nome: 'Prestador', cidade: '-', uf: '-', status_prestador: 'PRODUCAO' };
+            const iniciais = p.nome ? p.nome.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase() : '??';
+            const statusTag = p.status_prestador === 'TESTE'
+                ? '<span style="font-size:0.65rem; background:#fef3c7; color:#b45309; padding:2px 7px; border-radius:4px; font-weight:800; margin-left:6px;">TESTE</span>'
+                : '<span style="font-size:0.65rem; background:#dcfce7; color:#15803d; padding:2px 7px; border-radius:4px; font-weight:800; margin-left:6px;">PRODUÇÃO</span>';
+
+            const html = `
+            <div class="modal-prestador-header">
+                <div class="modal-prestador-avatar">${iniciais}</div>
+                <div>
+                    <div class="modal-prestador-nome">${p.nome} ${statusTag}</div>
+                    <div class="modal-prestador-meta">📍 ${p.cidade || '-'}/${p.uf || '-'} &nbsp;·&nbsp; 📏 Raio: ${p.range || '-'} km &nbsp;·&nbsp; 👥 ${p.qtdtecnicos || 1} técnico(s)</div>
+                </div>
+            </div>
+            <div class="modal-prestador-acoes">
+                <button class="modal-acao-btn acao-ver" onclick="window.fecharModal(); window.abrirDetalhesPrestador(${i})">
+                    <div class="modal-acao-icone">👁️</div>
+                    <div class="modal-acao-texto">
+                        <strong>Ver Detalhes e Agenda</strong>
+                        <span>Horários, bloqueios e configurações</span>
+                    </div>
+                    <span style="margin-left:auto; opacity:0.35; font-size:1rem;">→</span>
+                </button>
+                <button class="modal-acao-btn acao-editar" onclick="window.fecharModal(); window.abrirCadastro(${i})">
+                    <div class="modal-acao-icone">📝</div>
+                    <div class="modal-acao-texto">
+                        <strong>Editar Cadastro</strong>
+                        <span>Dados, agenda base e técnicos</span>
+                    </div>
+                    <span style="margin-left:auto; opacity:0.35; font-size:1rem;">→</span>
+                </button>
+                <button class="modal-acao-btn acao-excluir" onclick="window.fecharModal(); window.excluirPrestador(${i})">
+                    <div class="modal-acao-icone">🗑️</div>
+                    <div class="modal-acao-texto">
+                        <strong>Excluir Prestador</strong>
+                        <span>Ação permanente e irreversível</span>
+                    </div>
+                </button>
+            </div>
+            <div class="modal-prestador-footer">
+                <button class="modal-btn-cancelar" onclick="window.fecharModal()">Cancelar</button>
+            </div>`;
+
+            // Usa o modal existente mas limpa os wrappers padrão
+            const overlay = document.getElementById('modalAviso');
+            const header = document.getElementById('modalHeader');
+            const body = document.getElementById('modalBody');
+            const footer = document.getElementById('modalFooter');
+
+            if (header) header.innerHTML = '';
+            if (header) header.style.display = 'none';
+            if (body) { body.innerHTML = html; body.style.marginBottom = '0'; }
+            if (footer) { footer.innerHTML = ''; footer.style.display = 'none'; }
+            if (overlay) overlay.style.display = 'flex';
+        };
+
+        // ── PATCH: restaurar modal normal para outros usos ──
+        const origExibirModal = window.exibirModal;
+        window.exibirModal = function(t, b) {
+            const header = document.getElementById('modalHeader');
+            const footer = document.getElementById('modalFooter');
+            if (header) header.style.display = '';
+            if (footer) footer.style.display = '';
+            origExibirModal(t, b);
+        };
+
+        // ── PATCH: Criar aba HOME e injetar no menu ──
+        criarAbaHome();
+
+        // ── PATCH: Adicionar dots de integração no topo ──
+        injetarTopbarIntegrations();
+
+        // ── PATCH: Melhorar visual dos stats-cards do Dashboard ──
+        melhorarStatCards();
+    });
+
+    function criarAbaHome() {
+        // Só cria se ainda não existe
+        if (document.getElementById('home')) return;
+
+        // Cria a div da aba home
+        const homeDiv = document.createElement('div');
+        homeDiv.id = 'home';
+        homeDiv.className = 'aba ativa'; // começa ativa
+
+        homeDiv.innerHTML = `
+        <div id="home-screen">
+            <!-- Welcome bar -->
+            <div class="home-welcome-bar">
+                <h1 id="home-greeting">Bom dia! 👋</h1>
+                <p id="home-subtitle">Visão geral do sistema de agendamento Cobli</p>
+                <div class="welcome-date" id="home-date">Carregando...</div>
+            </div>
+
+            <!-- KPI cards -->
+            <div class="home-kpis">
+                <div class="home-kpi-card kpi-total">
+                    <div class="home-kpi-label">Total de Solicitações</div>
+                    <div class="home-kpi-value" id="home-kpi-total">—</div>
+                    <div class="home-kpi-sub">Todos os status</div>
+                </div>
+                <div class="home-kpi-card kpi-green">
+                    <div class="home-kpi-label">Concluídos</div>
+                    <div class="home-kpi-value" id="home-kpi-conc">—</div>
+                    <div class="home-kpi-sub">Inc. impedidos</div>
+                </div>
+                <div class="home-kpi-card kpi-amber">
+                    <div class="home-kpi-label">Agendados</div>
+                    <div class="home-kpi-value" id="home-kpi-agend">—</div>
+                    <div class="home-kpi-sub">Programados</div>
+                </div>
+            </div>
+
+            <!-- Quick actions -->
+            <div class="home-actions-grid">
+                <button class="home-action-btn primary-action" onclick="window.irParaAgendamento()">
+                    <div class="home-action-icon">📅</div>
+                    <div>
+                        <div class="home-action-title">Novo Agendamento</div>
+                        <div class="home-action-sub">Buscar prestador por CEP e agendar serviços</div>
+                    </div>
+                </button>
+                <button class="home-action-btn" onclick="window.trocarAba('painel', document.getElementById('btn-painel'))">
+                    <div class="home-action-icon" style="background:rgba(0,174,151,0.1);">📋</div>
+                    <div>
+                        <div class="home-action-title">Painel</div>
+                        <div class="home-action-sub">Filtros e status detalhado</div>
+                    </div>
+                </button>
+                <button class="home-action-btn" onclick="window.trocarAba('dashboard', document.getElementById('btn-dashboard'))">
+                    <div class="home-action-icon" style="background:rgba(245,158,11,0.1);">📊</div>
+                    <div>
+                        <div class="home-action-title">Dashboard</div>
+                        <div class="home-action-sub">Métricas e ocupação da agenda</div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Últimos agendamentos -->
+            <div class="card" style="padding: 16px 20px;">
+                <div class="home-recentes-header">
+                    <div class="home-recentes-titulo">Últimas Solicitações</div>
+                    <button onclick="window.trocarAba('painel', document.getElementById('btn-painel'))" style="background:transparent; border:none; color:var(--primary); font-size:0.72rem; font-weight:700; cursor:pointer; padding:0; min-height:auto; text-transform:uppercase; letter-spacing:0.5px;">Ver Todos →</button>
+                </div>
+                <div id="home-lista-recentes">
+                    <div style="color:var(--muted); font-size:0.82rem; padding:8px 0;">Carregando...</div>
+                </div>
+            </div>
+        </div>`;
+
+        // Insere antes da aba consulta
+        const consultaDiv = document.getElementById('consulta');
+        if (consultaDiv) {
+            consultaDiv.parentNode.insertBefore(homeDiv, consultaDiv);
+            // Desativa consulta para não aparecer junto
+            consultaDiv.classList.remove('ativa');
+        }
+
+        // Atualiza o greeting com hora do dia
+        const hora = new Date().getHours();
+        const greeting = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+        const greetEl = document.getElementById('home-greeting');
+        if (greetEl) greetEl.textContent = `${greeting}! 👋`;
+
+        // Data atual
+        const dateEl = document.getElementById('home-date');
+        if (dateEl) {
+            const agora = new Date();
+            dateEl.textContent = agora.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+        }
+
+        // Adiciona botão HOME ao menu
+        const mainMenu = document.getElementById('main-menu');
+        if (mainMenu) {
+            const btnHome = document.createElement('button');
+            btnHome.id = 'btn-home';
+            btnHome.style.cssText = 'border-top: 4px solid var(--cobli-green) !important;';
+            btnHome.innerHTML = 'Início';
+            btnHome.onclick = function() { window.trocarAba('home', this); };
+
+            // Adiciona ANTES de todos os outros botões
+            const firstBtn = mainMenu.querySelector('button');
+            if (firstBtn) mainMenu.insertBefore(btnHome, firstBtn);
+        }
+
+        // Patch na função trocarAba para suportar aba home
+        const origTrocarAba = window.trocarAba;
+        window.trocarAba = function(id, btn) {
+            origTrocarAba(id, btn);
+            if (id === 'home') {
+                window.atualizarHomeScreen();
+            }
+        };
+
+        // Patch: se era a aba consulta que ficava ativa, agora é o home
+        const btnConsulta = document.getElementById('btn-consulta');
+        if (btnConsulta) {
+            btnConsulta.classList.remove('ativo');
+            // Não remove, apenas redireciona o click para ir ao form direto
+            btnConsulta.onclick = function() {
+                window.irParaAgendamento();
+            };
+        }
+
+        // Ativa o botão home no menu
+        const btnHomeEl = document.getElementById('btn-home');
+        if (btnHomeEl) btnHomeEl.classList.add('ativo');
+    }
+
+    window.irParaAgendamento = function() {
+        // Vai para a aba consulta (agendamento)
+        document.querySelectorAll('.aba').forEach(a => a.classList.remove('ativa'));
+        document.querySelectorAll('.menu button').forEach(b => b.classList.remove('ativo'));
+        const consultaEl = document.getElementById('consulta');
+        if (consultaEl) consultaEl.classList.add('ativa');
+        const btnConsulta = document.getElementById('btn-consulta');
+        if (btnConsulta) btnConsulta.classList.add('ativo');
+    };
+
+    window.atualizarHomeScreen = function() {
+        if (typeof agendamentos === 'undefined') return;
+
+        // KPIs
+        const total = agendamentos.length;
+        let conc = 0, agend = 0;
+        agendamentos.forEach(a => {
+            const s = String(a.status || '').toLowerCase();
+            if (s.includes('conclu') || s.includes('impedido') || s.includes('finalizado')) conc++;
+            if (s.includes('agendado') || s.includes('scheduled')) agend++;
+        });
+
+        const elTotal = document.getElementById('home-kpi-total');
+        const elConc = document.getElementById('home-kpi-conc');
+        const elAgend = document.getElementById('home-kpi-agend');
+        if (elTotal) elTotal.textContent = total;
+        if (elConc) elConc.textContent = conc;
+        if (elAgend) elAgend.textContent = agend;
+
+        // Lista recentes (últimos 5)
+        const lista = document.getElementById('home-lista-recentes');
+        if (!lista) return;
+
+        const statusColors = {
+            concluido: { bg: '#dcfce7', color: '#15803d', label: 'Concluído' },
+            agendado:  { bg: '#e8ecff', color: '#001BB8', label: 'Agendado' },
+            andamento: { bg: '#fef3c7', color: '#b45309', label: 'Andamento' },
+            impedido:  { bg: '#fee2e2', color: '#dc2626', label: 'Impedido' },
+            cancelado: { bg: '#f1f5f9', color: '#64748b', label: 'Cancelado' },
+            negociacao:{ bg: '#ede9fe', color: '#6d28d9', label: 'Negociação' },
+            solicitado:{ bg: '#f0f9ff', color: '#0369a1', label: 'Solicitado' },
+        };
+
+        const recentes = [...agendamentos].slice(0, 8);
+        if (recentes.length === 0) {
+            lista.innerHTML = '<div style="color:var(--muted); font-size:0.82rem; padding:8px 0; font-style:italic;">Nenhum agendamento encontrado.</div>';
+            return;
+        }
+
+        lista.innerHTML = recentes.map(a => {
+            const s = String(a.status || 'solicitado').toLowerCase();
+            let tipo = 'solicitado';
+            if (s.includes('conclu') || s.includes('finalizado')) tipo = 'concluido';
+            else if (s.includes('agendado')) tipo = 'agendado';
+            else if (s.includes('andamento') || s.includes('deslocamento')) tipo = 'andamento';
+            else if (s.includes('impedido')) tipo = 'impedido';
+            else if (s.includes('cancelado')) tipo = 'cancelado';
+            else if (s.includes('negocia') || s.includes('aguardando')) tipo = 'negociacao';
+
+            const sc = statusColors[tipo];
+            const nomeCliente = (typeof window.formatarCapitalize === 'function')
+                ? window.formatarCapitalize(a.cliente || '-')
+                : (a.cliente || '-');
+
+            return `<div class="home-recente-item" onclick="window.trocarAba('painel', document.getElementById('btn-painel'))">
+                <div class="home-recente-ticket">#${a.ticket || '-'}</div>
+                <div class="home-recente-cliente">${nomeCliente}</div>
+                <div style="font-size:0.72rem; color:var(--muted); min-width:80px; text-align:center;">${a.data || '-'}</div>
+                <div class="home-recente-status" style="background:${sc.bg}; color:${sc.color};">${sc.label}</div>
+            </div>`;
+        }).join('');
+    };
+
+ // 👇 Hook robusto para atualizar a Home Screen instantaneamente
+    let watchRenderInterval = setInterval(() => {
+        if (typeof window.renderPainel === 'function') {
+            clearInterval(watchRenderInterval); // Achou a função! Para de procurar.
+            
+            const origRenderPainel = window.renderPainel;
+            window.renderPainel = function() {
+                origRenderPainel(); // Executa a função original do sistema
+                
+                // Força a atualização da Home silenciosamente todas as vezes que o painel renderiza
+                if (typeof window.atualizarHomeScreen === 'function') {
+                    window.atualizarHomeScreen();
+                }
+            };
+
+            // Tiro de segurança: se a internet foi tão rápida que os dados já chegaram
+            // antes desse hook ser feito, forçamos uma atualização manual imediata:
+            if (typeof agendamentos !== 'undefined' && agendamentos.length > 0 && typeof window.atualizarHomeScreen === 'function') {
+                window.atualizarHomeScreen();
+            }
+        }
+    }, 50); // Checa a cada 50ms
+
+function injetarTopbarIntegrations() {
+        const topoRight = document.querySelector('.topo-right');
+        if (!topoRight || document.getElementById('topo-integ')) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.id = 'topo-integ';
+        wrapper.className = 'topo-integrations';
+        wrapper.title = 'Status das integrações';
+        wrapper.innerHTML = `
+            <div class="topo-integ-wrapper" title="Slack">
+                <div class="topo-integration-dot" id="dot-slack"></div>
+                <div class="topo-integration-label">SLK</div>
+            </div>
+            <div class="topo-integ-wrapper" title="Field Control">
+                <div class="topo-integration-dot" id="dot-field"></div>
+                <div class="topo-integration-label">FLD</div>
+            </div>
+            <div class="topo-integ-wrapper" title="Banco de Dados">
+                <div class="topo-integration-dot" id="dot-banco"></div>
+                <div class="topo-integration-label">BD</div>
+            </div>`;
+
+        topoRight.insertBefore(wrapper, topoRight.firstChild);
+
+        // Sincroniza os dots
+        function syncDots() {
+            const dSlk = document.getElementById('dot-slack');
+            const dFld = document.getElementById('dot-field');
+            const dBd = document.getElementById('dot-banco');
+            
+            // 👇 CORREÇÃO: Se não for gestor, é sempre TRUE (Verde)
+            if (typeof userRole !== 'undefined' && userRole !== 'GESTOR') {
+                if (dSlk) dSlk.className = 'topo-integration-dot ativo';
+                if (dFld) dFld.className = 'topo-integration-dot ativo';
+                if (dBd)  dBd.className  = 'topo-integration-dot ativo';
+                return;
+            }
+
+            // Lógica original para GESTOR
+            const slk = document.getElementById('slackSwitch');
+            const fld = document.getElementById('fieldSwitch');
+            const bd = document.getElementById('dbSwitch');
+            if (dSlk) dSlk.className = 'topo-integration-dot ' + (slk && slk.checked ? 'ativo' : 'inativo');
+            if (dFld) dFld.className = 'topo-integration-dot ' + (fld && fld.checked ? 'ativo' : 'inativo');
+            if (dBd)  dBd.className  = 'topo-integration-dot ' + (bd  && bd.checked  ? 'ativo' : 'inativo');
+        }
+
+        // Escuta mudanças nos switches se eles existirem
+        ['slackSwitch','fieldSwitch','dbSwitch'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('change', syncDots);
+        });
+
+        // Sync inicial + poll
+        setTimeout(syncDots, 800);
+        setInterval(syncDots, 3000);
+
+        // Oculta para PRESTADOR
+        setTimeout(() => {
+            if (typeof userRole !== 'undefined' && userRole === 'PRESTADOR') {
+                wrapper.style.display = 'none';
+            }
+        }, 1200);
+    }
+
+    function melhorarStatCards() {
+        // Transforma os stats-cards do Dashboard para ter label acima do número
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.querySelectorAll('.stats-card').forEach(card => {
+                    // Adiciona classe de label ao text node antes do strong
+                    const nodes = [...card.childNodes];
+                    nodes.forEach(n => {
+                        if (n.nodeType === 3 && n.textContent.trim()) {
+                            const span = document.createElement('div');
+                            span.className = 'stats-label';
+                            span.textContent = n.textContent.trim();
+                            card.insertBefore(span, n);
+                            card.removeChild(n);
+                        }
+                    });
+                });
+            }, 2000);
+        });
+    }
+
+    // 👇 CORREÇÃO: Forçar a atualização da Home no momento certo
+    // Intercepta a função renderPainel (que é chamada logo após o carregamento do banco) 
+    // para atualizar a Home Screen silenciosamente.
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            if (typeof window.renderPainel === 'function') {
+                const origRenderPainel = window.renderPainel;
+                window.renderPainel = function() {
+                    origRenderPainel(); // Executa a função original
+                    
+                    // Se a aba Home estiver visível, atualiza os dados nela
+                    const homeEl = document.getElementById('home');
+                    if (homeEl && homeEl.classList.contains('ativa') && typeof window.atualizarHomeScreen === 'function') {
+                        window.atualizarHomeScreen();
+                    }
+                };
+            }
+        }, 1000);
+    });
+
+})();
+</script>
 </head>
 <body>
 
@@ -1127,48 +2275,74 @@
     </div>
 </div>
 
-<div id="app-content">
-    <div class="topo">
-        <div class="header-logo-text">
+<div id="app-content" style="display:none; flex-direction:row;">
+
+    <!-- ═══════════════════════════════════════════════
+         SIDEBAR — navegação lateral
+    ════════════════════════════════════════════════ -->
+<aside class="sidebar">
+        <div class="sidebar-logo">
             <div class="apex-badge">APEX</div>
-            <div class="cobli-brand" style="color:white; margin-left: 4px;">
+            <div class="cobli-brand" style="color:white; margin-left:2px;">
                 <span class="txt-cobli">Cobli</span>
                 <span class="txt-agenda">agenda exclusiva</span>
             </div>
         </div>
-        
-        <div class="topo-right">
-            <button id="btn-resumo-slack" onclick="window.abrirModalResumoSlack()" title="Enviar resumo do período para o Slack">
-                <span class="slack-icon">💬</span>
-                <span>Resumo Slack</span>
-            </button>
 
-            <div id="integrations-control" class="integracoes-topo">
-                <span class="integ-label">Integrações</span>
-                <label title="Avisos no Slack">SLACK <input type="checkbox" id="slackSwitch" class="toggle-switch"></label>
-                <label title="Lançar OS no Field">FIELD <input type="checkbox" id="fieldSwitch" class="toggle-switch"></label>
-                <label title="Salvar no BD">BANCO <input type="checkbox" id="dbSwitch" class="toggle-switch"></label>
-            </div>
-            <div id="user-role-display" class="user-role-mobile"></div>
-        </div>
-    </div>
-
-    <div class="menu">
-        <div class="menu-left" id="main-menu">
+        <div class="sidebar-nav-section">Operações</div>
+        <nav class="menu" id="main-menu">
             <button id="btn-consulta" class="ativo" onclick="window.trocarAba('consulta', this)">Agendamento</button>
-            <button id="btn-cadastro" onclick="window.trocarAba('cadastro', this)">Prestadores</button>
-            <button id="btn-painel" onclick="window.trocarAba('painel', this)">Painel</button>
-            <button id="btn-mapa" onclick="window.trocarAba('mapa', this)">Mapa</button>
+            <button id="btn-painel"   onclick="window.trocarAba('painel', this)">Painel</button>
             <button id="btn-dashboard" onclick="window.trocarAba('dashboard', this)">Dashboard</button>
+            <button id="btn-mapa"     onclick="window.trocarAba('mapa', this)">Mapa</button>
+            <div class="menu-divider"></div>
+            
+            <div class="sidebar-nav-section" id="label-gestao" style="padding-top:4px;">Gestão</div>
+            <button id="btn-cadastro" onclick="window.trocarAba('cadastro', this)">Prestadores</button>
             <button id="btn-usuarios" onclick="window.trocarAba('usuarios', this)">Usuários</button>
+
+            <div id="integrations-control-wrapper" style="display: none;">
+                <div class="sidebar-nav-section" style="padding-top:15px; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 10px;">Integrações</div>
+                <div class="integracoes-topo" style="display: flex; flex-direction: column; gap: 12px; padding: 10px 22px;">
+                    <label title="Avisos no Slack" style="display: flex; justify-content: space-between; width: 100%;">SLACK <input type="checkbox" id="slackSwitch" class="toggle-switch"></label>
+                    <label title="Lançar OS no Field" style="display: flex; justify-content: space-between; width: 100%;">FIELD <input type="checkbox" id="fieldSwitch" class="toggle-switch"></label>
+                    <label title="Salvar no BD" style="display: flex; justify-content: space-between; width: 100%;">BANCO <input type="checkbox" id="dbSwitch" class="toggle-switch"></label>
+                </div>
+                <button id="btn-resumo-slack-sidebar" onclick="window.abrirModalResumoSlack()" title="Enviar resumo para o Slack" style="display: flex; align-items: center; margin: 10px 18px; width: calc(100% - 36px); justify-content: center; background: rgba(74,21,75,0.7); border-radius: 8px; border: none; padding: 10px; cursor: pointer; transition: 0.2s;">
+                    <span style="color: white; font-weight: bold; font-size: 11px; letter-spacing: 0.5px;">RESUMO SLACK</span>
+                </button>
+            </div>
+
+            <div class="menu-divider" style="margin-top:auto;"></div>
+            <button class="btn-sair" onclick="handleLogout()">Sair</button>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="sidebar-user">
+                <div class="sidebar-user-avatar" id="user-avatar">◈</div>
+                <div id="user-role-display"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════
+         ÁREA PRINCIPAL
+    ════════════════════════════════════════════════ -->
+   <div class="main-wrapper">
+        <div class="topo">
+            <div class="header-logo-text">
+                <div class="apex-badge" style="font-size:0.85rem;">APEX</div>
+                <div class="cobli-brand" style="color:white; margin-left:4px;">
+                    <span class="txt-cobli">Cobli</span>
+                    <span class="txt-agenda">agenda exclusiva</span>
+                </div>
+            </div>
+            <div class="topo-right">
+                <div class="user-role-mobile" id="user-role-mobile-top"></div>
+            </div>
         </div>
 
-        <div class="menu-right">
-            <button class="btn-sair" onclick="handleLogout()" style="background:none; border:none; cursor:pointer; font-family: var(--font-main);">Sair</button>
-        </div>
-    </div>
-
-    <div class="conteudo">
+        <div class="conteudo">
         
         <div id="consulta" class="aba ativa">
             <div class="timeline-container" id="timeline-agendamento">
@@ -1264,7 +2438,7 @@
                     <input id="ticket" placeholder="Ex: 123654789" required style="flex: 1;">
                     <button type="button" id="btnChecarSequencia" onclick="window.verificarSequenciaEFOP()" style="background:var(--cobli-dark); color:white; padding:0 15px; border-radius:var(--radius-sm); font-size:12px; cursor:pointer; border:none; height: 42px; min-height: auto;">Checar</button>
                 </div>
-                <label class="req">Nome do Cliente</label><input id="clienteNome" onblur="this.value = window.formatarCapitalize(this.value)" required>
+                <label class="req">Nome Razão Social cliente</label><input id="clienteNome" onblur="this.value = window.formatarCapitalize(this.value)" required>
                 <label class="req">CNPJ / CPF</label><input id="clienteCnpj" placeholder="00.000.000/0000-00" oninput="window.maskCPFCNPJ(this)" required>
                 <label class="req">Responsável pela solicitação (APEX)</label><input id="solicitante" required readonly style="background: var(--bg); cursor:not-allowed; color: var(--muted);">
                 <label class="req">Responsável pelo acompanhamento (Local)</label><input id="respAcompanhamento" onblur="this.value = window.formatarCapitalize(this.value)" required>
@@ -1584,8 +2758,10 @@
                     O mapa será carregado aqui...
                 </div>
             </div>
-        </div>
-        </div> </div> <script>
+        </div><!-- /.conteudo -->
+        </div><!-- /.main-wrapper -->
+</div><!-- /#app-content -->
+<script>
 // ==========================================
 // SPLASH SCREEN
 // ==========================================
@@ -2196,21 +3372,22 @@ async function checkSession() {
     if (session) {
         currentUser = session.user;
         document.getElementById('auth-overlay').style.display = 'none';
-        document.getElementById('app-content').style.display = 'block';
+        document.getElementById('app-content').style.display = 'flex';
         document.body.style.display = 'block'; 
         await definirPermissoes(currentUser.email, currentUser.id);
+        
+        // Exibe bloco de integrações do menu lateral se for GESTOR
         if (userRole === 'GESTOR') {
-            document.getElementById('integrations-control').style.display = 'flex';
-            document.getElementById('btn-resumo-slack').style.display = 'flex';
+            let intWrap = document.getElementById('integrations-control-wrapper');
+            if(intWrap) intWrap.style.display = 'block';
         }
+        
         window.carregarProdutos();
         window.carregarDadosDoBanco();
         console.log("📡 Conectando ao Realtime...");
-        supabaseClient.channel('mudancas-agendamentos').on('postgres_changes', { event: '*', schema: 'public', table: 'agendamentos' }, (payload) => { console.log('🚨 BD mudou! Atualizando...', payload); window.carregarDadosDoBanco(); }).subscribe((status) => { console.log("🔌 Realtime:", status); });
+        supabaseClient.channel('mudancas-agendamentos').on('postgres_changes', { event: '*', schema: 'public', table: 'agendamentos' }, (payload) => { console.log('🚨 BD mudou! Atualizando...', payload); window.carregarDadosDoBanco(); }).subscribe();
         
-        // 👇 INICIA O VIGIA DE INATIVIDADE 👇
         window.startInactivityTracker();
-        
     } else {
         document.getElementById('auth-overlay').style.display = 'flex';
         document.body.style.display = 'block'; 
@@ -2239,18 +3416,39 @@ async function definirPermissoes(email, uid) {
     const { data, error } = await supabaseClient.from('perfis_usuarios').select('nivel').eq('id', uid).maybeSingle();
     if (data) { userRole = data.nivel; } 
     else { const isCobli = email.endsWith('@cobli.co'); const isGestor = GESTOR_EMAILS.includes(email.toLowerCase()); userRole = isGestor ? 'GESTOR' : (isCobli ? 'SMARTOPS' : 'PRESTADOR'); }
-    document.getElementById('user-role-display').innerHTML = `<div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">${email}</div><div style="font-size: 0.7em; opacity: 0.7; margin-top: 1px; text-transform: uppercase; letter-spacing: 1px; color: var(--cobli-green);">${userRole}</div>`;
+    
+    document.getElementById('user-role-display').innerHTML = `<div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">${email}</div><div style="font-size: 0.7em; opacity: 0.7; margin-top: 1px; text-transform: uppercase; letter-spacing: 1px; color: var(--cobli-green);">${userRole}</div>`;
+    
+    // 👇 GERAR AS INICIAIS DA BOLA AZUL 👇
+    let iniciais = "U";
+    if (email) {
+        let partes = email.split('@')[0].split('.');
+        iniciais = partes.length > 1 ? (partes[0][0] + partes[1][0]).toUpperCase() : partes[0].substring(0, 2).toUpperCase();
+    }
+    let avatarEl = document.getElementById('user-avatar');
+    if (avatarEl) avatarEl.innerText = iniciais;
+    // 👆 FIM INICIAIS 👆
+
     const campoSol = document.getElementById('solicitante');
     if(campoSol) campoSol.value = email.endsWith('@cobli.co') ? window.formatarCapitalize(extrairNomeDoEmail(email)) : email;
-    if (userRole !== 'GESTOR' && userRole !== 'ADMIN') document.getElementById('btn-usuarios').style.display = 'none';
-    if (userRole !== 'GESTOR' && userRole !== 'ADMIN') document.getElementById('btn-cadastro').style.display = 'none';
+    if (userRole !== 'GESTOR' && userRole !== 'ADMIN') {
+        document.getElementById('btn-usuarios').style.display = 'none';
+        document.getElementById('btn-cadastro').style.display = 'none';
+        if (document.getElementById('label-gestao')) document.getElementById('label-gestao').style.display = 'none';
+    }
     if (userRole === 'PRESTADOR') {
         document.getElementById('btn-consulta').style.display = 'none';
         const filtroP = document.getElementById('filtro-box-prestador'); if(filtroP) filtroP.style.display = 'none';
         const filtroS = document.getElementById('filtro-box-solicitante'); if(filtroS) filtroS.style.display = 'none';
         const cardDistP = document.getElementById('card-dist-prestadores'); if(cardDistP) cardDistP.style.display = 'none';
         let menuLeft = document.getElementById('main-menu');
-        if(!document.getElementById('btn-disponibilidade')) menuLeft.innerHTML += `<button id="btn-disponibilidade" onclick="window.trocarAba('disponibilidade', this)">Ausências</button>`;
+        if(!document.getElementById('btn-disponibilidade')) {
+            let btnDisp = document.createElement('button');
+            btnDisp.id = 'btn-disponibilidade';
+            btnDisp.textContent = 'Ausências';
+            btnDisp.onclick = function() { window.trocarAba('disponibilidade', this); };
+            menuLeft.insertBefore(btnDisp, menuLeft.querySelector('.btn-sair'));
+        }
         window.trocarAba('painel', document.getElementById('btn-painel'));
     }
     window.handleLogout = async function() {
@@ -2300,7 +3498,7 @@ tbody.innerHTML = data.map(u => {
         let blockDelete = podeEditar ? `<button onclick="window.excluirUsuarioPerfil('${u.id}', '${u.email}', '${u.nivel}')" style="background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 0; min-height:auto;" title="Remover Perfil">❌</button>` : '';
         let optionGestorHtml = (userRole === 'GESTOR' || u.nivel === 'GESTOR') ? `<option value="GESTOR" ${u.nivel==='GESTOR'?'selected':''}>GESTOR</option>` : '';
 
-        // 👇 CÁLCULO DO LOG DE ACESSO 👇
+// 👇 CÁLCULO DO LOG DE ACESSO 👇
         let txtAcesso = '<span style="color:var(--muted); font-size:0.75rem; font-style:italic;">Nunca acessou</span>';
         if (u.ultimo_login) {
             let dataUlt = new Date(u.ultimo_login);
@@ -2309,7 +3507,11 @@ tbody.innerHTML = data.map(u => {
             if (u.penultimo_login) {
                 let dataPen = new Date(u.penultimo_login);
                 let strPen = dataPen.toLocaleDateString('pt-BR');
-                let diffDias = Math.floor(Math.abs(dataUlt - dataPen) / (1000 * 60 * 60 * 24));
+                
+                // Zera as horas para comparar só o calendário e não dar falso "mesmo dia"
+                let dUltimoLimpo = new Date(dataUlt.getFullYear(), dataUlt.getMonth(), dataUlt.getDate());
+                let dPenultimoLimpo = new Date(dataPen.getFullYear(), dataPen.getMonth(), dataPen.getDate());
+                let diffDias = Math.round(Math.abs(dUltimoLimpo - dPenultimoLimpo) / (1000 * 60 * 60 * 24));
                 
                 let infoDias = diffDias === 0 ? 'No mesmo dia' : `Ficou ${diffDias} dia(s) off`;
                 txtAcesso = `<div style="font-weight:700; color:var(--primary); font-size:0.75rem;">${strUltimo}</div>
@@ -2319,7 +3521,7 @@ tbody.innerHTML = data.map(u => {
                              <div style="font-size:0.65rem; color:var(--muted);">Primeiro acesso</div>`;
             }
         }
-        // 👆 FIM DO CÁLCULO 👆
+            // 👆 FIM DO CÁLCULO 👆
 
         return `<tr>
             <td style="font-weight:600; color:var(--cobli-dark);">${u.email}</td>
@@ -3052,15 +4254,32 @@ window.renderizarListaPrestadores = function(){
 window.abrirOpcoesPrestador = function(i) {
     if(userRole !== 'GESTOR') return window.abrirDetalhesPrestador(i); 
     const p = prestadores[i];
-    let html = `<div style="text-align: center;">
-        <div style="font-weight: 700; color: var(--primary); margin-bottom: 20px; font-size: 1rem;">O que deseja fazer com:<br><strong style="color:var(--cobli-dark); font-size: 1.15rem;">${p.nome}</strong></div>            
+    
+    let html = `
+    <div style="padding-bottom: 5px;">
+        <div style="font-size: 1.2rem; font-weight: 800; color: var(--cobli-dark); margin-bottom: 20px;">
+            ${p.nome}
+        </div>
+        
         <div style="display: flex; flex-direction: column; gap: 10px;">
-            <button onclick="window.fecharModal(); window.abrirDetalhesPrestador(${i})" style="background:var(--cobli-green); padding: 12px; font-size: 0.95rem; font-weight:700; min-height:auto;">👁️ Ver Agenda e Detalhes</button>            
-            <button onclick="window.fecharModal(); window.abrirCadastro(${i})" style="background:var(--primary); padding: 12px; font-size: 0.95rem; font-weight:700; min-height:auto;">📝 Editar Cadastro</button>            
-            <button onclick="window.fecharModal(); window.excluirPrestador(${i})" style="background: transparent; color: var(--cobli-red); border: none; padding: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; min-height:auto;">❌ Excluir</button>         
-            <button onclick="window.fecharModal()" style="background:var(--muted); padding: 12px; font-size: 0.95rem; min-height:auto;">Cancelar</button>
+            <button onclick="window.fecharModal(); window.abrirDetalhesPrestador(${i})" style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: 100%; padding: 16px 20px; background: var(--bg); color: var(--cobli-dark); border: 1px solid var(--border); border-radius: 12px; font-size: 0.95rem; font-weight: 700; box-shadow: none; min-height: auto;">
+                <span style="font-size: 1.2rem;">👁️</span> Ver Detalhes e Agenda
+            </button>
+            
+            <button onclick="window.fecharModal(); window.abrirCadastro(${i})" style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: 100%; padding: 16px 20px; background: var(--bg); color: var(--cobli-dark); border: 1px solid var(--border); border-radius: 12px; font-size: 0.95rem; font-weight: 700; box-shadow: none; min-height: auto;">
+                <span style="font-size: 1.2rem;">📝</span> Editar Cadastro
+            </button>
+            
+            <button onclick="window.fecharModal(); window.excluirPrestador(${i})" style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: 100%; padding: 16px 20px; background: #fff5f5; color: var(--cobli-red); border: 1px solid #fecaca; border-radius: 12px; font-size: 0.95rem; font-weight: 700; box-shadow: none; min-height: auto;">
+                <span style="font-size: 1.2rem;">❌</span> Excluir Prestador
+            </button>
+        </div>
+        
+        <div style="margin-top: 24px; display: flex; justify-content: flex-end; border-top: 1px solid var(--bg); padding-top: 16px;">
+            <button onclick="window.fecharModal()" style="background: transparent; color: var(--muted); border: none; font-size: 0.9rem; font-weight: 700; box-shadow: none; padding: 10px 20px; min-height: auto;">Cancelar</button>
         </div>
     </div>`;
+    
     window.exibirModal("Ações do Prestador", html);
 };
 
@@ -3985,7 +5204,7 @@ window.renderPainel = function() {
     });
     ['solicitado','negociacao','agendado','andamento','impedido','concluido','cancelado'].forEach(k => { let el = document.getElementById('st-'+k); if(el) el.innerText = counts[k]; });
 
-    document.getElementById("painel-conteudo").innerHTML = filtradosPainel.map((a, i) => {
+document.getElementById("painel-conteudo").innerHTML = filtradosPainel.map((a, i) => {
         let primeiroSlot = Array.isArray(a.slots) ? a.slots[0] : (String(a.slots).split(',')[0] || 'N/A');
         let dataRegistro = a.created_at ? new Date(a.created_at).toLocaleString('pt-BR') : 'N/A';
         let nomeClienteFormatado = window.formatarCapitalize(a.cliente) || '-';
@@ -3996,7 +5215,17 @@ window.renderPainel = function() {
             if (pObj) nomeTecAlocadoCard = window.getNomeTecnico(pObj, nomeTecAlocadoCard).trim();
         }
 
-        return `<div class="painel-item" data-ticket="${a.ticket}" onclick="window.abrirDetalhesAgendamento(${i})">
+        // 👇 RECRIANDO O STATUS AQUI DENTRO PARA CORRIGIR O ERRO 👇
+        let statusOriginal = String(a.status || 'solicitado').trim().toLowerCase(); 
+        let statusMapeado = 'solicitado';
+        if (statusOriginal.includes('negocia') || statusOriginal.includes('aguardando')) statusMapeado = 'negociacao';
+        else if (statusOriginal.includes('agendado') || statusOriginal.includes('scheduled')) statusMapeado = 'agendado';
+        else if (statusOriginal.includes('andamento') || statusOriginal.includes('progress') || statusOriginal.includes('deslocamento')) statusMapeado = 'andamento';
+        else if (statusOriginal.includes('impedido') || statusOriginal.includes('reportado') || status.includes('falha')) statusMapeado = 'impedido';
+        else if (statusOriginal.includes('conclu') || statusOriginal.includes('completed') || status.includes('finalizado')) statusMapeado = 'concluido';
+        else if (statusOriginal.includes('cancelado') || statusOriginal.includes('canceled')) statusMapeado = 'cancelado';
+
+        return `<div class="painel-item" data-ticket="${a.ticket}" data-status="${statusMapeado}" onclick="window.abrirDetalhesAgendamento(${i})">
             <div style="flex-grow: 1; font-size: 0.88rem;">
                 <strong style="font-family:var(--font-mono); color:var(--cobli-dark);">#${a.ticket}</strong> &nbsp;|&nbsp; Status: <span style="color: var(--primary); font-weight: 700;">${a.status || 'SOLICITADO'}</span> &nbsp;|&nbsp; <strong>${nomeClienteFormatado}</strong>
                 <div style="margin-top:5px; font-size: 0.82rem; color: var(--muted);">📅 ${a.data} às ${primeiroSlot} &nbsp;|&nbsp; 🛠️ ${a.prestador}</div>
