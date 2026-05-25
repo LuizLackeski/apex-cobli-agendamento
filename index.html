@@ -2458,33 +2458,57 @@ function injetarTopbarIntegrations() {
                 <div id="lista-prestadores"></div>
             </div>
             <div id="cadastro-flow" class="card" style="display:none;">
-                
-                <div id="etapa-1">
-                    <h2 style="color: var(--primary);">Dados do Prestador</h2>
-                    <label class="req">Nome / Empresa</label><input id="nomeEmpresa" required style="margin-bottom: 12px;" onblur="this.value = window.formatarCapitalize(this.value)">
-                    <label class="req">Endereço Completo</label><input id="endereco" required style="margin-bottom: 12px;" onblur="this.value = window.formatarCapitalize(this.value)">
+         
+<div id="etapa-1">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h2 style="color: var(--primary); margin: 0; border: none; padding: 0;">Dados do Prestador</h2>
+                        <button type="button" id="btn-toggle-dados" onclick="window.toggleDadosPrestador()" style="display: none; background: var(--bg); color: var(--cobli-dark); border: 1px solid var(--border); font-size: 0.75rem; padding: 6px 12px; min-height: auto; border-radius: 20px;">Ocultar Dados 🔼</button>
+                    </div>
                     
-                    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                        <div style="flex: 2;"><label class="req">Cidade</label><input id="cidade" required onblur="this.value = window.formatarCapitalize(this.value)"></div>
-                        <div style="flex: 1;"><label class="req">UF</label><input id="uf" required maxlength="2" placeholder="SP" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()"></div>
-                        <div style="flex: 1.5;"><label class="req">CEP</label><input id="cep" required oninput="window.maskCEP(this)" placeholder="00000-000"></div>
+                    <div id="campos-basicos-prestador">
+                        <label class="req">Nome / Empresa</label><input id="nomeEmpresa" required style="margin-bottom: 12px;" onblur="this.value = window.formatarCapitalize(this.value)">
+                        <label class="req">Endereço Completo</label><input id="endereco" required style="margin-bottom: 12px;" onblur="this.value = window.formatarCapitalize(this.value)">
+                        
+                        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                            <div style="flex: 2;"><label class="req">Cidade</label><input id="cidade" required onblur="this.value = window.formatarCapitalize(this.value)"></div>
+                            <div style="flex: 1;"><label class="req">UF</label><input id="uf" required maxlength="2" placeholder="SP" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()"></div>
+                            <div style="flex: 1.5;"><label class="req">CEP</label><input id="cep" required oninput="window.maskCEP(this)" placeholder="00000-000"></div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                            <div style="flex: 1;"><label class="req">Responsável</label><input id="responsavel" required onblur="this.value = window.formatarCapitalize(this.value)"></div>
+                            <div style="flex: 1;"><label class="req">Telefone</label><input id="contatoResponsavel" required oninput="window.maskPhone(this)" placeholder="(00) 00000-0000"></div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <input id="qtdTecnicos" type="hidden" value="1"> 
+                            <div style="flex: 1.5;"><label class="req" title="Obrigatório para integração Field">ID Field Control</label><input id="fieldIdField" placeholder="Chave Única Field" required></div>
+                            <div style="flex: 1.5;"><label class="req" title="Obrigatório para login no portal. Separe múltiplos e-mails com ponto-e-vírgula ( ; )">E-mail(s) @apex.co</label><input type="text" id="usuarioApex" placeholder="tecnico1@apex.co; tecnico2@apex.co" required onblur="this.value = this.value.toLowerCase().replace(/\s/g,'')"></div>
+                            <div style="flex: 1;"><label>Ambiente</label>
+                                <select id="statusPrestador">
+                                    <option value="PRODUCAO">Produção</option>
+                                    <option value="TESTE">Teste (Oculto)</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
-                    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                        <div style="flex: 1;"><label class="req">Responsável</label><input id="responsavel" required onblur="this.value = window.formatarCapitalize(this.value)"></div>
-                        <div style="flex: 1;"><label class="req">Telefone</label><input id="contatoResponsavel" required oninput="window.maskPhone(this)" placeholder="(00) 00000-0000"></div>
-                    </div>
+                    <div style="margin-bottom: 15px; border: 1px solid var(--border); padding: 15px; border-radius: var(--radius-sm); background: #f8f9fb;">
+                        <label style="font-size: 0.8rem; color: var(--primary); margin-bottom: 10px; display: block; font-weight: 800; text-transform: uppercase;">📍 Modo de Cobertura</label>
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                            <label style="cursor:pointer; display:flex; align-items:center; gap:5px; margin:0;"><input type="radio" name="modoCobertura" value="RAIO" checked onchange="window.toggleModoCobertura()" style="width:auto; margin:0;"> Raio Fixo (Km)</label>
+                            <label style="cursor:pointer; display:flex; align-items:center; gap:5px; margin:0;"><input type="radio" name="modoCobertura" value="POLIGONO" onchange="window.toggleModoCobertura()" style="width:auto; margin:0;"> Área Delimitada (Mapa)</label>
+                        </div>
+                        
+                        <div id="blocoCoberturaRaio" style="display: flex; flex-direction: column;">
+                            <label class="req">Raio de Atendimento (Km)</label>
+                            <input id="rangeAtendimento" type="number" style="max-width: 200px;" placeholder="Ex: 30">
+                        </div>
 
-                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                       <div style="flex: 0.8; display: none;"><label class="req">Qtd Técnicos</label><input id="qtdTecnicos" type="number" required min="1"></div>
-                        <div style="flex: 0.8;"><label class="req">Raio (Km)</label><input id="rangeAtendimento" type="number" required></div>
-                        <div style="flex: 1.5;"><label class="req" title="Obrigatório para integração Field">ID Field Control</label><input id="fieldIdField" placeholder="Chave Única Field" required></div>
-                        <div style="flex: 1.5;"><label class="req" title="Obrigatório para login no portal. Separe múltiplos e-mails com ponto-e-vírgula ( ; )">E-mail(s) @apex.co</label><input type="text" id="usuarioApex" placeholder="tecnico1@apex.co; tecnico2@apex.co" required onblur="this.value = this.value.toLowerCase().replace(/\s/g,'')"></div>
-                        <div style="flex: 1;"><label>Ambiente</label>
-                            <select id="statusPrestador">
-                                <option value="PRODUCAO">Produção</option>
-                                <option value="TESTE">Teste (Oculto)</option>
-                            </select>
+                        <div id="blocoCoberturaPoligono" style="display: none; flex-direction: column;">
+                            <label class="req">Desenhe a área no mapa clicando nos vértices (clique no primeiro ponto para fechar)</label>
+                            <div id="mapa-desenho-area" style="width: 100%; height: 350px; background: #e2e8f0; border-radius: var(--radius-sm); border: 1px solid var(--border); margin-top: 5px; position:relative; overflow:hidden; transition: height 0.3s ease;"></div>
+                            <button type="button" onclick="window.limparDesenhoPoligono()" style="margin-top: 8px; background: var(--muted); padding: 5px 10px; font-size: 0.75rem; min-height: auto; width: max-content;">🗑️ Apagar Desenho</button>
                         </div>
                     </div>
                 </div>
@@ -3110,27 +3134,179 @@ window.mapaInstancia = null;
 window.marcadoresMapa = [];
 window.geocoderCache = {}; // Evita chamar a API do google para o mesmo endereço duas vezes
 
-window.iniciarMapa = function() {
-    if (window.mapaInstancia) return window.plotarAgendamentosNoMapa();
+// ==========================================
+// MÓDULO VISÃO DE MAPA E DESENHO
+// ==========================================
+window.GOOGLE_MAPS_API_KEY = "AIzaSyAseCkA6UFV-8pp5yVaFZZ4n6eTgLGwWCk";
 
-    if (!document.getElementById('script-google-maps')) {
+window.mapaInstancia = null;
+window.marcadoresMapa = [];
+window.geocoderCache = {}; 
+window.mapaDesenhoInstancia = null;
+window.drawingManager = null;
+window.poligonoAtual = null;
+window.marcadorBaseRadar = null;
+window.circulosRadar = []; // 👈 Variável para guardar os círculos
+
+// Garante que o Google Maps (com ferramentas) carregue de forma centralizada
+window.garantirGoogleMaps = function() {
+    return new Promise((resolve) => {
+        if (window.google && window.google.maps && window.google.maps.drawing) return resolve();
+        if (document.getElementById('script-google-maps')) {
+            let check = setInterval(() => { if (window.google && window.google.maps && window.google.maps.drawing) { clearInterval(check); resolve(); } }, 200);
+            return;
+        }
         window.showToast("Carregando Google Maps...");
+        window.initGoogleMap = function() {
+            if (document.getElementById('mapa-canvas') && document.getElementById('mapa').classList.contains('ativa')) {
+                window.mapaInstancia = new google.maps.Map(document.getElementById("mapa-canvas"), {
+                    center: { lat: -23.55052, lng: -46.633308 }, zoom: 10,
+                    styles: [ { "featureType": "poi", "stylers": [ { "visibility": "off" } ] } ]
+                });
+                window.plotarAgendamentosNoMapa();
+            }
+            resolve();
+        };
         let script = document.createElement('script');
         script.id = 'script-google-maps';
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${window.GOOGLE_MAPS_API_KEY}&callback=initGoogleMap`;
-        script.async = true;
-        script.defer = true;
-        
-        window.initGoogleMap = function() {
-            window.mapaInstancia = new google.maps.Map(document.getElementById("mapa-canvas"), {
-                center: { lat: -23.55052, lng: -46.633308 }, // SP como padrão
-                zoom: 10,
-                styles: [ { "featureType": "poi", "stylers": [ { "visibility": "off" } ] } ] // Mapa limpo
-            });
-            window.plotarAgendamentosNoMapa();
-        };
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${window.GOOGLE_MAPS_API_KEY}&libraries=drawing,geometry&callback=initGoogleMap`;
+        script.async = true; script.defer = true;
         document.head.appendChild(script);
+    });
+};
+
+window.iniciarMapa = function() {
+    if (window.mapaInstancia) return window.plotarAgendamentosNoMapa();
+    window.garantirGoogleMaps();
+};
+
+window.toggleDadosPrestador = function(forceState = null) {
+    let box = document.getElementById('campos-basicos-prestador');
+    let btn = document.getElementById('btn-toggle-dados');
+    let mapa = document.getElementById('mapa-desenho-area');
+    
+    let isHidden = forceState !== null ? forceState : box.style.display === 'none';
+    
+    if (isHidden) {
+        // Volta a mostrar o formulário
+        box.style.display = 'block';
+        if (btn) btn.innerHTML = 'Ocultar Dados 🔼';
+        if (mapa) mapa.style.height = '350px'; // Retrai o mapa
+    } else {
+        // Esconde o formulário
+        box.style.display = 'none';
+        if (btn) btn.innerHTML = 'Mostrar Dados 🔽';
+        if (mapa) mapa.style.height = '60vh'; // Expande o mapa!
     }
+};
+
+window.toggleModoCobertura = async function() {
+    let modoOpcoes = document.querySelector('input[name="modoCobertura"]:checked');
+    if (!modoOpcoes) return;
+    let modo = modoOpcoes.value;
+
+    let btnToggle = document.getElementById('btn-toggle-dados');
+    if (btnToggle) btnToggle.style.display = modo === 'POLIGONO' ? 'inline-block' : 'none';
+
+    document.getElementById('blocoCoberturaRaio').style.display = modo === 'RAIO' ? 'flex' : 'none';
+    document.getElementById('blocoCoberturaPoligono').style.display = modo === 'POLIGONO' ? 'flex' : 'none';
+    
+    let inputRaio = document.getElementById('rangeAtendimento');
+    if (inputRaio) {
+        if (modo === 'RAIO') {
+            inputRaio.setAttribute('required', 'true');
+            window.toggleDadosPrestador(true); 
+        } else {
+            inputRaio.removeAttribute('required');
+            inputRaio.style.borderColor = ''; 
+            window.toggleDadosPrestador(false); 
+        }
+    }
+
+    if (modo === 'POLIGONO') {
+        await window.garantirGoogleMaps();
+        let mapDiv = document.getElementById("mapa-desenho-area");
+        if (!mapDiv) return;
+        
+        if (!window.mapaDesenhoInstancia) {
+            window.mapaDesenhoInstancia = new google.maps.Map(mapDiv, {
+                center: { lat: -23.55052, lng: -46.633308 }, zoom: 10,
+                mapTypeControl: false, streetViewControl: false
+            });
+
+            window.drawingManager = new google.maps.drawing.DrawingManager({
+                drawingMode: google.maps.drawing.OverlayType.POLYGON,
+                drawingControl: true,
+                drawingControlOptions: { position: google.maps.ControlPosition.TOP_CENTER, drawingModes: [google.maps.drawing.OverlayType.POLYGON] },
+                polygonOptions: { fillColor: '#001BB8', fillOpacity: 0.25, strokeWeight: 2, strokeColor: '#001BB8', editable: true, zIndex: 2 }
+            });
+            window.drawingManager.setMap(window.mapaDesenhoInstancia);
+
+            google.maps.event.addListener(window.drawingManager, 'polygoncomplete', function(polygon) {
+                if (window.poligonoAtual) window.poligonoAtual.setMap(null);
+                window.poligonoAtual = polygon;
+                window.drawingManager.setDrawingMode(null);
+            });
+
+            // 👇 CRIA O BALÃO DE DISTÂNCIA 👇
+            let tooltip = document.createElement('div');
+            tooltip.id = 'tooltip-distancia-live';
+            tooltip.style.cssText = 'position:absolute; top:10px; right:10px; background:white; padding:8px 12px; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,0.3); font-size:0.85rem; font-weight:800; color:var(--primary); z-index:999; display:none; pointer-events:none; border:2px solid var(--primary); font-family:var(--font-mono);';
+            mapDiv.appendChild(tooltip);
+
+            window.mapaDesenhoInstancia.addListener('mousemove', function(e) {
+                if (window.marcadorBaseRadar) {
+                    let dist = google.maps.geometry.spherical.computeDistanceBetween(window.marcadorBaseRadar.getPosition(), e.latLng);
+                    tooltip.innerHTML = `📏 Distância: ${(dist / 1000).toFixed(1)} km`;
+                    tooltip.style.display = 'block';
+                }
+            });
+            window.mapaDesenhoInstancia.addListener('mouseout', function() { tooltip.style.display = 'none'; });
+        }
+
+        let rua = document.getElementById("endereco").value;
+        let cidade = document.getElementById("cidade").value;
+        let uf = document.getElementById("uf").value;
+        
+        if (rua && cidade) {
+            let enderecoCompleto = `${rua}, ${cidade} - ${uf}`;
+            const geocoder = new google.maps.Geocoder();
+            
+            geocoder.geocode({ address: enderecoCompleto }, (results, status) => {
+                if (status === 'OK') {
+                    let loc = results[0].geometry.location;
+                    window.mapaDesenhoInstancia.setCenter(loc);
+                    window.mapaDesenhoInstancia.setZoom(10);
+                    
+                    if (window.marcadorBaseRadar) window.marcadorBaseRadar.setMap(null);
+                    if (window.circulosRadar && window.circulosRadar.length > 0) window.circulosRadar.forEach(c => c.setMap(null));
+                    window.circulosRadar = [];
+
+                    window.marcadorBaseRadar = new google.maps.Marker({
+                        position: loc, map: window.mapaDesenhoInstancia,
+                        icon: { url: "https://fqaqlofndeihmhkopvan.supabase.co/storage/v1/object/public/icones/prestador.png", scaledSize: new google.maps.Size(32, 32) },
+                        title: "Base do Prestador", zIndex: 1
+                    });
+
+                    const raios = [10000, 20000, 30000];
+                    raios.forEach((raioMts, idx) => {
+                        let circle = new google.maps.Circle({
+                            strokeColor: "#001BB8", strokeOpacity: 0.35, strokeWeight: 1,
+                            fillColor: "#001BB8", fillOpacity: 0.15 - (idx * 0.04),
+                            map: window.mapaDesenhoInstancia, center: loc, radius: raioMts, clickable: false, zIndex: 0
+                        });
+                        window.circulosRadar.push(circle);
+                    });
+                }
+            });
+        }
+    }
+};
+
+window.limparDesenhoPoligono = function() {
+    if (window.poligonoAtual) window.poligonoAtual.setMap(null);
+    window.poligonoAtual = null;
+    if (window.drawingManager) window.drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);
 };
 
 window.plotarAgendamentosNoMapa = async function() {
@@ -3569,11 +3745,22 @@ window.excluirUsuarioPerfil = function(id, email, nivelAlvo) {
 // ==========================================
 window.carregarDadosDoBanco = async function() { 
     try { 
-        // 1. Busca Prestadores
-        const resP = await fetch(`${API_URL}/prestadores`, { headers: getHeaders() }); 
-        prestadores = await resP.json(); 
+        // 1. Puxamos direto do banco para GARANTIR que as colunas 'area_poligono' e 'modo_cobertura' venham!
+        const { data: pData, error: pErr } = await supabaseClient.from('prestadores').select('*');
+        if (pErr) console.error("Erro ao puxar prestadores:", pErr);
         
-        // 2. Identifica o Vínculo do Usuário Logado
+        // 2. A MÁGICA ANTIFALHAS: Converter a agenda de texto para Lista (Array) na mão, 
+        // para o sistema não dar aquele erro de "forEach is not a function"
+        prestadores = (pData || []).map(p => {
+            if (typeof p.agenda === 'string') {
+                try { p.agenda = JSON.parse(p.agenda); } 
+                catch(e) { p.agenda = []; }
+            }
+            if (!Array.isArray(p.agenda)) p.agenda = [];
+            return p;
+        });
+        
+        // 3. Identifica o Vínculo do Usuário Logado
         if (currentUser) {
             let emailLogado = currentUser.email.toLowerCase().trim();
             window.meuPrestadorLogado = prestadores.find(p => {
@@ -3589,12 +3776,12 @@ window.carregarDadosDoBanco = async function() {
 
         if (userRole === 'GESTOR' || userRole === 'ADMIN') window.renderizarListaPrestadores(); 
         
-        // 3. Busca Agendamentos
+        // 4. Busca Agendamentos
         const resA = await fetch(`${DB_URL}/agendamentos?select=*&order=created_at.desc`, { method: 'GET', headers: getHeaders() }); 
         const dataAgend = await resA.json(); 
         agendamentos = Array.isArray(dataAgend) ? dataAgend : [];
 
-        // 4. Renderiza as telas
+        // 5. Renderiza as telas
         window.renderPainel(); 
         window.renderDashboard(); 
     } catch(e) { console.error("Erro bd:", e); } 
@@ -3613,7 +3800,7 @@ window.enviarNotificacaoSlack = async function(msg) {
         console.error("Erro Slack:", e); 
     }
 };
-// ==========================================
+
 // ==========================================
 // MOTOR DE AGENDA E DISTÂNCIA
 // ==========================================
@@ -3634,28 +3821,90 @@ window.buscarEnderecoPorCep = async function() {
             document.getElementById('camposEndereco').style.display = 'block'; 
         } 
         else { 
-            btn.innerText = "Validando Raio...";
+            btn.innerText = "Validando Cobertura...";
             let enderecoBase = `${data.logradouro || ""}, ${data.localidade || ""} - ${data.uf || ""} - CEP: ${cep}`;
             let temPrestadorNoRaio = false;
             
+            // LÓGICA GEOMÉTRICA (MAPA) E RAIO
+            await window.garantirGoogleMaps();
+            const geocoder = new google.maps.Geocoder();
+            let latLngCliente = null;
+            try {
+                let resGeo = await new Promise((resolve, reject) => {
+                    geocoder.geocode({ address: enderecoBase }, (results, status) => {
+                        if (status === 'OK') resolve(results[0].geometry.location);
+                        else reject(status);
+                    });
+                });
+                latLngCliente = resGeo;
+            } catch(e) { console.log("Geocoder falhou para o cliente:", e); }
+            
+            let prestadoresFiltrados = []; 
             for(let p of prestadores) { 
                 if (!p.endereco) continue; 
                 if (p.status_prestador === 'TESTE' && userRole === 'SMARTOPS') continue;
                 
-                const dist = await consultarDistancia(enderecoBase, p.endereco); 
-                if(dist !== null && dist <= parseFloat(p.range)) { 
-                    // 👇 A CORREÇÃO ESTÁ AQUI 👇
+                let atende = false;
+                const distLinear = await consultarDistancia(enderecoBase, p.endereco); 
+                
+                // 👇 BLINDAGEM MÁXIMA DO POLÍGONO 👇
+let modoCob = p.modo_cobertura ? String(p.modo_cobertura).replace(/['"]/g, "").trim().toUpperCase() : 'RAIO';
+let polyArr = null;
+
+if (modoCob === 'POLIGONO' && p.area_poligono) {
+    try {
+        let tempPoly = p.area_poligono;
+        // Desempacota strings aninhadas até virar array
+        let tentativas = 0;
+        while (typeof tempPoly === 'string' && tentativas < 5) {
+            tempPoly = JSON.parse(tempPoly);
+            tentativas++;
+        }
+        // Aceita tanto [{lat,lng}] quanto [[lat,lng]]
+        if (Array.isArray(tempPoly) && tempPoly.length >= 3) {
+            polyArr = tempPoly.map(coord => {
+                if (typeof coord === 'object' && 'lat' in coord) return coord;
+                if (Array.isArray(coord) && coord.length >= 2) return { lat: Number(coord[0]), lng: Number(coord[1]) };
+                return null;
+            }).filter(Boolean);
+            if (polyArr.length < 3) polyArr = null;
+        }
+    } catch (e) {
+        console.error(`Erro ao ler polígono do prestador ${p.nome}:`, e);
+        polyArr = null;
+    }
+}
+
+if (modoCob === 'POLIGONO' && polyArr) {
+    if (latLngCliente) {
+        let mapPaths = polyArr.map(coord => new google.maps.LatLng(Number(coord.lat), Number(coord.lng)));
+        let poly = new google.maps.Polygon({ paths: mapPaths });
+        if (google.maps.geometry.poly.containsLocation(latLngCliente, poly)) {
+            atende = true;
+        }
+    }
+} else if (modoCob !== 'POLIGONO') {
+    // Modo Raio Fixo (só entra aqui se NÃO for polígono)
+    if (distLinear !== null && distLinear <= parseFloat(p.range || 0)) {
+        atende = true;
+    }
+}
+                // 👆 FIM DA BLINDAGEM 👆
+                
+                if(atende) { 
                     let available = window.getNextDates(p); 
                     if(available.length > 0) { 
+                        p.distanciaFinal = distLinear !== null ? distLinear.toFixed(1) : '?'; 
+                        p.nextDates = available.join(', '); 
+                        prestadoresFiltrados.push(p);
                         temPrestadorNoRaio = true; 
-                        break; 
                     } 
                 } 
             }
 
             if (!temPrestadorNoRaio) {
                 document.getElementById('camposEndereco').style.display = 'none';
-                return window.showMessage("⚠️ <strong>Região sem cobertura!</strong><br><br>Não há prestadores no raio de distância deste CEP ou com agenda disponível no momento.");
+                return window.showMessage("⚠️ <strong>Região sem cobertura!</strong><br><br>Não há prestadores cobrindo essa área (via Raio ou Mapa Delimitado) ou com agenda disponível no momento.");
             }
 
             document.getElementById('inputRua').value = data.logradouro || ""; 
@@ -3911,9 +4160,68 @@ window.proximoPasso = async function(n) {
         let prestadoresFiltrados = []; 
         for(let p of prestadores) { 
             if (!p.endereco) continue; if (p.status_prestador === 'TESTE' && userRole === 'SMARTOPS') continue;
-            const dist = await consultarDistancia(enderecoBusca, p.endereco); let available = window.getNextDates(p); 
-            if(dist !== null && dist <= parseFloat(p.range) && available.length > 0) { p.distanciaFinal = dist.toFixed(1); p.nextDates = available.join(', '); prestadoresFiltrados.push(p); } 
-        } 
+            const dist = await consultarDistancia(enderecoBusca, p.endereco);
+let available = window.getNextDates(p);
+let atendePasso2 = false;
+
+let modoCobP2 = p.modo_cobertura ? String(p.modo_cobertura).replace(/['"]/g, "").trim().toUpperCase() : 'RAIO';
+let polyArrP2 = null;
+
+if (modoCobP2 === 'POLIGONO' && p.area_poligono) {
+    try {
+        let tempPoly = p.area_poligono;
+        let tentativas = 0;
+        while (typeof tempPoly === 'string' && tentativas < 5) {
+            tempPoly = JSON.parse(tempPoly);
+            tentativas++;
+        }
+        if (Array.isArray(tempPoly) && tempPoly.length >= 3) {
+            polyArrP2 = tempPoly.map(coord => {
+                if (typeof coord === 'object' && 'lat' in coord) return coord;
+                if (Array.isArray(coord) && coord.length >= 2) return { lat: Number(coord[0]), lng: Number(coord[1]) };
+                return null;
+            }).filter(Boolean);
+            if (polyArrP2.length < 3) polyArrP2 = null;
+        }
+    } catch (e) {
+        console.error(`Erro polígono (passo 2) ${p.nome}:`, e);
+        polyArrP2 = null;
+    }
+}
+
+if (modoCobP2 === 'POLIGONO' && polyArrP2) {
+    // Precisa das coordenadas do cliente — reutiliza o geocoder que já foi chamado antes
+    await window.garantirGoogleMaps();
+    const geocoderP2 = new google.maps.Geocoder();
+    let latLngClienteP2 = null;
+    try {
+        latLngClienteP2 = await new Promise((resolve, reject) => {
+            geocoderP2.geocode({ address: enderecoBusca }, (results, status) => {
+                if (status === 'OK') resolve(results[0].geometry.location);
+                else reject(status);
+            });
+        });
+    } catch(e) {}
+
+    if (latLngClienteP2) {
+        let mapPaths = polyArrP2.map(c => new google.maps.LatLng(Number(c.lat), Number(c.lng)));
+        let poly = new google.maps.Polygon({ paths: mapPaths });
+        if (google.maps.geometry.poly.containsLocation(latLngClienteP2, poly)) {
+            atendePasso2 = true;
+        }
+    }
+} else if (modoCobP2 !== 'POLIGONO') {
+    if (dist !== null && dist <= parseFloat(p.range || 0)) {
+        atendePasso2 = true;
+    }
+}
+
+if (atendePasso2 && available.length > 0) {
+    p.distanciaFinal = dist !== null ? dist.toFixed(1) : '?';
+    p.nextDates = available.join(', ');
+    prestadoresFiltrados.push(p);
+        }
+    }
         btn.disabled = false; btn.innerText = "Buscar Prestadores →"; 
         if(prestadoresFiltrados.length === 0) return window.showMessage("Nenhum prestador encontrado no raio de atendimento."); 
         prestadoresFiltrados.sort((a, b) => parseFloat(a.distanciaFinal) - parseFloat(b.distanciaFinal));
@@ -4239,13 +4547,14 @@ window.renderizarListaPrestadores = function(){
     document.getElementById("btn-novo-container").innerHTML = (userRole === 'GESTOR' || userRole === 'ADMIN') ? `<button onclick="window.abrirCadastro()" style="margin-bottom: 20px; background: var(--cobli-dark); min-height:auto;">+ Novo Prestador</button>` : '';
     document.getElementById("lista-prestadores").innerHTML = prestadores.map((p, i) => {
         const acaoClique = (userRole === 'GESTOR') ? `window.abrirOpcoesPrestador(${i})` : `window.abrirDetalhesPrestador(${i})`;
+        let coberturaDisplay = p.modo_cobertura === 'POLIGONO' ? '🗺️ Área Delimitada' : `📏 Raio: ${p.range}km`;
         return `<div class="painel-item" onclick="${acaoClique}" style="cursor: pointer; flex-direction: column; align-items: flex-start; margin-bottom: 12px;">
             <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <div style="font-weight: 800; color: var(--primary); font-size: 1rem;">👷 ${p.nome} ${p.status_prestador === 'TESTE' ? '<span style="color:var(--cobli-red); font-size:0.7rem;">[TESTE]</span>' : ''}</div>
                 <div style="font-size: 0.7rem; color: var(--muted); font-weight: 700; background: var(--bg); padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border);">📍 ${p.cidade}/${p.uf}</div>
             </div>
             <div style="font-size: 0.84rem; color: var(--text); margin-bottom: 4px; width: 100%;">👤 <strong>Contato:</strong> ${p.responsavel || '-'} | 📞 ${p.contato || '-'}</div>
-            <div style="font-size: 0.7rem; color: var(--muted); border-top: 1px dashed var(--border); padding-top: 6px; margin-top: 6px; width: 100%; font-family: var(--font-mono);">👥 ${p.qtdtecnicos} técnico(s) | 📏 Raio: ${p.range}km</div>
+            <div style="font-size: 0.7rem; color: var(--muted); border-top: 1px dashed var(--border); padding-top: 6px; margin-top: 6px; width: 100%; font-family: var(--font-mono);">👥 ${p.qtdtecnicos} técnico(s) | ${coberturaDisplay}</div>
         </div>`; 
     }).join(''); 
     if(userRole === 'ADMIN') document.getElementById("btn-novo-container").innerHTML = '';
@@ -4254,39 +4563,28 @@ window.renderizarListaPrestadores = function(){
 window.abrirOpcoesPrestador = function(i) {
     if(userRole !== 'GESTOR') return window.abrirDetalhesPrestador(i); 
     const p = prestadores[i];
+    let coberturaDisplay = p.modo_cobertura === 'POLIGONO' ? '🗺️ Área Delimitada' : `📏 Raio: ${p.range || '-'} km`;
     
     let html = `
     <div style="padding-bottom: 5px;">
-        <div style="font-size: 1.2rem; font-weight: 800; color: var(--cobli-dark); margin-bottom: 20px;">
-            ${p.nome}
-        </div>
-        
+        <div style="font-size: 1.2rem; font-weight: 800; color: var(--cobli-dark); margin-bottom: 20px;">${p.nome}</div>
         <div style="display: flex; flex-direction: column; gap: 10px;">
-            <button onclick="window.fecharModal(); window.abrirDetalhesPrestador(${i})" style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: 100%; padding: 16px 20px; background: var(--bg); color: var(--cobli-dark); border: 1px solid var(--border); border-radius: 12px; font-size: 0.95rem; font-weight: 700; box-shadow: none; min-height: auto;">
-                <span style="font-size: 1.2rem;">👁️</span> Ver Detalhes e Agenda
-            </button>
-            
-            <button onclick="window.fecharModal(); window.abrirCadastro(${i})" style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: 100%; padding: 16px 20px; background: var(--bg); color: var(--cobli-dark); border: 1px solid var(--border); border-radius: 12px; font-size: 0.95rem; font-weight: 700; box-shadow: none; min-height: auto;">
-                <span style="font-size: 1.2rem;">📝</span> Editar Cadastro
-            </button>
-            
-            <button onclick="window.fecharModal(); window.excluirPrestador(${i})" style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: 100%; padding: 16px 20px; background: #fff5f5; color: var(--cobli-red); border: 1px solid #fecaca; border-radius: 12px; font-size: 0.95rem; font-weight: 700; box-shadow: none; min-height: auto;">
-                <span style="font-size: 1.2rem;">❌</span> Excluir Prestador
-            </button>
+            <button onclick="window.fecharModal(); window.abrirDetalhesPrestador(${i})" style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: 100%; padding: 16px 20px; background: var(--bg); color: var(--cobli-dark); border: 1px solid var(--border); border-radius: 12px; font-size: 0.95rem; font-weight: 700; box-shadow: none; min-height: auto;"><span style="font-size: 1.2rem;">👁️</span> Ver Detalhes e Agenda</button>
+            <button onclick="window.fecharModal(); window.abrirCadastro(${i})" style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: 100%; padding: 16px 20px; background: var(--bg); color: var(--cobli-dark); border: 1px solid var(--border); border-radius: 12px; font-size: 0.95rem; font-weight: 700; box-shadow: none; min-height: auto;"><span style="font-size: 1.2rem;">📝</span> Editar Cadastro</button>
+            <button onclick="window.fecharModal(); window.excluirPrestador(${i})" style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: 100%; padding: 16px 20px; background: #fff5f5; color: var(--cobli-red); border: 1px solid #fecaca; border-radius: 12px; font-size: 0.95rem; font-weight: 700; box-shadow: none; min-height: auto;"><span style="font-size: 1.2rem;">❌</span> Excluir Prestador</button>
         </div>
-        
         <div style="margin-top: 24px; display: flex; justify-content: flex-end; border-top: 1px solid var(--bg); padding-top: 16px;">
             <button onclick="window.fecharModal()" style="background: transparent; color: var(--muted); border: none; font-size: 0.9rem; font-weight: 700; box-shadow: none; padding: 10px 20px; min-height: auto;">Cancelar</button>
         </div>
     </div>`;
-    
     window.exibirModal("Ações do Prestador", html);
 };
 
 window.abrirDetalhesPrestador = function(index) { 
     let p = prestadores[index]; let agendaHtml = '';  
     let qtd = parseInt(p.qtdtecnicos) || 1;
-    let temTecnicos = p.agenda && p.agenda.some(a => a.tecnico);
+    if (!Array.isArray(p.agenda)) p.agenda = [];
+    let temTecnicos = p.agenda.some(a => a.tecnico);
     if (temTecnicos || qtd > 1) {
         agendaHtml += '<div style="display:flex; gap:5px; margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:10px; overflow-x:auto;">';
         for (let t = 1; t <= qtd; t++) { let nomeTab = window.getNomeTecnico(p, t); agendaHtml += `<button onclick="window.mudarAbaModalTecnico(${t}, ${qtd})" id="btn-mod-tec-${t}" style="padding:6px 12px; border:none; border-radius:4px; font-weight:700; cursor:pointer; background:${t===1?'var(--primary)':'var(--border)'}; color:${t===1?'white':'var(--text)'}; transition:0.2s; min-height:auto;">${nomeTab}</button>`; }
@@ -4315,7 +4613,8 @@ window.abrirDetalhesPrestador = function(index) {
             ausenciasHtml += `</div></div>`;
         }
     }
-    let htmlHeader = `<div style="margin-bottom:15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;"><div style="font-weight:800; font-size:1.05rem; color:var(--primary); margin-bottom: 4px;">${p.nome} ${p.status_prestador === 'TESTE' ? '<span style="color:var(--cobli-red); font-size:0.75rem;">[TESTE]</span>' : ''}</div><div style="font-size:0.82rem; color:var(--muted);">👤 <strong>Resp:</strong> ${p.responsavel} | 📞 ${p.contato} | 📏 Raio: ${p.range} km</div></div>`;
+    let coberturaDisplay = p.modo_cobertura === 'POLIGONO' ? '🗺️ Área Delimitada' : `📏 Raio: ${p.range} km`;
+    let htmlHeader = `<div style="margin-bottom:15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;"><div style="font-weight:800; font-size:1.05rem; color:var(--primary); margin-bottom: 4px;">${p.nome} ${p.status_prestador === 'TESTE' ? '<span style="color:var(--cobli-red); font-size:0.75rem;">[TESTE]</span>' : ''}</div><div style="font-size:0.82rem; color:var(--muted);">👤 <strong>Resp:</strong> ${p.responsavel} | 📞 ${p.contato} | ${coberturaDisplay}</div></div>`;
     let htmlBotaoFechar = `<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">${userRole === 'GESTOR' ? `<button onclick="window.fecharModal(); window.abrirCadastro(${index}); setTimeout(()=>window.mudarEtapa(1), 100);" style="background:var(--cobli-red); padding: 10px 20px; min-height:auto;">➕ Bloqueio</button>` : '<div></div>'}<button onclick="window.fecharModal()" style="background:var(--primary); padding: 10px 20px; min-height:auto;">Fechar</button></div>`;
     window.exibirModal("Detalhes do Prestador", htmlHeader + agendaHtml + ausenciasHtml + htmlBotaoFechar); 
 };
@@ -4437,24 +4736,39 @@ window.abrirCadastro = function(index = -1){
     window.nomesTecnicosTemp = {}; 
     window.statusTecnicosTemp = {}; 
     
+    // Reseta mapa de desenho
+    window.limparDesenhoPoligono();
+    if(window.mapaDesenhoInstancia) window.mapaDesenhoInstancia.setCenter({ lat: -23.55052, lng: -46.633308 });
+
     if(index !== -1){ 
         let p = prestadores[index]; 
         ["nomeEmpresa","endereco","cidade","uf","cep","responsavel","contatoResponsavel","usuarioApex","qtdTecnicos","rangeAtendimento","fieldIdField"].forEach(id => { let el = document.getElementById(id); if(el && p[{nomeEmpresa:'nome',endereco:'endereco',cidade:'cidade',uf:'uf',cep:'cep',responsavel:'responsavel',contatoResponsavel:'contato',usuarioApex:'usuario_apex',qtdTecnicos:'qtdtecnicos',rangeAtendimento:'range',fieldIdField:'field_id'}[id]] !== undefined) el.value = p[{nomeEmpresa:'nome',endereco:'endereco',cidade:'cidade',uf:'uf',cep:'cep',responsavel:'responsavel',contatoResponsavel:'contato',usuarioApex:'usuario_apex',qtdTecnicos:'qtdtecnicos',rangeAtendimento:'range',fieldIdField:'field_id'}[id]] || ''; });
         document.getElementById("usuarioApex").value = p.usuario_apex || "";
         document.getElementById("statusPrestador").value = p.status_prestador || "PRODUCAO"; 
-        let qtd = parseInt(p.qtdtecnicos) || 1;
         
-        if (p.nomes_tecnicos && typeof p.nomes_tecnicos === 'object') {
-            for (let t = 1; t <= qtd; t++) {
-                window.nomesTecnicosTemp[t] = p.nomes_tecnicos[t] || '';
-                window.statusTecnicosTemp[t] = window.isTecnicoAtivo(p, t);
+        // 👇 CARREGAR MODO DE COBERTURA 👇
+        let modo = p.modo_cobertura || 'RAIO';
+        let rdb = document.querySelector(`input[name="modoCobertura"][value="${modo}"]`);
+        if (rdb) rdb.checked = true;
+        
+        window.toggleModoCobertura().then(() => {
+            if (modo === 'POLIGONO' && p.area_poligono && p.area_poligono.length > 0) {
+                window.poligonoAtual = new google.maps.Polygon({ paths: p.area_poligono, fillColor: '#001BB8', fillOpacity: 0.25, strokeWeight: 2, strokeColor: '#001BB8', editable: true, map: window.mapaDesenhoInstancia });
+                if(window.drawingManager) window.drawingManager.setDrawingMode(null);
+                let bounds = new google.maps.LatLngBounds();
+                p.area_poligono.forEach(coord => bounds.extend(coord));
+                window.mapaDesenhoInstancia.fitBounds(bounds);
             }
-        } else {
-            for (let t = 1; t <= qtd; t++) window.statusTecnicosTemp[t] = true;
-        }
+        });
+        
+        let qtd = parseInt(p.qtdtecnicos) || 1;
+        if (p.nomes_tecnicos && typeof p.nomes_tecnicos === 'object') {
+            for (let t = 1; t <= qtd; t++) { window.nomesTecnicosTemp[t] = p.nomes_tecnicos[t] || ''; window.statusTecnicosTemp[t] = window.isTecnicoAtivo(p, t); }
+        } else { for (let t = 1; t <= qtd; t++) window.statusTecnicosTemp[t] = true; }
 
-        for(let i=1; i<=qtd; i++) window.agendaCadastroObj[i] = [];
-        if(p.agenda) { 
+      for(let i=1; i<=qtd; i++) window.agendaCadastroObj[i] = [];
+        if (!Array.isArray(p.agenda)) p.agenda = []; // 👈 Trava de segurança
+        if(p.agenda.length > 0) { 
             p.agenda.forEach(item => {
                 if (item.isAbsence) return;
                 if (item.tecnico) { if (!window.agendaCadastroObj[item.tecnico]) window.agendaCadastroObj[item.tecnico] = []; window.agendaCadastroObj[item.tecnico].push(`${item.dia}-${item.hora}`); }
@@ -4465,9 +4779,10 @@ window.abrirCadastro = function(index = -1){
             window.renderizarDatasBloqueadas();
         } 
     } else { 
-        document.querySelectorAll('#etapa-1 input').forEach(i => i.value = ""); 
+        document.querySelectorAll('#etapa-1 input:not([type="radio"])').forEach(i => i.value = ""); 
         document.getElementById("statusPrestador").value = "PRODUCAO"; 
         document.getElementById("qtdTecnicos").value = "1";
+        document.querySelector('input[name="modoCobertura"][value="RAIO"]').checked = true; window.toggleModoCobertura();
         window.statusTecnicosTemp[1] = true;
         datasBloqueadasTemp = []; window.renderizarDatasBloqueadas(); 
     }
@@ -4545,6 +4860,19 @@ window.renderizarDatasBloqueadas = function() {
 window.salvarPrestador = async function(btn) { 
     const originalText = btn.innerText; btn.innerText = "Salvando..."; btn.disabled = true; 
     try { 
+        let modoAtivo = document.querySelector('input[name="modoCobertura"]:checked').value;
+        if(modoAtivo === 'RAIO' && !document.getElementById('rangeAtendimento').value) return window.showMessage("Informe o Raio em Km.");
+        
+        let areaPoligonoArr = null;
+        if (modoAtivo === 'POLIGONO') {
+            if(!window.poligonoAtual) return window.showMessage("Você escolheu Área Delimitada, mas não desenhou no mapa!");
+            const path = window.poligonoAtual.getPath();
+            areaPoligonoArr = [];
+            for (let i = 0; i < path.getLength(); i++) {
+                areaPoligonoArr.push({ lat: path.getAt(i).lat(), lng: path.getAt(i).lng() });
+            }
+        }
+
         if(!window.validarCampos('#etapa-1')) return window.showMessage("Campos obrigatórios não preenchidos!");
         window.saveCurrentTechGrid();
         let agenda = []; let maxT = parseInt(document.getElementById("qtdTecnicos").value) || 1;
@@ -4558,7 +4886,16 @@ window.salvarPrestador = async function(btn) {
         }
 
         let usuarioApexRaw = document.getElementById("usuarioApex").value.toLowerCase().replace(/\s/g, '');
-        let p = { nome: document.getElementById("nomeEmpresa").value, endereco: document.getElementById("endereco").value, cidade: document.getElementById("cidade").value, uf: document.getElementById("uf").value, cep: document.getElementById("cep").value, responsavel: document.getElementById("responsavel").value, contato: document.getElementById("contatoResponsavel").value, usuario_apex: usuarioApexRaw, qtdtecnicos: maxT, range: document.getElementById("rangeAtendimento").value, field_id: document.getElementById("fieldIdField").value, status_prestador: document.getElementById("statusPrestador").value, agenda: agenda, nomes_tecnicos: nomesTecnicos }; 
+        let p = { 
+            nome: document.getElementById("nomeEmpresa").value, endereco: document.getElementById("endereco").value, 
+            cidade: document.getElementById("cidade").value, uf: document.getElementById("uf").value, 
+            cep: document.getElementById("cep").value, responsavel: document.getElementById("responsavel").value, 
+            contato: document.getElementById("contatoResponsavel").value, usuario_apex: usuarioApexRaw, 
+            qtdtecnicos: maxT, range: document.getElementById("rangeAtendimento").value || 0, 
+            field_id: document.getElementById("fieldIdField").value, status_prestador: document.getElementById("statusPrestador").value, 
+            agenda: agenda, nomes_tecnicos: nomesTecnicos,
+            modo_cobertura: modoAtivo, area_poligono: areaPoligonoArr // 👇 INSERIDOS AQUI!
+        }; 
         const url = (editingIndex !== -1) ? `${API_URL}/prestadores/${prestadores[editingIndex].id}` : `${API_URL}/prestadores`; 
         await fetch(url, { method: (editingIndex !== -1) ? 'PUT' : 'POST', headers: getHeaders(), body: JSON.stringify(p) }); 
         editingIndex = -1; await window.carregarDadosDoBanco(); 
@@ -4633,7 +4970,8 @@ window.getOcupacaoReal = function(prestador, dataStr, dNome) {
     if (!prestador) return { geral: { total: 0, ocupadas: 0, livres: 0, pct: 0 }, tecnicos: {} };
     
     let maxT = parseInt(prestador.qtdtecnicos) || 1;
-    let tem_tecnico_especifico = prestador.agenda && prestador.agenda.some(a => a.tecnico);
+    if (!Array.isArray(prestador.agenda)) prestador.agenda = [];
+    let tem_tecnico_especifico = prestador.agenda.some(a => a.tecnico);
 
     let dataStrPad = dataStr.split('/').map(x => x.padStart(2, '0')).join('/');
 
