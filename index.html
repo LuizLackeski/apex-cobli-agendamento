@@ -3521,7 +3521,7 @@ window.plotarAgendamentosNoMapa = async function() {
 // RASTREADOR DE INATIVIDADE (AUTO-LOGOUT)
 // ==========================================
 window.inactivityTimer = null;
-const TEMPO_LIMITE_INATIVIDADE = 3 * 60 * 60 * 1000; // 4 horas (em milissegundos)
+const TEMPO_LIMITE_INATIVIDADE = 2 * 60 * 60 * 1000; //2 horas (em milissegundos)
 
 window.resetInactivityTimer = function() {
     clearTimeout(window.inactivityTimer);
