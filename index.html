@@ -3518,29 +3518,56 @@ window.plotarAgendamentosNoMapa = async function() {
 };
             
 // ==========================================
-// RASTREADOR DE INATIVIDADE (AUTO-LOGOUT)
+// RASTREADOR DE INATIVIDADE (AUTO-LOGOUT) BLINDADO
 // ==========================================
-window.inactivityTimer = null;
-const TEMPO_LIMITE_INATIVIDADE = 2 * 60 * 60 * 1000; //2 horas (em milissegundos)
+const TEMPO_LIMITE_INATIVIDADE = 1000; // 3 horas em milissegundos
 
-window.resetInactivityTimer = function() {
-    clearTimeout(window.inactivityTimer);
-    window.inactivityTimer = setTimeout(() => {
-        // Quando o tempo acabar, avisa e desloga
-        window.showToast("Sessão expirada por inatividade. Deslogando...");
-        setTimeout(() => {
-            if (window.handleLogout) window.handleLogout();
-        }, 2000);
-    }, TEMPO_LIMITE_INATIVIDADE);
+window.atualizarTempoAtividade = function() {
+    // Grava o milissegundo exato da última ação do usuário na memória do navegador
+    localStorage.setItem('apex_last_activity', Date.now().toString());
+};
+
+window.verificarInatividade = function() {
+    const lastActivity = localStorage.getItem('apex_last_activity');
+    if (lastActivity) {
+        const tempoPassado = Date.now() - parseInt(lastActivity, 10);
+        
+        // Se o tempo passado for maior que o limite, desloga sumariamente
+        if (tempoPassado >= TEMPO_LIMITE_INATIVIDADE) {
+            localStorage.removeItem('apex_last_activity'); // Limpa para não travar num loop
+            window.showToast("Sessão expirada por inatividade. Deslogando...");
+            setTimeout(() => {
+                if (window.handleLogout) window.handleLogout();
+            }, 2000);
+        }
+    }
 };
 
 window.startInactivityTracker = function() {
-    // Escuta qualquer interação do usuário para zerar o cronômetro
-    ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'].forEach(evt => {
-        document.addEventListener(evt, window.resetInactivityTimer, { passive: true });
+    window.atualizarTempoAtividade(); // Registra o minuto inicial
+    
+    let throttleTimer = false;
+    // Escuta as interações do usuário. Para não sobrecarregar o PC gravando a cada 
+    // milímetro que o mouse anda, ele carimba a memória no máximo a cada 5 segundos.
+    ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart', 'click'].forEach(evt => {
+        document.addEventListener(evt, () => {
+            if (!throttleTimer) {
+                throttleTimer = true;
+                window.atualizarTempoAtividade();
+                setTimeout(() => { throttleTimer = false; }, 5000);
+            }
+        }, { passive: true });
     });
-    // Inicia a primeira contagem
-    window.resetInactivityTimer();
+
+    // Trava de segurança 1: Checa a inatividade a cada minuto
+    setInterval(window.verificarInatividade, 60000);
+    
+    // Trava de segurança 2: Checa no EXATO momento em que o usuário troca de aba ou acorda o PC
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            window.verificarInatividade();
+        }
+    });
 };
             
 async function checkSession() {
