@@ -2147,6 +2147,77 @@ function injetarTopbarIntegrations() {
 
 })();
 </script>
+
+         <style>
+    /* 1. CABEÇALHOS DAS TELAS (O "Tchan" do sistema)
+       Transforma os títulos normais (h2) dentro dos cards em headers embutidos maravilhosos */
+    .conteudo .card h2 {
+        display: flex !important;
+        align-items: center !important;
+        background: linear-gradient(to right, #f8fafc, #ffffff) !important;
+        padding: 16px 24px !important;
+        /* Estica o cabeçalho para ignorar o padding interno do card e colar nas bordas */
+        margin: -24px -28px 24px -28px !important; 
+        border-bottom: 1px solid #e2e8f0 !important;
+        border-top-left-radius: 14px !important;
+        border-top-right-radius: 14px !important;
+        font-size: 1.1rem !important;
+        color: var(--cobli-dark) !important;
+        letter-spacing: -0.3px !important;
+        text-transform: none !important;
+        font-weight: 800 !important;
+    }
+    
+    /* Detalhe visual: Barrinha vertical colorida ao lado do título */
+    .conteudo .card h2::before {
+        content: '';
+        display: inline-block;
+        width: 6px;
+        height: 22px;
+        background: linear-gradient(180deg, var(--primary), var(--cobli-green));
+        border-radius: 4px;
+        margin-right: 14px;
+        box-shadow: 0 2px 6px rgba(0, 174, 151, 0.4);
+    }
+
+    /* 2. O BANNER DA HOME (Ainda mais Premium e Profundo) */
+    .home-welcome-bar {
+        background: linear-gradient(135deg, #07074E 0%, #001BB8 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 12px 35px rgba(0, 27, 184, 0.2) !important;
+        border-radius: 20px !important;
+    }
+    
+    /* A tag de data com efeito Glassmorphism (Vidro Fosco) */
+    .home-welcome-bar .welcome-date {
+        background: rgba(255, 255, 255, 0.08) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        color: #1affda !important; /* Verde água brilhante para contraste */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    /* 3. BOTÕES PRINCIPAIS COM GLOW (Brilho) */
+    .home-action-btn.primary-action,
+    button[style*="background:var(--cobli-green)"],
+    button[style*="background: var(--cobli-green)"] {
+        background: linear-gradient(135deg, #001BB8 0%, #00AE97 100%) !important;
+        border: none !important;
+        color: white !important;
+        font-weight: 800 !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+        box-shadow: 0 6px 16px rgba(0, 174, 151, 0.25) !important;
+    }
+    .home-action-btn.primary-action:hover,
+    button[style*="background:var(--cobli-green)"]:hover {
+        box-shadow: 0 8px 25px rgba(0, 174, 151, 0.4) !important;
+        transform: translateY(-2px) scale(1.01) !important;
+        filter: brightness(1.1) !important;
+    }
+
+</style>
+    
 </head>
 <body>
 
