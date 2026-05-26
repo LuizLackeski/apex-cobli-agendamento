@@ -3517,48 +3517,6 @@ window.plotarAgendamentosNoMapa = async function() {
     if(btn) { btn.innerText = "Atualizar Mapa"; btn.disabled = false; }
 };
             
-// ==========================================
-// RASTREADOR DE INATIVIDADE (AUTO-LOGOUT) BLINDADO
-// ==========================================
-const TEMPO_LIMITE_INATIVIDADE = 11000; // 3 horas em milissegundos
-
-window.atualizarTempoAtividade = function() {
-    // Grava o milissegundo exato da última ação do usuário na memória do navegador
-    localStorage.setItem('apex_last_activity', Date.now().toString());
-};
-
-window.verificarInatividade = function() {
-    const lastActivity = localStorage.getItem('apex_last_activity');
-    if (lastActivity) {
-        const tempoPassado = Date.now() - parseInt(lastActivity, 10);
-        
-        // Se o tempo passado for maior que o limite, desloga sumariamente
-        if (tempoPassado >= TEMPO_LIMITE_INATIVIDADE) {
-            localStorage.removeItem('apex_last_activity'); // Limpa para não travar num loop
-            window.showToast("Sessão expirada por inatividade. Deslogando...");
-            setTimeout(() => {
-                if (window.handleLogout) window.handleLogout();
-            }, 2000);
-        }
-    }
-};
-
-window.startInactivityTracker = function() {
-    window.atualizarTempoAtividade(); // Registra o minuto inicial
-    
-    let throttleTimer = false;
-    // Escuta as interações do usuário. Para não sobrecarregar o PC gravando a cada 
-    // milímetro que o mouse anda, ele carimba a memória no máximo a cada 5 segundos.
-    ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart', 'click'].forEach(evt => {
-        document.addEventListener(evt, () => {
-            if (!throttleTimer) {
-                throttleTimer = true;
-                window.atualizarTempoAtividade();
-                setTimeout(() => { throttleTimer = false; }, 5000);
-            }
-        }, { passive: true });
-    });
-
     // Trava de segurança 1: Checa a inatividade a cada minuto
     setInterval(window.verificarInatividade, 10000);
     
