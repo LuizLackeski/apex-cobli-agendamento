@@ -3520,7 +3520,7 @@ window.plotarAgendamentosNoMapa = async function() {
 // ==========================================
 // RASTREADOR DE INATIVIDADE (AUTO-LOGOUT) BLINDADO
 // ==========================================
-const TEMPO_LIMITE_INATIVIDADE = 10000; // 3 horas em milissegundos
+const TEMPO_LIMITE_INATIVIDADE = 11000; // 3 horas em milissegundos
 
 window.atualizarTempoAtividade = function() {
     // Grava o milissegundo exato da última ação do usuário na memória do navegador
@@ -3560,7 +3560,7 @@ window.startInactivityTracker = function() {
     });
 
     // Trava de segurança 1: Checa a inatividade a cada minuto
-    setInterval(window.verificarInatividade, 60000);
+    setInterval(window.verificarInatividade, 10000);
     
     // Trava de segurança 2: Checa no EXATO momento em que o usuário troca de aba ou acorda o PC
     document.addEventListener('visibilitychange', () => {
