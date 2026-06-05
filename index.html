@@ -3813,25 +3813,41 @@ window.resetInactivityTimer = function() {
 };
 
 window.startInactivityTracker = function() {
-    if (window._inactivityTrackerAtivo) return; // evita múltiplos listeners
+    if (window._inactivityTrackerAtivo) return;
     window._inactivityTrackerAtivo = true;
+
+    // Registra quando o usuário saiu da aba
+    let _backgroundSince = null;
 
     const eventos = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
     eventos.forEach(evt => {
         document.addEventListener(evt, window.resetInactivityTimer, { passive: true });
     });
 
-    // Pausa o timer quando a aba fica em background, retoma quando volta
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
+            // Verifica se ficou tempo demais em background
+            if (_backgroundSince !== null) {
+                const ausente = Date.now() - _backgroundSince;
+                if (ausente >= TEMPO_LIMITE_INATIVIDADE) {
+                    // Tempo expirou enquanto estava em outra aba
+                    if (typeof window.handleLogout === 'function') {
+                        window.showToast('⏱️ Sessão expirada por inatividade. Saindo...');
+                        setTimeout(() => window.handleLogout(), 2000);
+                        return;
+                    }
+                }
+                _backgroundSince = null;
+            }
             window.resetInactivityTimer();
         } else {
-            // Aba em background: cancela o timer de aviso mas mantém o de logout
+            // Indo para background: cancela avisos e registra quando saiu
             clearTimeout(window._inactivityWarningTimer);
+            _backgroundSince = Date.now();
         }
     });
 
-    window.resetInactivityTimer(); // inicia a contagem
+    window.resetInactivityTimer();
 };
             
 async function checkSession() {
