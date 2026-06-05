@@ -3766,7 +3766,6 @@ window.plotarAgendamentosNoMapa = async function() {
     if(btn) { btn.innerText = "Atualizar Mapa"; btn.disabled = false; }
 };
             
-// ==========================================
 // RASTREADOR DE INATIVIDADE (AUTO-LOGOUT) — CORRIGIDO
 // ==========================================
 window.inactivityTimer = null;
@@ -3870,7 +3869,54 @@ async function checkSession() {
         console.log("📡 Conectando ao Realtime...");
         supabaseClient.channel('mudancas-agendamentos').on('postgres_changes', { event: '*', schema: 'public', table: 'agendamentos' }, (payload) => { console.log('🚨 BD mudou! Atualizando...', payload); window.carregarDadosDoBanco(); }).subscribe();
         
-        window.startInactivityTracker();
+window.startInactivityTracker();
+
+// ── Logout ao fechar a aba ──────────────────────────
+// sessionStorage sobrevive a reloads mas morre ao fechar a aba
+const JAH_TINHA_SESSAO = sessionStorage.getItem('apex_sessao_ativa');
+
+if (!JAH_TINHA_SESSAO) {
+    // Primeira carga desta aba (não é reload) — verifica se veio de fechamento
+    const logoutPending = localStorage.getItem('apex_logout_pending');
+    if (logoutPending) {
+        const tempoDecorrido = Date.now() - parseInt(logoutPending);
+        localStorage.removeItem('apex_logout_pending');
+        if (tempoDecorrido < 60000) {
+            await supabaseClient.auth.signOut();
+            window.location.reload();
+            return;
+        }
+    }
+}
+
+// Marca sessão ativa (persiste em reloads, some ao fechar aba)
+sessionStorage.setItem('apex_sessao_ativa', '1');
+localStorage.removeItem('apex_logout_pending');
+
+// Só grava o pending quando a aba for fechada de verdade
+// unload não dispara em reloads no mobile, mas dispara ao fechar
+window.addEventListener('unload', () => {
+    // Se sessionStorage ainda existe, é reload — não marca logout
+    // Se a aba está fechando, sessionStorage já foi limpo antes deste evento
+    // Usamos uma flag de "reload em andamento" para distinguir
+});
+
+// A distinção real: beforeunload + flag de reload
+let isReloading = false;
+window.addEventListener('beforeunload', () => {
+    isReloading = true;
+    // Agenda a gravação, mas cancela se for reload
+    setTimeout(() => { isReloading = false; }, 0);
+});
+
+// pagehide é mais confiável que unload
+window.addEventListener('pagehide', () => {
+    if (!isReloading) {
+        localStorage.setItem('apex_logout_pending', Date.now().toString());
+    }
+});
+// ────────────────────────────────────────────────────
+
     } else {
         document.getElementById('auth-overlay').style.display = 'flex';
         document.body.style.display = 'block'; 
