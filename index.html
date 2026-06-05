@@ -926,23 +926,61 @@
         #tabs-tecnicos { flex-wrap: wrap; align-items: flex-start; }
         .input-nome-tecnico:focus { border-color: var(--primary) !important; outline: none; box-shadow: 0 0 0 2px rgba(0,27,184,0.12); }
         
-        /* ============================================================
-           TABELAS
+       /* ============================================================
+           TABELAS (Modernizadas)
         ============================================================ */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .table-container {
+            max-height: 480px;
+            overflow-y: auto;
+            border-radius: var(--radius); /* Curvatura igual à dos cards */
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm); /* Sombra sutil para destacar */
+            background: #ffffff;
+        }
+        
+        /* Estiliza a barrinha de rolagem apenas da tabela */
+        .table-container::-webkit-scrollbar { width: 6px; height: 6px; }
+        .table-container::-webkit-scrollbar-track { background: var(--bg); border-radius: 6px; }
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+
+        table { width: 100%; border-collapse: collapse; margin: 0; }
+        
         th { 
             text-align: left; 
-            background: var(--bg); 
-            padding: 12px 14px; 
-            font-size: 0.68rem; 
+            background: #f8fafc; /* Fundo cinza bem clarinho no cabeçalho */
+            padding: 14px 18px; 
+            font-size: 0.7rem; 
             color: var(--muted); 
             text-transform: uppercase; 
-            letter-spacing: 0.7px;
-            font-weight: 700;
+            letter-spacing: 0.8px;
+            font-weight: 800;
             border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
-        td { padding: 12px 14px; border-bottom: 1px solid var(--bg); font-size: 0.88rem; }
-        tr:hover td { background: var(--bg); }
+        
+        td { 
+            padding: 14px 18px; 
+            border-bottom: 1px solid var(--bg); 
+            font-size: 0.85rem; 
+            transition: background-color 0.15s ease; /* Animação suave */
+        }
+        
+        /* Efeito Zebra: Linhas pares ganham um fundo cinza quase imperceptível */
+        tbody tr:nth-child(even) td {
+            background-color: #fbfcfd;
+        }
+        
+        /* Efeito Hover: Passou o mouse, acende com o azul da marca bem fraquinho */
+        tbody tr:hover td { 
+            background-color: rgba(0, 27, 184, 0.03); 
+        }
+        
+        /* Limpeza: Remove a linha extra da última row para encaixar no border-radius */
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
         
         /* ============================================================
            BADGES
@@ -2920,7 +2958,7 @@ function injetarTopbarIntegrations() {
                     </div>
                 </div>
 
-                <div style="max-height:480px; overflow-y:auto; border-radius:var(--radius-sm); border:1px solid var(--border);">
+            <div style="max-height:480px; overflow-y:auto; border-radius:var(--radius-sm); border:1px solid var(--border);">
                     <table style="width:100%; border-collapse:collapse;">
                     <thead style="position:sticky;top:0;z-index:1;background:var(--cobli-dark);">
                             <tr>
@@ -2932,9 +2970,7 @@ function injetarTopbarIntegrations() {
                         </thead>
                         <tbody id="tabela-usuarios-body"></tbody>
                     </table>
-                </div>
-            </div>
-        </div>
+                </div>>
         
         <div id="disponibilidade" class="aba">
             <div class="page-header">
