@@ -3370,14 +3370,13 @@ window.authAction = async function(type) {
             }
             
             // Salva no banco com a lógica corrigida
-await supabaseClient.from('perfis_usuarios').update({
-    penultimo_login: novoPenultimo,
-    ultimo_login: agora
-}).eq('id', userId);
+            await supabaseClient.from('perfis_usuarios').update({
+                penultimo_login: novoPenultimo,
+                ultimo_login: agora
+            }).eq('id', userId);
+            // 👆 FIM DA MÁGICA 👆
 
-await new Promise(r => setTimeout(r, 300));
-sessionStorage.setItem('apex_era_reload', '1'); // ← adiciona esta linha
-window.location.reload();
+            window.location.reload(); 
         }
     } else if (type === 'reset') {
         const email = document.getElementById('reset-email').value;
@@ -3890,30 +3889,46 @@ async function checkSession() {
 window.startInactivityTracker();
 
 // ── Logout ao fechar a aba ──────────────────────────
-// sessionStorage morre ao fechar a aba, mas SOBREVIVE a reloads
-// Usamos isso para distinguir "fechou a aba" de "atualizou a página"
+// sessionStorage sobrevive a reloads mas morre ao fechar a aba
+const JAH_TINHA_SESSAO = sessionStorage.getItem('apex_sessao_ativa');
 
-const eraReload = sessionStorage.getItem('apex_era_reload');
-const logoutPending = localStorage.getItem('apex_logout_pending');
-
-if (logoutPending && !eraReload) {
-    // Tinha pending E não veio de um reload → era fechamento real
-    const tempoDecorrido = Date.now() - parseInt(logoutPending);
-    localStorage.removeItem('apex_logout_pending');
-    if (tempoDecorrido < 300000) {
-        await supabaseClient.auth.signOut();
-        window.location.reload();
-        return;
+if (!JAH_TINHA_SESSAO) {
+    // Primeira carga desta aba (não é reload) — verifica se veio de fechamento
+    const logoutPending = localStorage.getItem('apex_logout_pending');
+    if (logoutPending) {
+        const tempoDecorrido = Date.now() - parseInt(logoutPending);
+        localStorage.removeItem('apex_logout_pending');
+        if (tempoDecorrido < 60000) {
+            await supabaseClient.auth.signOut();
+            window.location.reload();
+            return;
+        }
     }
 }
 
-// Limpa a flag de reload (já foi usada acima)
-sessionStorage.removeItem('apex_era_reload');
+// Marca sessão ativa (persiste em reloads, some ao fechar aba)
+sessionStorage.setItem('apex_sessao_ativa', '1');
 localStorage.removeItem('apex_logout_pending');
 
-// Ao fechar a aba, grava o pending (pagehide sem persisted)
-window.addEventListener('pagehide', (e) => {
-    if (!e.persisted) {
+// Só grava o pending quando a aba for fechada de verdade
+// unload não dispara em reloads no mobile, mas dispara ao fechar
+window.addEventListener('unload', () => {
+    // Se sessionStorage ainda existe, é reload — não marca logout
+    // Se a aba está fechando, sessionStorage já foi limpo antes deste evento
+    // Usamos uma flag de "reload em andamento" para distinguir
+});
+
+// A distinção real: beforeunload + flag de reload
+let isReloading = false;
+window.addEventListener('beforeunload', () => {
+    isReloading = true;
+    // Agenda a gravação, mas cancela se for reload
+    setTimeout(() => { isReloading = false; }, 0);
+});
+
+// pagehide é mais confiável que unload
+window.addEventListener('pagehide', () => {
+    if (!isReloading) {
         localStorage.setItem('apex_logout_pending', Date.now().toString());
     }
 });
@@ -3984,7 +3999,6 @@ async function definirPermissoes(email, uid) {
     }
     window.handleLogout = async function() {
     await supabaseClient.auth.signOut();
-    sessionStorage.setItem('apex_era_reload', '1'); // ← adiciona esta linha
     window.location.reload();
     } 
 }
