@@ -3783,48 +3783,31 @@ window.plotarAgendamentosNoMapa = async function() {
     if(btn) { btn.innerText = "Atualizar Mapa"; btn.disabled = false; }
 };
             
-// RASTREADOR DE INATIVIDADE (AUTO-LOGOUT) — CORRIGIDO
 // ==========================================
-window.inactivityTimer = null;
-window._inactivityWarningTimer = null;
+// RASTREADOR DE INATIVIDADE (AUTO-LOGOUT)
+// ==========================================
 const TEMPO_LIMITE_INATIVIDADE = 2 * 60 * 60 * 1000; // 2 horas
-const TEMPO_AVISO_ANTES       = 60 * 1000;            // avisa 1 min antes
+const TEMPO_AVISO_ANTES        = 60 * 1000;           // avisa 1 min antes
+
+window._inactivityTimers = { aviso: null, logout: null };
 
 window.resetInactivityTimer = function() {
-    clearTimeout(window.inactivityTimer);
-    clearTimeout(window._inactivityWarningTimer);
+    clearTimeout(window._inactivityTimers.aviso);
+    clearTimeout(window._inactivityTimers.logout);
 
-    // Aviso 1 minuto antes
-    window._inactivityWarningTimer = setTimeout(() => {
-        window.showToast("⚠️ Sessão expira em 1 minuto por inatividade...");
+    window._inactivityTimers.aviso = setTimeout(() => {
+        window.showToast('⚠️ Sessão expira em 1 minuto por inatividade...');
     }, TEMPO_LIMITE_INATIVIDADE - TEMPO_AVISO_ANTES);
 
-    // Logout ao atingir o limite
-    window.inactivityTimer = setTimeout(async () => {
-        // Garante que handleLogout existe antes de chamar
-        if (typeof window.handleLogout === 'function') {
-            // Mostra aviso na tela (não usa toast pois página vai recarregar)
-            const aviso = document.createElement('div');
-            aviso.style.cssText = `
-                position: fixed; top: 50%; left: 50%;
-                transform: translate(-50%, -50%);
-                background: #07074E; color: #00AE97;
-                padding: 18px 32px; border-radius: 12px;
-                font-weight: 700; font-size: 1rem;
-                border-left: 4px solid #00AE97;
-                box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-                z-index: 999999; font-family: 'DM Sans', sans-serif;
-                letter-spacing: 0.3px;
-            `;
-            aviso.textContent = '⏱️ Sessão expirada por inatividade. Saindo...';
-            document.body.appendChild(aviso);
-
-            setTimeout(() => window.handleLogout(), 2500);
-        } else {
-            // Fallback: signOut direto + reload
-            await supabaseClient.auth.signOut();
-            window.location.reload();
-        }
+    window._inactivityTimers.logout = setTimeout(async () => {
+        const aviso = document.createElement('div');
+        aviso.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#07074E;color:#00AE97;padding:18px 32px;border-radius:12px;font-weight:700;font-size:1rem;border-left:4px solid #00AE97;box-shadow:0 12px 40px rgba(0,0,0,0.5);z-index:999999;font-family:"DM Sans",sans-serif;letter-spacing:0.3px;';
+        aviso.textContent = '⏱️ Sessão expirada por inatividade. Saindo...';
+        document.body.appendChild(aviso);
+        setTimeout(() => {
+            if (typeof window.handleLogout === 'function') window.handleLogout();
+            else supabaseClient.auth.signOut().then(() => window.location.reload());
+        }, 2500);
     }, TEMPO_LIMITE_INATIVIDADE);
 };
 
@@ -3832,38 +3815,37 @@ window.startInactivityTracker = function() {
     if (window._inactivityTrackerAtivo) return;
     window._inactivityTrackerAtivo = true;
 
-    // Registra quando o usuário saiu da aba
     let _backgroundSince = null;
 
-    const eventos = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
-    eventos.forEach(evt => {
-        document.addEventListener(evt, window.resetInactivityTimer, { passive: true });
-    });
+    ['mousemove','mousedown','keydown','scroll','touchstart','click'].forEach(evt =>
+        document.addEventListener(evt, window.resetInactivityTimer, { passive: true })
+    );
 
     document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-            // Verifica se ficou tempo demais em background
+        if (document.visibilityState === 'hidden') {
+            // Pausa os timers — não consumir enquanto aba está oculta
+            clearTimeout(window._inactivityTimers.aviso);
+            clearTimeout(window._inactivityTimers.logout);
+            _backgroundSince = Date.now();
+        } else {
+            // Voltou — verifica tempo total ausente
             if (_backgroundSince !== null) {
                 const ausente = Date.now() - _backgroundSince;
-                if (ausente >= TEMPO_LIMITE_INATIVIDADE) {
-                    // Tempo expirou enquanto estava em outra aba
-                    if (typeof window.handleLogout === 'function') {
-                        window.showToast('⏱️ Sessão expirada por inatividade. Saindo...');
-                        setTimeout(() => window.handleLogout(), 2000);
-                        return;
-                    }
-                }
                 _backgroundSince = null;
+                if (ausente >= TEMPO_LIMITE_INATIVIDADE) {
+                    window.showToast('⏱️ Sessão expirada por inatividade. Saindo...');
+                    setTimeout(() => {
+                        if (typeof window.handleLogout === 'function') window.handleLogout();
+                        else supabaseClient.auth.signOut().then(() => window.location.reload());
+                    }, 2000);
+                    return;
+                }
             }
-            window.resetInactivityTimer();
-        } else {
-            // Indo para background: cancela avisos e registra quando saiu
-            clearTimeout(window._inactivityWarningTimer);
-            _backgroundSince = Date.now();
+            window.resetInactivityTimer(); // retoma contagem normal
         }
     });
 
-    window.resetInactivityTimer();
+    window.resetInactivityTimer(); // disparo inicial
 };
             
 async function checkSession() {
@@ -3888,50 +3870,66 @@ async function checkSession() {
         
 window.startInactivityTracker();
 
-// ── Logout ao fechar a aba ──────────────────────────
-// sessionStorage sobrevive a reloads mas morre ao fechar a aba
-const JAH_TINHA_SESSAO = sessionStorage.getItem('apex_sessao_ativa');
+// ── Logout ao fechar a aba ──────────────────────────────────────────────────
+// Estratégia: sessionStorage some ao fechar aba, sobrevive a reload.
+// No pagehide, marcamos uma flag no localStorage com timestamp.
+// Na próxima carga, se sessionStorage não existe (aba foi fechada e
+// reaberta) E a flag é recente (< 30s), é fechamento real → desloga.
+// Se sessionStorage existe (reload), limpa a flag e segue normalmente.
+// sendBeacon garante que a flag seja gravada mesmo em fechamento rápido.
 
-if (!JAH_TINHA_SESSAO) {
-    // Primeira carga desta aba (não é reload) — verifica se veio de fechamento
-    const logoutPending = localStorage.getItem('apex_logout_pending');
-    if (logoutPending) {
-        const tempoDecorrido = Date.now() - parseInt(logoutPending);
-        localStorage.removeItem('apex_logout_pending');
-        if (tempoDecorrido < 60000) {
-            await supabaseClient.auth.signOut();
-            window.location.reload();
-            return;
+(function configurarLogoutAoFechar() {
+    const CHAVE_SESSAO  = 'apex_sessao_ativa';
+    const CHAVE_PENDING = 'apex_logout_pending';
+    const JANELA_MS     = 30 * 1000; // 30 segundos
+
+    const eraSessaoAtiva = sessionStorage.getItem(CHAVE_SESSAO);
+
+    if (!eraSessaoAtiva) {
+        // Nova carga sem sessionStorage → pode ser fechamento anterior
+        const pendingStr = localStorage.getItem(CHAVE_PENDING);
+        if (pendingStr) {
+            const delta = Date.now() - parseInt(pendingStr, 10);
+            localStorage.removeItem(CHAVE_PENDING);
+            if (delta < JANELA_MS) {
+                // Fechamento recente confirmado → força logout
+                supabaseClient.auth.signOut().then(() => window.location.reload());
+                return;
+            }
         }
     }
-}
 
-// Marca sessão ativa (persiste em reloads, some ao fechar aba)
-sessionStorage.setItem('apex_sessao_ativa', '1');
-localStorage.removeItem('apex_logout_pending');
+    // Marca sessão ativa para distinguir reloads futuros
+    sessionStorage.setItem(CHAVE_SESSAO, '1');
+    localStorage.removeItem(CHAVE_PENDING);
 
-// Só grava o pending quando a aba for fechada de verdade
-// unload não dispara em reloads no mobile, mas dispara ao fechar
-window.addEventListener('unload', () => {
-    // Se sessionStorage ainda existe, é reload — não marca logout
-    // Se a aba está fechando, sessionStorage já foi limpo antes deste evento
-    // Usamos uma flag de "reload em andamento" para distinguir
-});
+    // pagehide + sendBeacon: único método confiável em mobile/iOS/Chrome
+    window.addEventListener('pagehide', (e) => {
+        // e.persisted = true → bfcache (Safari/iOS): página pode voltar,
+        // não é fechamento real.
+        if (e.persisted) return;
 
-// A distinção real: beforeunload + flag de reload
-let isReloading = false;
-window.addEventListener('beforeunload', () => {
-    isReloading = true;
-    // Agenda a gravação, mas cancela se for reload
-    setTimeout(() => { isReloading = false; }, 0);
-});
+        // Grava o timestamp via sendBeacon para garantir entrega
+        // mesmo quando o processo está sendo encerrado pelo SO.
+        const payload = JSON.stringify({ t: Date.now() });
+        const blob    = new Blob([payload], { type: 'application/json' });
 
-// pagehide é mais confiável que unload
-window.addEventListener('pagehide', () => {
-    if (!isReloading) {
-        localStorage.setItem('apex_logout_pending', Date.now().toString());
-    }
-});
+        // sendBeacon não consegue gravar localStorage diretamente,
+        // então gravamos síncrono aqui — funciona porque pagehide
+        // ainda tem acesso à storage antes do processo encerrar.
+        try {
+            localStorage.setItem(CHAVE_PENDING, Date.now().toString());
+        } catch (_) {}
+
+        // Fallback beacon para o próprio domínio (ignoramos a resposta)
+        // Só serve para "manter o processo vivo" tempo suficiente
+        // para o localStorage ser gravado em alguns browsers.
+        if (navigator.sendBeacon) {
+            navigator.sendBeacon(window.location.pathname, blob);
+        }
+    });
+})();
+        
 // ────────────────────────────────────────────────────
 
     } else {
